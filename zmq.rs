@@ -4,17 +4,13 @@ Module: zmq
 
 use std;
 import std::ctypes::*;
-import std::option;
-import std::option::{none, some};
 import std::ptr;
+import std::result::{ok, err};
+import std::result;
 import std::str;
 import std::sys;
 import std::unsafe;
-import std::result;
-import std::result::{ok, err};
-import std::u64;
 import std::vec;
-import std::c_vec;
 
 #[link_name = "zmq"]
 native mod libzmq {
@@ -54,7 +50,7 @@ type zmq_ctx_t = *void;
 type zmq_socket_t = *void;
 type zmq_msg_t = *void;
 
-mod libzmq_constants {
+mod zmq_constants {
     const ZMQ_PAIR : c_int = 0i32;
     const ZMQ_PUB : c_int = 1i32;
     const ZMQ_SUB : c_int = 2i32;
@@ -123,8 +119,7 @@ mod libzmq_constants {
     const EMTHREAD : c_int = 156384712i32 + 54i32; //ZMQ_HAUSNUMERO + 54i32;
 }
 
-mod zmq {
-    tag socket_kind {
+    tag socket_kind_t {
         PAIR;
         PUB;
         SUB;
@@ -164,7 +159,7 @@ mod zmq {
     }
 
     type context_t = obj {
-        fn socket(kind: socket_kind) -> result::t<socket_t, error_t>;
+        fn socket(kind: socket_kind_t) -> result::t<socket_t, error_t>;
         fn close() -> result::t<(), error_t>;
     };
 
@@ -194,7 +189,7 @@ mod zmq {
     }
 
     obj Context(ctx: zmq_ctx_t) {
-        fn socket(kind: socket_kind) -> result::t<socket_t, error_t> unsafe {
+        fn socket(kind: socket_kind_t) -> result::t<socket_t, error_t> unsafe {
             let sock = libzmq::zmq_socket(ctx, socket_kind_to_i32(kind));
             ret if unsafe::reinterpret_cast(sock) == 0 {
                 err(errno_to_error())
@@ -359,19 +354,19 @@ mod zmq {
 
 
 
-    fn socket_kind_to_i32(k: socket_kind) -> c_int {
+    fn socket_kind_to_i32(k: socket_kind_t) -> c_int {
         alt k {
-          PAIR. { libzmq_constants::ZMQ_PAIR }
-          PUB. { libzmq_constants::ZMQ_PUB }
-          SUB. { libzmq_constants::ZMQ_SUB }
-          REQ. { libzmq_constants::ZMQ_REQ }
-          REP. { libzmq_constants::ZMQ_REP }
-          DEALER. { libzmq_constants::ZMQ_DEALER }
-          ROUTER. { libzmq_constants::ZMQ_ROUTER }
-          PULL. { libzmq_constants::ZMQ_PULL }
-          PUSH. { libzmq_constants::ZMQ_PUSH }
-          XPUB. { libzmq_constants::ZMQ_XPUB }
-          XSUB. { libzmq_constants::ZMQ_XSUB }
+          PAIR. { zmq_constants::ZMQ_PAIR }
+          PUB. { zmq_constants::ZMQ_PUB }
+          SUB. { zmq_constants::ZMQ_SUB }
+          REQ. { zmq_constants::ZMQ_REQ }
+          REP. { zmq_constants::ZMQ_REP }
+          DEALER. { zmq_constants::ZMQ_DEALER }
+          ROUTER. { zmq_constants::ZMQ_ROUTER }
+          PULL. { zmq_constants::ZMQ_PULL }
+          PUSH. { zmq_constants::ZMQ_PUSH }
+          XPUB. { zmq_constants::ZMQ_XPUB }
+          XSUB. { zmq_constants::ZMQ_XSUB }
         }
     }
 
@@ -387,104 +382,38 @@ mod zmq {
 
     fn errno_to_error() -> error_t {
         alt libzmq::zmq_errno() {
-          e when e == libzmq_constants::ENOTSUP { ENOTSUP }
-          e when e == libzmq_constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
-          e when e == libzmq_constants::ENOBUFS { ENOBUFS }
-          e when e == libzmq_constants::ENETDOWN { ENETDOWN }
-          e when e == libzmq_constants::EADDRINUSE { EADDRINUSE }
-          e when e == libzmq_constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
-          e when e == libzmq_constants::ECONNREFUSED { ECONNREFUSED }
-          e when e == libzmq_constants::EINPROGRESS { EINPROGRESS }
-          e when e == libzmq_constants::ENOTSOCK { ENOTSOCK }
-          e when e == libzmq_constants::EFSM { EFSM }
-          e when e == libzmq_constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
-          e when e == libzmq_constants::ETERM { ETERM }
-          e when e == libzmq_constants::EMTHREAD { EMTHREAD }
+          e when e == zmq_constants::ENOTSUP { ENOTSUP }
+          e when e == zmq_constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
+          e when e == zmq_constants::ENOBUFS { ENOBUFS }
+          e when e == zmq_constants::ENETDOWN { ENETDOWN }
+          e when e == zmq_constants::EADDRINUSE { EADDRINUSE }
+          e when e == zmq_constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
+          e when e == zmq_constants::ECONNREFUSED { ECONNREFUSED }
+          e when e == zmq_constants::EINPROGRESS { EINPROGRESS }
+          e when e == zmq_constants::ENOTSOCK { ENOTSOCK }
+          e when e == zmq_constants::EFSM { EFSM }
+          e when e == zmq_constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
+          e when e == zmq_constants::ETERM { ETERM }
+          e when e == zmq_constants::EMTHREAD { EMTHREAD }
           e { UNKNOWN(e) }
         }
     }
 
     fn error_to_errno(error: error_t) -> c_int {
         alt error {
-          ENOTSUP. { libzmq_constants::ENOTSUP }
-          EPROTONOSUPPORT. { libzmq_constants::EPROTONOSUPPORT }
-          ENOBUFS. { libzmq_constants::ENOBUFS }
-          ENETDOWN. { libzmq_constants::ENETDOWN }
-          EADDRINUSE. { libzmq_constants::EADDRINUSE }
-          EADDRNOTAVAIL. { libzmq_constants::EADDRNOTAVAIL }
-          ECONNREFUSED. { libzmq_constants::ECONNREFUSED }
-          EINPROGRESS. { libzmq_constants::EINPROGRESS }
-          ENOTSOCK. { libzmq_constants::ENOTSOCK }
-          EFSM. { libzmq_constants::EFSM }
-          ENOCOMPATPROTO. { libzmq_constants::ENOCOMPATPROTO }
-          ETERM. { libzmq_constants::ETERM }
-          EMTHREAD. { libzmq_constants::EMTHREAD }
+          ENOTSUP. { zmq_constants::ENOTSUP }
+          EPROTONOSUPPORT. { zmq_constants::EPROTONOSUPPORT }
+          ENOBUFS. { zmq_constants::ENOBUFS }
+          ENETDOWN. { zmq_constants::ENETDOWN }
+          EADDRINUSE. { zmq_constants::EADDRINUSE }
+          EADDRNOTAVAIL. { zmq_constants::EADDRNOTAVAIL }
+          ECONNREFUSED. { zmq_constants::ECONNREFUSED }
+          EINPROGRESS. { zmq_constants::EINPROGRESS }
+          ENOTSOCK. { zmq_constants::ENOTSOCK }
+          EFSM. { zmq_constants::EFSM }
+          ENOCOMPATPROTO. { zmq_constants::ENOCOMPATPROTO }
+          ETERM. { zmq_constants::ETERM }
+          EMTHREAD. { zmq_constants::EMTHREAD }
           UNKNOWN(e) { e }
         }
     }
-}
-
-fn main() {
-    let (major, minor, patch) = zmq::version();
-
-    log_err #fmt("version: %d %d %d", major, minor, patch);
-
-    let ctx = alt zmq::create(1) {
-      ok(ctx) { ctx }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    let socket = alt ctx.socket(zmq::REQ) {
-      ok(socket) { socket }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.setsockopt_u64(libzmq_constants::ZMQ_HWM, 10u64) {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.getsockopt_u64(libzmq_constants::ZMQ_HWM) {
-      ok(hwm) { log_err #fmt("hwm: %s", u64::str(hwm)) }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.setsockopt_vec(
-            libzmq_constants::ZMQ_IDENTITY,
-            str::bytes("identity")) {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.getsockopt_vec(libzmq_constants::ZMQ_IDENTITY) {
-      ok(identity) {
-        log_err #fmt("hwm: %s", str::unsafe_from_bytes(identity))
-      }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.connect("tcp://127.0.0.1:3456") {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt socket.sendmsg(str::bytes("foo"), 0i32) {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
-    }
-
-    alt socket.recvmsg(0i32) {
-        ok(d) { log_err str::unsafe_from_bytes(d); }
-        err(e) { fail zmq::error_to_str(e); }
-    }
-
-    alt socket.close() {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-
-    alt ctx.close() {
-      ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
-    };
-}
