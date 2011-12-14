@@ -17,7 +17,6 @@ import std::vec;
 import std::c_vec;
 
 #[link_name = "zmq"]
-#[link_args = "-L /opt/local/lib"]
 native mod libzmq {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
@@ -46,10 +45,7 @@ native mod libzmq {
 
     fn zmq_send(socket: zmq_socket_t, msg: zmq_msg_t, flags: c_int) -> c_int;
     fn zmq_recv(socket: zmq_socket_t, msg: zmq_msg_t, flags: c_int) -> c_int;
-}
 
-#[link_args = "-L ."]
-native mod rustzmq {
     fn rustzmq_msg_create() -> zmq_msg_t;
     fn rustzmq_msg_destroy(msg: zmq_msg_t);
 }
@@ -224,7 +220,7 @@ mod zmq {
 
         fn sendmsg(data: [u8], flags: c_int) -> result::t<(), error_t> {
             let size = vec::len(data);
-            let msg = rustzmq::rustzmq_msg_create();
+            let msg = libzmq::rustzmq_msg_create();
 
             libzmq::zmq_msg_init_size(msg, size);
             let msg_data = libzmq::zmq_msg_data(msg);
@@ -238,13 +234,13 @@ mod zmq {
             let rc = libzmq::zmq_send(sock, msg, flags);
 
             libzmq::zmq_msg_close(msg);
-            rustzmq::rustzmq_msg_destroy(msg);
+            libzmq::rustzmq_msg_destroy(msg);
 
             if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
         }
 
         fn recvmsg(flags: c_int) -> result::t<[u8], error_t> unsafe {
-            let msg = rustzmq::rustzmq_msg_create();
+            let msg = libzmq::rustzmq_msg_create();
 
             libzmq::zmq_msg_init(msg);
 
@@ -255,7 +251,7 @@ mod zmq {
             let data = vec::init_fn({ |i| *ptr::mut_offset(msg_data, i) }, msg_size);
 
             libzmq::zmq_msg_close(msg);
-            rustzmq::rustzmq_msg_destroy(msg);
+            libzmq::rustzmq_msg_destroy(msg);
 
             if rc == -1i32 { err(errno_to_error()) } else { ok(data) }
         }
