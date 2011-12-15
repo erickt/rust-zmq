@@ -47,12 +47,12 @@ fn main() {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt socket.sendmsg(str::bytes("foo"), 0i32) {
+    alt socket.send(str::bytes("foo"), 0i32) {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e); }
     }
 
-    alt socket.recvmsg(0i32) {
+    alt socket.recv(0i32) {
       ok(d) { log_err str::unsafe_from_bytes(d); }
       err(e) { fail zmq::error_to_str(e); }
     }

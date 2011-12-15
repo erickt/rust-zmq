@@ -262,8 +262,8 @@ type socket = obj {
     fn bind(endpoint: str) -> result::t<(), error>;
     fn connect(endpoint: str) -> result::t<(), error>;
 
-    fn sendmsg(data: [u8], flags: c_int) -> result::t<(), error>;
-    fn recvmsg(flags: c_int) -> result::t<[u8], error>;
+    fn send(data: [u8], flags: c_int) -> result::t<(), error>;
+    fn recv(flags: c_int) -> result::t<[u8], error>;
 
     fn close() -> result::t<(), error>;
 };
@@ -362,7 +362,7 @@ obj new_socket(sock: @socket_res) {
         _connect(sock, endpoint)
     }
 
-    fn sendmsg(data: [u8], flags: c_int) -> result::t<(), error> {
+    fn send(data: [u8], flags: c_int) -> result::t<(), error> {
         let size = vec::len(data);
         let msg = libzmq::rustzmq_msg_create();
 
@@ -383,7 +383,7 @@ obj new_socket(sock: @socket_res) {
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
-    fn recvmsg(flags: c_int) -> result::t<[u8], error> unsafe {
+    fn recv(flags: c_int) -> result::t<[u8], error> unsafe {
         let msg = libzmq::rustzmq_msg_create();
 
         libzmq::zmq_msg_init(msg);
