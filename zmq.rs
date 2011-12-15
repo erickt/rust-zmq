@@ -6,6 +6,15 @@ use std;
 import std::ctypes::*;
 import result::{ok,err};
 
+export constants;
+export version;
+export init;
+export context;
+export socket;
+export socket_kind;
+export error;
+export error_to_str;
+
 #[link_name = "zmq"]
 native mod libzmq {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
@@ -50,7 +59,7 @@ type zmq_ctx_t = *void;
 type zmq_socket_t = *void;
 type zmq_msg_t = *void;
 
-mod zmq_constants {
+mod constants {
     const ZMQ_PAIR : c_int = 0i32;
     const ZMQ_PUB : c_int = 1i32;
     const ZMQ_SUB : c_int = 2i32;
@@ -410,17 +419,17 @@ fn _connect(sock: @socket_res, endpoint: str) -> result::t<(), error> {
 
 fn socket_kind_to_i32(k: socket_kind) -> c_int {
     alt k {
-        PAIR. { zmq_constants::ZMQ_PAIR }
-        PUB. { zmq_constants::ZMQ_PUB }
-        SUB. { zmq_constants::ZMQ_SUB }
-        REQ. { zmq_constants::ZMQ_REQ }
-        REP. { zmq_constants::ZMQ_REP }
-        DEALER. { zmq_constants::ZMQ_DEALER }
-        ROUTER. { zmq_constants::ZMQ_ROUTER }
-        PULL. { zmq_constants::ZMQ_PULL }
-        PUSH. { zmq_constants::ZMQ_PUSH }
-        XPUB. { zmq_constants::ZMQ_XPUB }
-        XSUB. { zmq_constants::ZMQ_XSUB }
+        PAIR. { constants::ZMQ_PAIR }
+        PUB. { constants::ZMQ_PUB }
+        SUB. { constants::ZMQ_SUB }
+        REQ. { constants::ZMQ_REQ }
+        REP. { constants::ZMQ_REP }
+        DEALER. { constants::ZMQ_DEALER }
+        ROUTER. { constants::ZMQ_ROUTER }
+        PULL. { constants::ZMQ_PULL }
+        PUSH. { constants::ZMQ_PUSH }
+        XPUB. { constants::ZMQ_XPUB }
+        XSUB. { constants::ZMQ_XSUB }
     }
 }
 
@@ -436,38 +445,38 @@ fn error_to_str(error: error) -> str unsafe {
 
 fn errno_to_error() -> error {
     alt libzmq::zmq_errno() {
-        e when e == zmq_constants::ENOTSUP { ENOTSUP }
-        e when e == zmq_constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
-        e when e == zmq_constants::ENOBUFS { ENOBUFS }
-        e when e == zmq_constants::ENETDOWN { ENETDOWN }
-        e when e == zmq_constants::EADDRINUSE { EADDRINUSE }
-        e when e == zmq_constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
-        e when e == zmq_constants::ECONNREFUSED { ECONNREFUSED }
-        e when e == zmq_constants::EINPROGRESS { EINPROGRESS }
-        e when e == zmq_constants::ENOTSOCK { ENOTSOCK }
-        e when e == zmq_constants::EFSM { EFSM }
-        e when e == zmq_constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
-        e when e == zmq_constants::ETERM { ETERM }
-        e when e == zmq_constants::EMTHREAD { EMTHREAD }
+        e when e == constants::ENOTSUP { ENOTSUP }
+        e when e == constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
+        e when e == constants::ENOBUFS { ENOBUFS }
+        e when e == constants::ENETDOWN { ENETDOWN }
+        e when e == constants::EADDRINUSE { EADDRINUSE }
+        e when e == constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
+        e when e == constants::ECONNREFUSED { ECONNREFUSED }
+        e when e == constants::EINPROGRESS { EINPROGRESS }
+        e when e == constants::ENOTSOCK { ENOTSOCK }
+        e when e == constants::EFSM { EFSM }
+        e when e == constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
+        e when e == constants::ETERM { ETERM }
+        e when e == constants::EMTHREAD { EMTHREAD }
         e { UNKNOWN(e) }
     }
 }
 
 fn error_to_errno(error: error) -> c_int {
     alt error {
-        ENOTSUP. { zmq_constants::ENOTSUP }
-        EPROTONOSUPPORT. { zmq_constants::EPROTONOSUPPORT }
-        ENOBUFS. { zmq_constants::ENOBUFS }
-        ENETDOWN. { zmq_constants::ENETDOWN }
-        EADDRINUSE. { zmq_constants::EADDRINUSE }
-        EADDRNOTAVAIL. { zmq_constants::EADDRNOTAVAIL }
-        ECONNREFUSED. { zmq_constants::ECONNREFUSED }
-        EINPROGRESS. { zmq_constants::EINPROGRESS }
-        ENOTSOCK. { zmq_constants::ENOTSOCK }
-        EFSM. { zmq_constants::EFSM }
-        ENOCOMPATPROTO. { zmq_constants::ENOCOMPATPROTO }
-        ETERM. { zmq_constants::ETERM }
-        EMTHREAD. { zmq_constants::EMTHREAD }
+        ENOTSUP. { constants::ENOTSUP }
+        EPROTONOSUPPORT. { constants::EPROTONOSUPPORT }
+        ENOBUFS. { constants::ENOBUFS }
+        ENETDOWN. { constants::ENETDOWN }
+        EADDRINUSE. { constants::EADDRINUSE }
+        EADDRNOTAVAIL. { constants::EADDRNOTAVAIL }
+        ECONNREFUSED. { constants::ECONNREFUSED }
+        EINPROGRESS. { constants::EINPROGRESS }
+        ENOTSOCK. { constants::ENOTSOCK }
+        EFSM. { constants::EFSM }
+        ENOCOMPATPROTO. { constants::ENOCOMPATPROTO }
+        ETERM. { constants::ETERM }
+        EMTHREAD. { constants::EMTHREAD }
         UNKNOWN(e) { e }
     }
 }

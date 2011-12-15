@@ -18,24 +18,24 @@ fn main() {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt socket.setsockopt_u64(zmq::zmq_constants::ZMQ_HWM, 10u64) {
+    alt socket.setsockopt_u64(zmq::constants::ZMQ_HWM, 10u64) {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt socket.getsockopt_u64(zmq::zmq_constants::ZMQ_HWM) {
+    alt socket.getsockopt_u64(zmq::constants::ZMQ_HWM) {
       ok(hwm) { log_err #fmt("hwm: %s", u64::str(hwm)) }
       err(e) { fail zmq::error_to_str(e) }
     };
 
     alt socket.setsockopt_vec(
-            zmq::zmq_constants::ZMQ_IDENTITY,
+            zmq::constants::ZMQ_IDENTITY,
             str::bytes("identity")) {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt socket.getsockopt_vec(zmq::zmq_constants::ZMQ_IDENTITY) {
+    alt socket.getsockopt_vec(zmq::constants::ZMQ_IDENTITY) {
       ok(identity) {
         log_err #fmt("hwm: %s", str::unsafe_from_bytes(identity))
       }
