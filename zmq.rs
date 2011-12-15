@@ -356,12 +356,18 @@ obj new_socket(sock: @socket_res) {
 
     // Accept connections on a socket.
     fn bind(endpoint: str) -> result::t<(), error> {
-        _bind(sock, endpoint)
+        // Work around rust bug #1286.
+        let sock = sock;
+        let rc = str::as_buf(endpoint, { |b| libzmq::zmq_bind(sock.sock, b) });
+        if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
     // Connect a socket.
     fn connect(endpoint: str) -> result::t<(), error> {
-        _connect(sock, endpoint)
+        // Work around rust bug #1286.
+        let sock = sock;
+        let rc = str::as_buf(endpoint, { |b| libzmq::zmq_connect(sock.sock, b) });
+        if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
     fn send(data: [u8], flags: c_int) -> result::t<(), error> {
@@ -405,17 +411,6 @@ obj new_socket(sock: @socket_res) {
     fn close() -> result::t<(), error> {
         _close(**sock)
     }
-}
-
-// Work around a bug by moving this out of an object.
-fn _bind(sock: @socket_res, endpoint: str) -> result::t<(), error> {
-    let rc = str::as_buf(endpoint, { |b| libzmq::zmq_bind(sock.sock, b) });
-    if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
-}
-
-fn _connect(sock: @socket_res, endpoint: str) -> result::t<(), error> {
-    let rc = str::as_buf(endpoint, { |b| libzmq::zmq_connect(sock.sock, b) });
-    if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
 // Convert a socket kind into the constant value.
