@@ -1,16 +1,14 @@
 use std;
 use zmq;
 
-import std::result::{ok, err};
-import std::str;
-import std::u64;
+import result::{ok, err};
 
 fn main() {
     let (major, minor, patch) = zmq::version();
 
     log_err #fmt("version: %d %d %d", major, minor, patch);
 
-    let ctx = alt zmq::create(1) {
+    let ctx = alt zmq::init(1) {
       ok(ctx) { ctx }
       err(e) { fail zmq::error_to_str(e) }
     };
@@ -55,8 +53,8 @@ fn main() {
     }
 
     alt socket.recvmsg(0i32) {
-        ok(d) { log_err str::unsafe_from_bytes(d); }
-        err(e) { fail zmq::error_to_str(e); }
+      ok(d) { log_err str::unsafe_from_bytes(d); }
+      err(e) { fail zmq::error_to_str(e); }
     }
 
     alt socket.close() {
@@ -64,7 +62,7 @@ fn main() {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt ctx.close() {
+    alt ctx.term() {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e) }
     };
