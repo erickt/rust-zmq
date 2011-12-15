@@ -191,7 +191,7 @@ resource context_res(ctx: context_t) {
     }
 }
 
-
+// Create a zeromq context.
 fn init(io_threads: int) -> result::t<context, error> unsafe {
     let zmq_ctx = libzmq::zmq_init(io_threads as i32);
 
@@ -354,10 +354,12 @@ obj new_socket(sock: @socket_res) {
         if r == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
+    // Accept connections on a socket.
     fn bind(endpoint: str) -> result::t<(), error> {
         _bind(sock, endpoint)
     }
 
+    // Connect a socket.
     fn connect(endpoint: str) -> result::t<(), error> {
         _connect(sock, endpoint)
     }
@@ -416,7 +418,7 @@ fn _connect(sock: @socket_res, endpoint: str) -> result::t<(), error> {
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-
+// Convert a socket kind into the constant value.
 fn socket_kind_to_i32(k: socket_kind) -> c_int {
     alt k {
         PAIR. { constants::ZMQ_PAIR }
@@ -433,6 +435,7 @@ fn socket_kind_to_i32(k: socket_kind) -> c_int {
     }
 }
 
+// Return the error string for an error.
 fn error_to_str(error: error) -> str unsafe {
     let s = libzmq::zmq_strerror(error_to_errno(error));
     ret if unsafe::reinterpret_cast(s) == -1 {
@@ -443,6 +446,7 @@ fn error_to_str(error: error) -> str unsafe {
     }
 }
 
+// Convert the errno into an error type.
 fn errno_to_error() -> error {
     alt libzmq::zmq_errno() {
         e when e == constants::ENOTSUP { ENOTSUP }
@@ -462,6 +466,7 @@ fn errno_to_error() -> error {
     }
 }
 
+// Convert an error into an error number.
 fn error_to_errno(error: error) -> c_int {
     alt error {
         ENOTSUP. { constants::ENOTSUP }
