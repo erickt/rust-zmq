@@ -3,3 +3,4 @@
 *.dSYM
 *.o
 test
+*.a
