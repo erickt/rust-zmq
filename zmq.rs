@@ -29,7 +29,18 @@ export error_to_str;
 
 type context = *void;
 type socket = *void;
-type msg = *void;
+type msg = {
+    content: *void,
+    flags: u8,
+    vsm_size: u8,
+    vsm_data0: u32,
+    vsm_data1: u32,
+    vsm_data2: u32,
+    vsm_data3: u32,
+    vsm_data4: u32,
+    vsm_data5: u32,
+    vsm_data6: u32,
+};
 
 #[nolink]
 #[link_args = "-L/opt/local/lib -lzmq"]
@@ -67,13 +78,6 @@ native mod libzmq {
 
     fn zmq_send(socket: socket, msg: msg, flags: c_int) -> c_int;
     fn zmq_recv(socket: socket, msg: msg, flags: c_int) -> c_int;
-}
-
-#[nolink]
-#[link_args = "-L . -lzmqstubs"]
-native mod zmqstubs {
-    fn zmqstubs_msg_create() -> msg;
-    fn zmqstubs_msg_destroy(msg: msg);
 }
 
 mod constants {
@@ -317,7 +321,18 @@ fn connect(sock: socket, endpoint: str) -> result::t<(), error> {
 
 fn send(sock: socket, data: [u8], flags: c_int) -> result::t<(), error> {
     let size = vec::len(data);
-    let msg = zmqstubs::zmqstubs_msg_create();
+    let msg = {
+        content: ptr::null::<void>(),
+        flags: 0u8,
+        vsm_size: 0u8,
+        vsm_data0: 0u32,
+        vsm_data1: 0u32,
+        vsm_data2: 0u32,
+        vsm_data3: 0u32,
+        vsm_data4: 0u32,
+        vsm_data5: 0u32,
+        vsm_data6: 0u32,
+    };
 
     libzmq::zmq_msg_init_size(msg, size);
     let msg_data = libzmq::zmq_msg_data(msg);
@@ -331,13 +346,23 @@ fn send(sock: socket, data: [u8], flags: c_int) -> result::t<(), error> {
     let rc = libzmq::zmq_send(sock, msg, flags);
 
     libzmq::zmq_msg_close(msg);
-    zmqstubs::zmqstubs_msg_destroy(msg);
 
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
 fn recv(sock: socket, flags: c_int) -> result::t<[u8], error> unsafe {
-    let msg = zmqstubs::zmqstubs_msg_create();
+    let msg = {
+        content: ptr::null::<void>(),
+        flags: 0u8,
+        vsm_size: 0u8,
+        vsm_data0: 0u32,
+        vsm_data1: 0u32,
+        vsm_data2: 0u32,
+        vsm_data3: 0u32,
+        vsm_data4: 0u32,
+        vsm_data5: 0u32,
+        vsm_data6: 0u32,
+    };
 
     libzmq::zmq_msg_init(msg);
 
@@ -348,7 +373,6 @@ fn recv(sock: socket, flags: c_int) -> result::t<[u8], error> unsafe {
     let data = vec::init_fn({ |i| *ptr::mut_offset(msg_data, i) }, msg_size);
 
     libzmq::zmq_msg_close(msg);
-    zmqstubs::zmqstubs_msg_destroy(msg);
 
     if rc == -1i32 { err(errno_to_error()) } else { ok(data) }
 }
