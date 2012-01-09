@@ -2,6 +2,7 @@ use std;
 use zmq;
 
 import result::{ok, err};
+import std::io;
 
 fn new_server(&&ctx: zmq::context) {
     let socket = alt zmq::socket(ctx, zmq::REP) {
@@ -19,7 +20,7 @@ fn new_server(&&ctx: zmq::context) {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    log_err #fmt("received %s", msg);
+    io::println(#fmt("received %s", msg));
 
     alt zmq::send(socket, str::bytes(#fmt("hello %s", msg)), 0i32) {
       ok(()) { }
@@ -44,7 +45,7 @@ fn new_client(&&ctx: zmq::context) {
     };
 
     alt zmq::getsockopt_u64(socket, zmq::constants::ZMQ_HWM) {
-      ok(hwm) { log_err #fmt("hwm: %s", u64::str(hwm)); }
+      ok(hwm) { io::println(#fmt("hwm: %s", u64::str(hwm))); }
       err(e) { fail zmq::error_to_str(e); }
     }
 
@@ -58,7 +59,7 @@ fn new_client(&&ctx: zmq::context) {
 
     alt zmq::getsockopt_vec(socket, zmq::constants::ZMQ_IDENTITY) {
       ok(identity) {
-        log_err #fmt("hwm: %s", str::unsafe_from_bytes(identity))
+          io::println(#fmt("hwm: %s", str::unsafe_from_bytes(identity)))
       }
       err(e) { fail zmq::error_to_str(e) }
     };
@@ -74,7 +75,7 @@ fn new_client(&&ctx: zmq::context) {
     }
 
     alt zmq::recv(socket, 0i32) {
-      ok(d) { log_err str::unsafe_from_bytes(d); }
+      ok(d) { io::println(str::unsafe_from_bytes(d)); }
       err(e) { fail zmq::error_to_str(e); }
     }
 
@@ -87,7 +88,7 @@ fn new_client(&&ctx: zmq::context) {
 fn main() {
     let (major, minor, patch) = zmq::version();
 
-    log_err #fmt("version: %d %d %d", major, minor, patch);
+    io::println(#fmt("version: %d %d %d", major, minor, patch));
 
     let ctx = alt zmq::init(1) {
       ok(ctx) { ctx }

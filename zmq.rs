@@ -3,7 +3,7 @@ Module: zmq
 */
 
 use std;
-import std::ctypes::*;
+import ctypes::*;
 import result::{ok,err};
 
 export context;
@@ -383,7 +383,7 @@ fn error_to_str(error: error) -> str unsafe {
     let s = libzmq::zmq_strerror(error_to_errno(error));
     ret if unsafe::reinterpret_cast(s) == -1 {
         let s = unsafe::reinterpret_cast(s);
-        str::str_from_cstr(s)
+        str::from_cstr(s)
     } else {
         ""
     }
