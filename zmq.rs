@@ -416,19 +416,19 @@ fn error_to_str(error: error) -> str unsafe {
 // Convert the errno into an error type.
 fn errno_to_error() -> error {
     alt libzmq::zmq_errno() {
-        e when e == constants::ENOTSUP { ENOTSUP }
-        e when e == constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
-        e when e == constants::ENOBUFS { ENOBUFS }
-        e when e == constants::ENETDOWN { ENETDOWN }
-        e when e == constants::EADDRINUSE { EADDRINUSE }
-        e when e == constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
-        e when e == constants::ECONNREFUSED { ECONNREFUSED }
-        e when e == constants::EINPROGRESS { EINPROGRESS }
-        e when e == constants::ENOTSOCK { ENOTSOCK }
-        e when e == constants::EFSM { EFSM }
-        e when e == constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
-        e when e == constants::ETERM { ETERM }
-        e when e == constants::EMTHREAD { EMTHREAD }
+        e if e == constants::ENOTSUP { ENOTSUP }
+        e if e == constants::EPROTONOSUPPORT { EPROTONOSUPPORT }
+        e if e == constants::ENOBUFS { ENOBUFS }
+        e if e == constants::ENETDOWN { ENETDOWN }
+        e if e == constants::EADDRINUSE { EADDRINUSE }
+        e if e == constants::EADDRNOTAVAIL { EADDRNOTAVAIL }
+        e if e == constants::ECONNREFUSED { ECONNREFUSED }
+        e if e == constants::EINPROGRESS { EINPROGRESS }
+        e if e == constants::ENOTSOCK { ENOTSOCK }
+        e if e == constants::EFSM { EFSM }
+        e if e == constants::ENOCOMPATPROTO { ENOCOMPATPROTO }
+        e if e == constants::ETERM { ETERM }
+        e if e == constants::EMTHREAD { EMTHREAD }
         e { UNKNOWN(e) }
     }
 }
