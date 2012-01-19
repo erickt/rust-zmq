@@ -15,14 +15,14 @@ fn new_server(&&ctx: zmq::context) {
       err(e) { fail zmq::error_to_str(e); }
     }
 
-    let msg = alt zmq::recv(socket, 0i32) {
-      ok(d) { str::unsafe_from_bytes(d) }
+    let msg = alt zmq::recv_str(socket, 0i32) {
+      ok(s) { s}
       err(e) { fail zmq::error_to_str(e) }
     };
 
     io::println(#fmt("received %s", msg));
 
-    alt zmq::send(socket, str::bytes(#fmt("hello %s", msg)), 0i32) {
+    alt zmq::send_str(socket, #fmt("hello %s", msg), 0i32) {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e); }
     }
@@ -69,13 +69,13 @@ fn new_client(&&ctx: zmq::context) {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    alt zmq::send(socket, str::bytes("foo"), 0i32) {
+    alt zmq::send_str(socket, "foo", 0i32) {
       ok(()) { }
       err(e) { fail zmq::error_to_str(e); }
     }
 
-    alt zmq::recv(socket, 0i32) {
-      ok(d) { io::println(str::unsafe_from_bytes(d)); }
+    alt zmq::recv_str(socket, 0i32) {
+      ok(s) { io::println(s); }
       err(e) { fail zmq::error_to_str(e); }
     }
 
@@ -95,8 +95,8 @@ fn main() {
       err(e) { fail zmq::error_to_str(e) }
     };
 
-    let server_task = task::spawn_joinable(copy ctx, new_server);
-    let client_task = task::spawn_joinable(copy ctx, new_client);
+    let server_task = task::spawn_joinable {|| new_server(ctx) };
+    let client_task = task::spawn_joinable {|| new_client(ctx) };
 
     task::join(server_task);
     task::join(client_task);

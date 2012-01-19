@@ -22,7 +22,9 @@ export setsockopt_vec;
 export bind;
 export connect;
 export send;
+export send_str;
 export recv;
+export recv_str;
 export close;
 export error;
 export error_to_str;
@@ -350,6 +352,10 @@ fn send(sock: socket, data: [u8], flags: c_int) -> result::t<(), error> {
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
+fn send_str(sock: socket, data: str, flags: c_int) -> result::t<(), error> {
+    send(sock, str::bytes(data), flags)
+}
+
 fn recv(sock: socket, flags: c_int) -> result::t<[u8], error> unsafe {
     let msg = {
         content: ptr::null::<void>(),
@@ -375,6 +381,12 @@ fn recv(sock: socket, flags: c_int) -> result::t<[u8], error> unsafe {
     libzmq::zmq_msg_close(msg);
 
     if rc == -1i32 { err(errno_to_error()) } else { ok(data) }
+}
+
+fn recv_str(sock: socket, flags: c_int) -> result::t<str, error> {
+    result::chain(recv(sock, flags)) {|bytes|
+        ok(str::unsafe_from_bytes(bytes))
+    }
 }
 
 fn close(sock: socket) -> result::t<(), error> {
