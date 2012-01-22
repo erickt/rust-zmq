@@ -1,87 +1,85 @@
 use std;
 use zmq;
 
+import zmq::{context, socket, socket_util, error};
 import result::{ok, err};
 import std::io;
 
 fn new_server(&&ctx: zmq::context) {
-    let socket = alt zmq::socket(ctx, zmq::REP) {
+    let socket = alt ctx.socket(zmq::REP) {
       ok(socket) { socket }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
-    alt zmq::bind(socket, "tcp://127.0.0.1:3456") {
+    alt socket.bind_str("tcp://127.0.0.1:3456") {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     }
 
-    let msg = alt zmq::recv_str(socket, 0i32) {
+    let msg = alt socket.recv_str(0) {
       ok(s) { s}
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
     io::println(#fmt("received %s", msg));
 
-    alt zmq::send_str(socket, #fmt("hello %s", msg), 0i32) {
+    alt socket.send_str(#fmt("hello %s", msg), 0) {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     }
 
-    alt zmq::close(socket) {
+    alt socket.close() {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 }
 
 fn new_client(&&ctx: zmq::context) {
-    let socket = alt zmq::socket(ctx, zmq::REQ) {
+    let socket = alt ctx.socket(zmq::REQ) {
       ok(socket) { socket }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
-    alt zmq::setsockopt_u64(socket, zmq::constants::ZMQ_HWM, 10u64) {
+    alt socket.set_hwm(10u64) {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     };
 
-    alt zmq::getsockopt_u64(socket, zmq::constants::ZMQ_HWM) {
+    alt socket.get_hwm() {
       ok(hwm) { io::println(#fmt("hwm: %s", u64::str(hwm))); }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     }
 
-    alt zmq::setsockopt_vec(
-            socket,
-            zmq::constants::ZMQ_IDENTITY,
-            str::bytes("identity")) {
+    alt socket.set_identity(str::bytes("identity")) {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     };
 
-    alt zmq::getsockopt_vec(socket, zmq::constants::ZMQ_IDENTITY) {
+    alt socket.get_identity() {
       ok(identity) {
           io::println(#fmt("hwm: %s", str::unsafe_from_bytes(identity)))
       }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
-    alt zmq::connect(socket, "tcp://127.0.0.1:3456") {
+    alt socket.connect_str("tcp://127.0.0.1:3456") {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
-    alt zmq::send_str(socket, "foo", 0i32) {
+    alt socket.send_str("foo", 0) {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     }
 
-    alt zmq::recv_str(socket, 0i32) {
+    alt socket.recv_str(0) {
       ok(s) { io::println(s); }
-      err(e) { fail zmq::error_to_str(e); }
+      err(e) { fail e.to_str(); }
     }
 
-    alt zmq::close(socket) {
+    alt socket.close() {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 }
 
@@ -92,7 +90,7 @@ fn main() {
 
     let ctx = alt zmq::init(1) {
       ok(ctx) { ctx }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 
     let server_task = task::spawn_joinable {|| new_server(ctx) };
@@ -101,8 +99,8 @@ fn main() {
     task::join(server_task);
     task::join(client_task);
 
-    alt zmq::term(ctx) {
+    alt ctx.term() {
       ok(()) { }
-      err(e) { fail zmq::error_to_str(e) }
+      err(e) { fail e.to_str() }
     };
 }
