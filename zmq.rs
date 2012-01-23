@@ -10,6 +10,8 @@ export context;
 export socket;
 export socket_util;
 export socket_type;
+export DONTWAIT;
+export SNDMORE;
 export version;
 export init;
 export POLLIN;
@@ -85,10 +87,8 @@ enum socket_type {
     XSUB = 10,
 }
 
-enum send_options {
-    DONTWAIT = 1,
-    SNDMORE = 2,
-}
+const DONTWAIT : int = 1;
+const SNDMORE : int = 2;
 
 mod constants {
     const ZMQ_HWM : c_int = 1i32;
