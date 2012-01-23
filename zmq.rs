@@ -12,6 +12,10 @@ export socket_util;
 export socket_type;
 export version;
 export init;
+export POLLIN;
+export POLLOUT;
+export POLLERR;
+export poll;
 export error;
 
 type context = *void;
@@ -63,6 +67,8 @@ native mod zmq {
 
     fn zmq_send(socket: socket, msg: msg, flags: c_int) -> c_int;
     fn zmq_recv(socket: socket, msg: msg, flags: c_int) -> c_int;
+
+    fn zmq_poll(items: *pollitem, nitems: c_int, timeout: long) -> c_int;
 }
 
 enum socket_type {
@@ -107,10 +113,6 @@ mod constants {
     const ZMQ_BACKLOG : c_int = 19i32;
     const ZMQ_RECOVERY_IVL_MSEC : c_int = 20i32;
     const ZMQ_RECONNECT_IVL_MAX : c_int = 21i32;
-
-    const ZMQ_POLLIN : c_int = 1i32;
-    const ZMQ_POLLOUT : c_int = 2i32;
-    const ZMQ_POLLERR : c_int = 4i32;
 
     const ZMQ_MAX_VSM_SIZE : c_int = 30i32;
     const ZMQ_DELIMITER : c_int = 31i32;
@@ -433,6 +435,25 @@ impl socket_util for socket {
             ok(str::unsafe_from_bytes(bytes))
         }
     }
+}
+
+const POLLIN : i16 = 1i16;
+const POLLOUT : i16 = 2i16;
+const POLLERR : i16 = 4i16;
+
+type pollitem = {
+    socket: socket,
+    fd: c_int,
+    mutable events: i16,
+    mutable revents: i16,
+};
+
+fn poll(items: [pollitem], timeout: i64) -> result::t<(), error> unsafe {
+    let rc = zmq::zmq_poll(
+        vec::to_ptr(items),
+        vec::len(items) as c_int,
+        timeout);
+    if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
 impl error for error {
