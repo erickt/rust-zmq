@@ -430,9 +430,9 @@ impl socket_util for socket {
         self.send(str::bytes(data), flags)
     }
 
-    fn recv_str(flags: int) -> result::t<str, error> {
+    fn recv_str(flags: int) -> result::t<str, error> unsafe {
         chain(self.recv(flags)) {|bytes|
-            ok(str::unsafe_from_bytes(bytes))
+            ok(str::unsafe::from_bytes(bytes))
         }
     }
 }
