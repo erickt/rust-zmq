@@ -57,7 +57,8 @@ fn new_client(&&ctx: zmq::context) {
 
     alt socket.get_identity() {
       ok(identity) {
-          io::println(#fmt("hwm: %s", str::unsafe_from_bytes(identity)))
+          io::println(#fmt("hwm: %s",
+                      unsafe { str::unsafe::from_bytes(identity) }))
       }
       err(e) { fail e.to_str() }
     };
@@ -93,11 +94,16 @@ fn main() {
       err(e) { fail e.to_str() }
     };
 
-    let server_task = task::spawn_joinable {|| new_server(ctx) };
-    let client_task = task::spawn_joinable {|| new_client(ctx) };
+    let builder = task::mk_task_builder();
+    let server_result = task::future_result(builder);
+    task::run(builder) { || new_server(ctx) }
 
-    task::join(server_task);
-    task::join(client_task);
+    let builder = task::mk_task_builder();
+    let client_result = task::future_result(builder);
+    task::run(builder) { || new_client(ctx) }
+
+    future::get(server_result);
+    future::get(client_result);
 
     alt ctx.term() {
       ok(()) { }

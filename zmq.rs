@@ -338,7 +338,8 @@ impl socket for socket {
 
     // Accept connections on a socket.
     fn bind(endpoint: [u8]) -> result::t<(), error> unsafe {
-        let rc = zmq::zmq_bind(self, vec::to_ptr(endpoint));
+        let rc = zmq::zmq_bind(self,
+            unsafe { vec::unsafe::to_ptr(endpoint) });
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
@@ -346,7 +347,8 @@ impl socket for socket {
     fn connect(endpoint: [u8]) -> result::t<(), error> unsafe {
         // Work around rust bug #1286.
         let sock = self;
-        let rc = zmq::zmq_connect(sock, vec::to_ptr(endpoint));
+        let rc = zmq::zmq_connect(sock,
+            unsafe { vec::unsafe::to_ptr(endpoint) });
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
@@ -450,7 +452,7 @@ type pollitem = {
 
 fn poll(items: [pollitem], timeout: i64) -> result::t<(), error> unsafe {
     let rc = zmq::zmq_poll(
-        vec::to_ptr(items),
+        unsafe { vec::unsafe::to_ptr(items) },
         vec::len(items) as c_int,
         timeout);
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
@@ -506,11 +508,10 @@ fn getsockopt_int(sock: socket, option: c_int) -> result::t<int, error> {
     let size = sys::size_of::<c_int>();
 
     let r = zmq::zmq_getsockopt(
-            sock,
-            option as c_int,
-            ptr::addr_of(value),
-            ptr::addr_of(size)
-            );
+        sock,
+        option as c_int,
+        ptr::addr_of(value),
+        ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value as int) }
 }
@@ -520,11 +521,10 @@ fn getsockopt_u32(sock: socket, option: c_int) -> result::t<u32, error> {
     let size = sys::size_of::<u32>();
 
     let r = zmq::zmq_getsockopt(
-            sock,
-            option,
-            ptr::addr_of(value),
-            ptr::addr_of(size)
-            );
+        sock,
+        option,
+        ptr::addr_of(value),
+        ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
@@ -534,11 +534,10 @@ fn getsockopt_i64(sock: socket, option: c_int) -> result::t<i64, error> {
     let size = sys::size_of::<i64>();
 
     let r = zmq::zmq_getsockopt(
-            sock,
-            option as c_int,
-            ptr::addr_of(value),
-            ptr::addr_of(size)
-            );
+        sock,
+        option as c_int,
+        ptr::addr_of(value),
+        ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
@@ -548,11 +547,10 @@ fn getsockopt_u64(sock: socket, option: c_int) -> result::t<u64, error> {
     let size = sys::size_of::<u64>();
 
     let r = zmq::zmq_getsockopt(
-            sock,
-            option,
-            ptr::addr_of(value),
-            ptr::addr_of(size)
-            );
+        sock,
+        option,
+        ptr::addr_of(value),
+        ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
@@ -567,11 +565,10 @@ fn getsockopt_bytes(sock: socket, option: c_int) ->
     vec::reserve::<u8>(value, size);
 
     let r = zmq::zmq_getsockopt(
-            sock,
-            option as c_int,
-            vec::to_ptr(value),
-            ptr::addr_of(size)
-            );
+        sock,
+        option as c_int,
+        unsafe { vec::unsafe::to_ptr(value) },
+        ptr::addr_of(size));
 
     if r == -1i32 {
         err(errno_to_error())
@@ -585,11 +582,10 @@ fn setsockopt_int(sock: socket, option: c_int, value: int) ->
   result::t<(), error> {
     let value = value as c_int;
     let r = zmq::zmq_setsockopt(
-            sock,
-            option as c_int,
-            ptr::addr_of(value),
-            sys::size_of::<c_int>()
-            );
+        sock,
+        option as c_int,
+        ptr::addr_of(value),
+        sys::size_of::<c_int>());
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -597,11 +593,10 @@ fn setsockopt_int(sock: socket, option: c_int, value: int) ->
 fn setsockopt_i64(sock: socket, option: c_int, value: i64) ->
   result::t<(), error> {
     let r = zmq::zmq_setsockopt(
-            sock,
-            option as c_int,
-            ptr::addr_of(value),
-            sys::size_of::<i64>()
-            );
+        sock,
+        option as c_int,
+        ptr::addr_of(value),
+        sys::size_of::<i64>());
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -609,11 +604,10 @@ fn setsockopt_i64(sock: socket, option: c_int, value: i64) ->
 fn setsockopt_u64(sock: socket, option: c_int, value: u64) ->
   result::t<(), error> {
     let r = zmq::zmq_setsockopt(
-            sock,
-            option as c_int,
-            ptr::addr_of(value),
-            sys::size_of::<u64>()
-            );
+        sock,
+        option as c_int,
+        ptr::addr_of(value),
+        sys::size_of::<u64>());
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -621,11 +615,10 @@ fn setsockopt_u64(sock: socket, option: c_int, value: u64) ->
 fn setsockopt_bytes(sock: socket, option: c_int, value: [u8]) ->
   result::t<(), error> unsafe {
     let r = zmq::zmq_setsockopt(
-            sock,
-            option as c_int,
-            vec::to_ptr(value),
-            vec::len(value)
-            );
+        sock,
+        option as c_int,
+        unsafe { vec::unsafe::to_ptr(value) },
+        vec::len(value));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
