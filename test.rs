@@ -1,11 +1,12 @@
 use std;
 use zmq;
 
-import zmq::{context, socket, socket_util, error};
 import result::{ok, err};
 import std::io;
 
-fn new_server(&&ctx: zmq::context) {
+import zmq::{context, socket, socket_util, error};
+
+fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
     let socket = alt ctx.socket(zmq::REP) {
       ok(socket) { socket }
       err(e) { fail e.to_str() }
@@ -17,7 +18,7 @@ fn new_server(&&ctx: zmq::context) {
     }
 
     let msg = alt socket.recv_str(0) {
-      ok(s) { s}
+      ok(s) { s }
       err(e) { fail e.to_str() }
     };
 
@@ -32,9 +33,14 @@ fn new_server(&&ctx: zmq::context) {
       ok(()) { }
       err(e) { fail e.to_str() }
     };
+
+    // Let the main thread know we're done.
+    comm::send(ch, ());
 }
 
 fn new_client(&&ctx: zmq::context) {
+    io::println("starting client");
+
     let socket = alt ctx.socket(zmq::REQ) {
       ok(socket) { socket }
       err(e) { fail e.to_str() }
@@ -62,6 +68,8 @@ fn new_client(&&ctx: zmq::context) {
       }
       err(e) { fail e.to_str() }
     };
+
+    io::println("client connecting to server");
 
     alt socket.connect_str("tcp://127.0.0.1:3456") {
       ok(()) { }
@@ -94,16 +102,15 @@ fn main() {
       err(e) { fail e.to_str() }
     };
 
-    let builder = task::mk_task_builder();
-    let server_result = task::future_result(builder);
-    task::run(builder) { || new_server(ctx) }
+    // We need to start the server in a separate scheduler as it blocks.
+    let po = comm::port();
+    let ch = comm::chan(po);
+    task::spawn_sched(task::single_threaded) { || new_server(ctx, ch) }
 
-    let builder = task::mk_task_builder();
-    let client_result = task::future_result(builder);
-    task::run(builder) { || new_client(ctx) }
+    new_client(ctx);
 
-    future::get(server_result);
-    future::get(client_result);
+    // Wait for the server to shut down.
+    comm::recv(po);
 
     alt ctx.term() {
       ok(()) { }

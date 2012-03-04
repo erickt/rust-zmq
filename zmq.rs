@@ -421,21 +421,19 @@ impl socket for socket {
 
 impl socket_util for socket {
     fn bind_str(endpoint: str) -> result::t<(), error> {
-        self.bind(str::bytes(endpoint))
+        str::as_bytes(endpoint) { |bytes| self.bind(bytes) }
     }
 
     fn connect_str(endpoint: str) -> result::t<(), error> {
-        self.connect(str::bytes(endpoint))
+        str::as_bytes(endpoint) { |bytes| self.connect(bytes) }
     }
 
     fn send_str(data: str, flags: int) -> result::t<(), error> {
-        self.send(str::bytes(data), flags)
+        str::as_bytes(data) { |bytes| self.send(bytes, flags) }
     }
 
     fn recv_str(flags: int) -> result::t<str, error> unsafe {
-        chain(self.recv(flags)) {|bytes|
-            ok(str::unsafe::from_bytes(bytes))
-        }
+        chain(self.recv(flags)) {|bytes| ok(str::from_bytes(bytes)) }
     }
 }
 
