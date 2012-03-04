@@ -164,7 +164,10 @@ fn version() -> (int, int, int) {
     let major = 0i32;
     let minor = 0i32;
     let patch = 0i32;
-    zmq::zmq_version(ptr::addr_of(major), ptr::addr_of(minor), ptr::addr_of(patch));
+    zmq::zmq_version(
+        ptr::addr_of(major),
+        ptr::addr_of(minor),
+        ptr::addr_of(patch));
     (major as int, minor as int, patch as int)
 }
 
