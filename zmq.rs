@@ -353,14 +353,14 @@ impl socket for socket {
         setsockopt_int(self, constants::ZMQ_BACKLOG, value)
     }
 
-    // Accept connections on a socket.
+    #[doc = "Accept connections on a socket."]
     fn bind(endpoint: [u8]) -> result::t<(), error> unsafe {
         let rc = zmq::zmq_bind(self,
             unsafe { vec::unsafe::to_ptr(endpoint) });
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
-    // Connect a socket.
+    #[doc = "Connect a socket."]
     fn connect(endpoint: [u8]) -> result::t<(), error> unsafe {
         // Work around rust bug #1286.
         let sock = self;
@@ -474,7 +474,7 @@ fn poll(items: [pollitem], timeout: i64) -> result::t<(), error> unsafe {
 }
 
 impl error for error {
-    // Return the error string for an error.
+    #[doc = "Return the error string for an error."]
     fn to_str() -> str unsafe {
         let s = zmq::zmq_strerror(self as c_int);
         ret if unsafe::reinterpret_cast(s) == -1 {
@@ -486,7 +486,7 @@ impl error for error {
     }
 }
 
-// Convert the errno into an error type.
+#[doc = "Convert the errno into an error type."]
 fn errno_to_error() -> error {
     let error = alt zmq::zmq_errno() {
         e if e == ENOTSUP as c_int { ENOTSUP }
