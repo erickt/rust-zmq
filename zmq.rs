@@ -31,8 +31,13 @@ export POLLERR;
 export poll;
 export error;
 
+#[doc = "The ZMQ container that manages all the sockets"]
 type context = *void;
+
+#[doc = "A ZMQ socket"]
 type socket = *void;
+
+#[doc = "A message"]
 type msg = {
     content: *void,
     flags: u8,
@@ -84,6 +89,7 @@ native mod zmq {
     fn zmq_poll(items: *pollitem, nitems: c_int, timeout: long) -> c_int;
 }
 
+#[doc = "Socket types"]
 enum socket_type {
     PAIR = 0,
     PUB = 1,
