@@ -2,7 +2,6 @@ use std;
 use zmq;
 
 import result::{ok, err};
-import std::io;
 
 import zmq::{context, socket, socket_util, error};
 
@@ -12,7 +11,7 @@ fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
       err(e) { fail e.to_str() }
     };
 
-    alt socket.bind_str("tcp://127.0.0.1:3456") {
+    alt socket.bind("tcp://127.0.0.1:3456") {
       ok(()) { }
       err(e) { fail e.to_str(); }
     }
@@ -56,7 +55,7 @@ fn new_client(&&ctx: zmq::context) {
       err(e) { fail e.to_str(); }
     }
 
-    alt socket.set_identity(str::bytes("identity")) {
+    alt socket.set_identity("identity") {
       ok(()) { }
       err(e) { fail e.to_str(); }
     };
@@ -71,7 +70,7 @@ fn new_client(&&ctx: zmq::context) {
 
     io::println("client connecting to server");
 
-    alt socket.connect_str("tcp://127.0.0.1:3456") {
+    alt socket.connect("tcp://127.0.0.1:3456") {
       ok(()) { }
       err(e) { fail e.to_str() }
     };
