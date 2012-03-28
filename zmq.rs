@@ -2,8 +2,8 @@
 Module: zmq
 */
 
-import libc::{c_int, c_long, c_void, size_t};
-import result::{ok, err, chain};
+import libc::{c_int, c_long, c_void, size_t, c_char};
+import result::{result, ok, err, chain};
 
 export context;
 export socket;
@@ -57,7 +57,7 @@ native mod zmq {
     fn zmq_term(ctx: context) -> c_int;
 
     fn zmq_errno() -> c_int;
-    fn zmq_strerror(errnum: c_int) -> str::sbuf;
+    fn zmq_strerror(errnum: c_int) -> *c_char;
 
     fn zmq_socket(ctx: context, typ: c_int) -> socket;
     fn zmq_close(socket: socket) -> c_int;
@@ -73,12 +73,12 @@ native mod zmq {
             optval: *T,
             size: size_t) -> c_int;
 
-    fn zmq_bind(socket: socket, endpoint: str::sbuf) -> c_int;
-    fn zmq_connect(socket: socket, endpoint: str::sbuf) -> c_int;
+    fn zmq_bind(socket: socket, endpoint: *c_char) -> c_int;
+    fn zmq_connect(socket: socket, endpoint: *c_char) -> c_int;
 
     fn zmq_msg_init(msg: msg) -> c_int;
     fn zmq_msg_init_size(msg: msg, size: size_t) -> c_int;
-    fn zmq_msg_data(msg: msg) -> *mutable u8;
+    fn zmq_msg_data(msg: msg) -> *mut u8;
     fn zmq_msg_size(msg: msg) -> size_t;
     fn zmq_msg_close(msg: msg) -> c_int;
 
@@ -359,9 +359,8 @@ impl socket for socket {
 
     #[doc = "Accept connections on a socket."]
     fn bind(endpoint: str) -> result<(), error> unsafe {
-        let rc = str::as_bytes(endpoint) { |bytes|
-            let ptr = unsafe { vec::unsafe::to_ptr(bytes) };
-            zmq::zmq_bind(self, ptr)
+        let rc = str::as_c_str(endpoint) { |cstr|
+            zmq::zmq_bind(self, cstr)
         };
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
@@ -370,9 +369,8 @@ impl socket for socket {
     fn connect(endpoint: str) -> result<(), error> unsafe {
         // Work around rust bug #1286.
         let sock = self;
-        let rc = str::as_bytes(endpoint) { |bytes|
-            let ptr = unsafe { vec::unsafe::to_ptr(bytes) };
-            zmq::zmq_connect(sock, ptr)
+        let rc = str::as_c_str(endpoint) { |cstr|
+            zmq::zmq_connect(sock, cstr)
         };
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
@@ -397,7 +395,7 @@ impl socket for socket {
         zmq::zmq_msg_init_size(msg, end - start);
         let msg_data = zmq::zmq_msg_data(msg);
 
-        let i = start;
+        let mut i = start;
         while i < end {
             unsafe { *ptr::mut_offset(msg_data, i) = data[i]; }
             i += 1u;
@@ -467,8 +465,8 @@ const POLLERR : i16 = 4i16;
 type pollitem = {
     socket: socket,
     fd: c_int,
-    mutable events: i16,
-    mutable revents: i16,
+    mut events: i16,
+    mut revents: i16,
 };
 
 fn poll(items: [pollitem], timeout: i64) -> result<(), error> unsafe {
@@ -485,7 +483,7 @@ impl error for error {
         let s = zmq::zmq_strerror(self as c_int);
         ret if unsafe::reinterpret_cast(s) == -1 {
             let s = unsafe::reinterpret_cast(s);
-            str::from_cstr(s)
+            str::unsafe::from_c_str(s)
         } else {
             ""
         }
@@ -514,7 +512,7 @@ fn errno_to_error() -> error {
                 fail if unsafe::reinterpret_cast(s) == -1 {
                     #fmt("unknown error: [%i] %s",
                         e as int,
-                        str::from_cstr(s))
+                        str::unsafe::from_c_str(s))
                 } else {
                     #fmt("unknown error: %i", e as int)
                 }
@@ -578,7 +576,7 @@ fn getsockopt_u64(sock: socket, option: c_int) -> result<u64, error> {
 
 fn getsockopt_bytes(sock: socket, option: c_int) ->
   result<[u8], error> unsafe {
-    let value = [];
+    let mut value = [];
 
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
