@@ -492,7 +492,7 @@ impl error for error {
 
 #[doc = "Convert the errno into an error type."]
 fn errno_to_error() -> error {
-    let error = alt zmq::zmq_errno() {
+    alt zmq::zmq_errno() {
         e if e == ENOTSUP as c_int { ENOTSUP }
         e if e == EPROTONOSUPPORT as c_int { EPROTONOSUPPORT }
         e if e == ENOBUFS as c_int { ENOBUFS }
@@ -518,8 +518,7 @@ fn errno_to_error() -> error {
                 }
             }
         }
-    };
-    error
+    }
 }
 
 fn getsockopt_int(sock: socket, option: c_int) -> result<int, error> {

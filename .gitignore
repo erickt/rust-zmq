@@ -4,3 +4,4 @@
 *.o
 test
 *.a
+zmq
