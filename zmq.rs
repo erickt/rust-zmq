@@ -286,7 +286,7 @@ impl socket for socket {
         }
     }
 
-    fn get_fd() -> result<int, error> {
+    fn get_fd() -> result<i64, error> {
         getsockopt_i64(self, constants::ZMQ_FD)
     }
 
