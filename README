@@ -1,5 +1,0 @@
-Rust Zeromq bindings.
-
-To build, just run `make`. There are three make variables to configure the
-system, `RUSTC` to point at the rustc binary, `CFLAGS` to specify where `zmq.h`
-lives, and `LDFLAGS` to specify where libzmq lives.
