@@ -473,7 +473,7 @@ fn poll(items: [pollitem], timeout: i64) -> result<(), error> unsafe {
     let rc = zmq::zmq_poll(
         unsafe { vec::unsafe::to_ptr(items) },
         vec::len(items) as c_int,
-        timeout);
+        timeout as c_long);
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
