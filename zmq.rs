@@ -2,7 +2,7 @@
 Module: zmq
 */
 
-import libc::{c_int, c_long, c_void, size_t, c_char};
+import libc::{c_int, c_long, c_longlong, c_void, size_t, c_char};
 import result::{result, ok, err, chain};
 
 export context;
@@ -85,7 +85,7 @@ native mod zmq {
     fn zmq_send(socket: socket, msg: msg, flags: c_int) -> c_int;
     fn zmq_recv(socket: socket, msg: msg, flags: c_int) -> c_int;
 
-    fn zmq_poll(items: *pollitem, nitems: c_int, timeout: c_long) -> c_int;
+    fn zmq_poll(items: *pollitem, nitems: c_int, timeout: c_longlong) -> c_int;
 }
 
 #[doc = "Socket types"]
