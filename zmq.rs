@@ -367,10 +367,8 @@ impl socket for socket {
 
     #[doc = "Connect a socket."]
     fn connect(endpoint: str) -> result<(), error> unsafe {
-        // Work around rust bug #1286.
-        let sock = self;
         let rc = str::as_c_str(endpoint) { |cstr|
-            zmq::zmq_connect(sock, cstr)
+            zmq::zmq_connect(self, cstr)
         };
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
