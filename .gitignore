@@ -2,6 +2,6 @@
 *.dylib
 *.dSYM
 *.o
-test
 *.a
 zmq
+example
