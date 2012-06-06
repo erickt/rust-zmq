@@ -17,7 +17,7 @@ fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
     }
 
     let msg = alt socket.recv_str(0) {
-      ok(s) { s }
+      ok(s) { copy s }
       err(e) { fail e.to_str() }
     };
 

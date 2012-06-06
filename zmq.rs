@@ -390,7 +390,7 @@ impl socket for socket {
             vsm_data6: 0u32,
         };
 
-        zmq::zmq_msg_init_size(msg, end - start);
+        zmq::zmq_msg_init_size(msg, (end - start) as size_t);
         let msg_data = zmq::zmq_msg_data(msg);
 
         let mut i = start;
@@ -430,7 +430,9 @@ impl socket for socket {
 
         let msg_data = zmq::zmq_msg_data(msg);
         let msg_size = zmq::zmq_msg_size(msg);
-        let data = vec::from_fn(msg_size) {|i| *ptr::mut_offset(msg_data, i) };
+        let data = vec::from_fn(msg_size as uint) { |i|
+            *ptr::mut_offset(msg_data, i)
+        };
 
         zmq::zmq_msg_close(msg);
 
@@ -452,7 +454,10 @@ impl socket_util for socket {
     }
 
     fn recv_str(flags: int) -> result<str, error> unsafe {
-        chain(self.recv(flags)) {|bytes| ok(str::from_bytes(bytes)) }
+        alt self.recv(flags) {
+          ok(bytes) { ok(str::from_bytes(bytes)) }
+          err(e) { err(e) }
+        }
     }
 }
 
@@ -521,7 +526,7 @@ fn errno_to_error() -> error {
 
 fn getsockopt_int(sock: socket, option: c_int) -> result<int, error> {
     let value = 0u32 as c_int;
-    let size = sys::size_of::<c_int>();
+    let size = sys::size_of::<c_int>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
@@ -534,7 +539,7 @@ fn getsockopt_int(sock: socket, option: c_int) -> result<int, error> {
 
 fn getsockopt_u32(sock: socket, option: c_int) -> result<u32, error> {
     let value = 0u32;
-    let size = sys::size_of::<u32>();
+    let size = sys::size_of::<u32>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
@@ -547,7 +552,7 @@ fn getsockopt_u32(sock: socket, option: c_int) -> result<u32, error> {
 
 fn getsockopt_i64(sock: socket, option: c_int) -> result<i64, error> {
     let value = 0i64;
-    let size = sys::size_of::<i64>();
+    let size = sys::size_of::<i64>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
@@ -560,7 +565,7 @@ fn getsockopt_i64(sock: socket, option: c_int) -> result<i64, error> {
 
 fn getsockopt_u64(sock: socket, option: c_int) -> result<u64, error> {
     let value = 0u64;
-    let size = sys::size_of::<u64>();
+    let size = sys::size_of::<u64>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
@@ -577,8 +582,8 @@ fn getsockopt_bytes(sock: socket, option: c_int) ->
 
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
-    let size = 255u;
-    vec::reserve::<u8>(value, size);
+    let size = 255u as size_t;
+    vec::reserve::<u8>(value, size as uint);
 
     let r = zmq::zmq_getsockopt(
         sock,
@@ -589,7 +594,7 @@ fn getsockopt_bytes(sock: socket, option: c_int) ->
     if r == -1i32 {
         err(errno_to_error())
     } else {
-        vec::unsafe::set_len(value, size);
+        vec::unsafe::set_len(value, size as uint);
         ok(value)
     }
 }
@@ -601,7 +606,7 @@ fn setsockopt_int(sock: socket, option: c_int, value: int) ->
         sock,
         option as c_int,
         ptr::addr_of(value) as *c_void,
-        sys::size_of::<c_int>());
+        sys::size_of::<c_int>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -612,7 +617,7 @@ fn setsockopt_i64(sock: socket, option: c_int, value: i64) ->
         sock,
         option as c_int,
         ptr::addr_of(value) as *c_void,
-        sys::size_of::<i64>());
+        sys::size_of::<i64>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -623,7 +628,7 @@ fn setsockopt_u64(sock: socket, option: c_int, value: u64) ->
         sock,
         option as c_int,
         ptr::addr_of(value) as *c_void,
-        sys::size_of::<u64>());
+        sys::size_of::<u64>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
@@ -634,7 +639,7 @@ fn setsockopt_bytes(sock: socket, option: c_int, value: [u8]) ->
         sock,
         option as c_int,
         unsafe { vec::unsafe::to_ptr(value) as *c_void },
-        vec::len(value));
+        vec::len(value) as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
