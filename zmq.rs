@@ -1,9 +1,4 @@
-/*
-Module: zmq
-*/
-
-import libc::{c_int, c_long, c_void, size_t, c_char};
-import result::{result, ok, err, chain};
+#[doc = "Module: zmq"]
 
 export context;
 export socket;

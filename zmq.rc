@@ -4,3 +4,6 @@
 #[crate_type = "lib"];
 
 use std;
+
+import libc::{c_int, c_long, c_void, size_t, c_char};
+import result::{result, ok, err, chain};
