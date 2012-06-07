@@ -78,7 +78,7 @@ native mod zmq {
 
     fn zmq_msg_init(msg: msg) -> c_int;
     fn zmq_msg_init_size(msg: msg, size: size_t) -> c_int;
-    fn zmq_msg_data(msg: msg) -> *mut u8;
+    fn zmq_msg_data(msg: msg) -> *u8;
     fn zmq_msg_size(msg: msg) -> size_t;
     fn zmq_msg_close(msg: msg) -> c_int;
 
@@ -373,41 +373,37 @@ impl socket for socket {
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
-    fn send_between(data: [u8], start: uint, end: uint, flags: int)
-      -> result<(), error> {
-        assert start <= end;
+    fn send(data: [const u8]/&, flags: int) -> result<(), error> {
+        vec::unpack_const_slice(data) { |base_ptr, len|
+            let msg = {
+                content: ptr::null(),
+                flags: 0u8,
+                vsm_size: 0u8,
+                vsm_data0: 0u32,
+                vsm_data1: 0u32,
+                vsm_data2: 0u32,
+                vsm_data3: 0u32,
+                vsm_data4: 0u32,
+                vsm_data5: 0u32,
+                vsm_data6: 0u32,
+            };
 
-        let msg = {
-            content: ptr::null(),
-            flags: 0u8,
-            vsm_size: 0u8,
-            vsm_data0: 0u32,
-            vsm_data1: 0u32,
-            vsm_data2: 0u32,
-            vsm_data3: 0u32,
-            vsm_data4: 0u32,
-            vsm_data5: 0u32,
-            vsm_data6: 0u32,
-        };
+            // Copy the data into the message.
+            zmq::zmq_msg_init_size(msg, len as size_t);
 
-        zmq::zmq_msg_init_size(msg, (end - start) as size_t);
-        let msg_data = zmq::zmq_msg_data(msg);
+            unsafe {
+                ptr::memcpy(
+                    zmq::zmq_msg_data(msg),
+                    unsafe::reinterpret_cast(base_ptr),
+                    len);
+            }
 
-        let mut i = start;
-        while i < end {
-            unsafe { *ptr::mut_offset(msg_data, i) = data[i]; }
-            i += 1u;
+            let rc = zmq::zmq_send(self, msg, flags as c_int);
+
+            zmq::zmq_msg_close(msg);
+
+            if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
         }
-
-        let rc = zmq::zmq_send(self, msg, flags as c_int);
-
-        zmq::zmq_msg_close(msg);
-
-        if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
-    }
-
-    fn send(data: [u8], flags: int) -> result<(), error> {
-        self.send_between(data, 0u, data.len(), flags)
     }
 
     fn recv(flags: int) -> result<[u8], error> unsafe {
@@ -427,12 +423,17 @@ impl socket for socket {
         zmq::zmq_msg_init(msg);
 
         let rc = zmq::zmq_recv(self, msg, flags as c_int);
-
         let msg_data = zmq::zmq_msg_data(msg);
-        let msg_size = zmq::zmq_msg_size(msg);
-        let data = vec::from_fn(msg_size as uint) { |i|
-            *ptr::mut_offset(msg_data, i)
-        };
+        let msg_size = zmq::zmq_msg_size(msg) as uint;
+
+        // Extract the data out from the message.
+        let mut data = [];
+        vec::reserve(data, msg_size);
+
+        unsafe {
+            vec::as_buf(data) { |ptr| ptr::memcpy(ptr, msg_data, msg_size) };
+            vec::unsafe::set_len(data, msg_size);
+        }
 
         zmq::zmq_msg_close(msg);
 
