@@ -29,6 +29,7 @@ export POLLOUT;
 export POLLERR;
 export poll;
 export error;
+export to_str;
 
 #[doc = "The ZMQ container that manages all the sockets"]
 type context = *c_void;
@@ -481,7 +482,7 @@ fn poll(items: [pollitem], timeout: i64) -> result<(), error> unsafe {
     if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-impl error for error {
+impl of to_str::to_str for error {
     #[doc = "Return the error string for an error."]
     fn to_str() -> str unsafe {
         let s = zmq::zmq_strerror(self as c_int);

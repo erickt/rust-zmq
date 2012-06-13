@@ -3,7 +3,7 @@ use zmq;
 
 import result::{ok, err};
 
-import zmq::{context, socket, socket_util, error};
+import zmq::{context, socket, socket_util, to_str};
 
 fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
     let socket = alt ctx.socket(zmq::REP) {
