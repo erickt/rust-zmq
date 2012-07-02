@@ -62,8 +62,7 @@ fn new_client(&&ctx: zmq::context) {
 
     alt socket.get_identity() {
       ok(identity) {
-          io::println(#fmt("hwm: %s",
-                      unsafe { str::unsafe::from_bytes(identity) }))
+          io::println(#fmt("identity: %s", str::from_bytes(copy identity)))
       }
       err(e) { fail e.to_str() }
     };
@@ -104,7 +103,7 @@ fn main() {
     // We need to start the server in a separate scheduler as it blocks.
     let po = comm::port();
     let ch = comm::chan(po);
-    task::spawn_sched(task::single_threaded) { || new_server(ctx, ch) }
+    do task::spawn_sched(task::single_threaded) { new_server(ctx, ch) }
 
     new_client(ctx);
 
