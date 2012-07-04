@@ -46,7 +46,7 @@ type msg = {
     vsm_data6: u32,
 };
 
-native mod zmq {
+extern mod zmq {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
     fn zmq_init(io_threads: c_int) -> context;
