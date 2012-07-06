@@ -5,11 +5,11 @@ import result::{ok, err};
 
 import zmq::{context, socket, socket_util, to_str};
 
-fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
-    let socket = alt ctx.socket(zmq::REP) {
-      ok(socket) { socket }
-      err(e) { fail e.to_str() }
-    };
+fn new_server(ctx: zmq::context, ch: comm::chan<()>) {
+    // FIXME: https://github.com/mozilla/rust/issues/2329.
+    let socket = ctx.socket(zmq::REP);
+    if socket.is_err() { fail socket.get_err().to_str() };
+    let socket = result::unwrap(socket);
 
     alt socket.bind("tcp://127.0.0.1:3456") {
       ok(()) { }
@@ -28,22 +28,17 @@ fn new_server(&&ctx: zmq::context, ch: comm::chan<()>) {
       err(e) { fail e.to_str(); }
     }
 
-    alt socket.close() {
-      ok(()) { }
-      err(e) { fail e.to_str() }
-    };
-
     // Let the main thread know we're done.
     comm::send(ch, ());
 }
 
-fn new_client(&&ctx: zmq::context) {
+fn new_client(ctx: zmq::context) {
     io::println("starting client");
 
-    let socket = alt ctx.socket(zmq::REQ) {
-      ok(socket) { socket }
-      err(e) { fail e.to_str() }
-    };
+    // FIXME: https://github.com/mozilla/rust/issues/2329.
+    let socket = ctx.socket(zmq::REQ);
+    if socket.is_err() { fail socket.get_err().to_str() };
+    let socket = result::unwrap(socket);
 
     alt socket.set_hwm(10u64) {
       ok(()) { }
@@ -83,11 +78,6 @@ fn new_client(&&ctx: zmq::context) {
       ok(s) { io::println(s); }
       err(e) { fail e.to_str(); }
     }
-
-    alt socket.close() {
-      ok(()) { }
-      err(e) { fail e.to_str() }
-    };
 }
 
 fn main() {
