@@ -27,7 +27,7 @@ export error;
 export to_str;
 
 #[doc = "The ZMQ container that manages all the sockets"]
-type context = *c_void;
+type context_t = *c_void;
 
 #[doc = "A ZMQ socket"]
 type socket_t = *c_void;
@@ -49,13 +49,13 @@ type msg = {
 extern mod zmq {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
-    fn zmq_init(io_threads: c_int) -> context;
-    fn zmq_term(ctx: context) -> c_int;
+    fn zmq_init(io_threads: c_int) -> context_t;
+    fn zmq_term(ctx: context_t) -> c_int;
 
     fn zmq_errno() -> c_int;
     fn zmq_strerror(errnum: c_int) -> *c_char;
 
-    fn zmq_socket(ctx: context, typ: c_int) -> socket_t;
+    fn zmq_socket(ctx: context_t, typ: c_int) -> socket_t;
     fn zmq_close(socket: socket_t) -> c_int;
 
     fn zmq_getsockopt(
@@ -170,23 +170,24 @@ fn version() -> (int, int, int) {
 fn init(io_threads: int) -> result<context, error> unsafe {
     let ctx = zmq::zmq_init(io_threads as i32);
 
-    ret if unsafe::reinterpret_cast(ctx) == 0 {
-        err(errno_to_error())
-    } else {
-        ok(ctx)
+    if unsafe::reinterpret_cast(ctx) == 0 {
+        ret err(errno_to_error());
     }
+
+    ok(context(ctx))
 }
 
-/*
-iface context {
-    fn socket(socket_type: socket_type) -> result<socket, error>;
-    fn term() -> result<(), error>;
-}
-*/
+class context {
+    priv {
+        let ctx: context_t;
+    }
 
-impl context for context {
+    new(ctx: context_t) {
+        self.ctx = ctx;
+    }
+
     fn socket(socket_type: socket_type) -> result<socket, error> unsafe {
-        let sock = zmq::zmq_socket(self, socket_type as c_int);
+        let sock = zmq::zmq_socket(self.ctx, socket_type as c_int);
 
         if unsafe::reinterpret_cast(sock) == 0 {
             ret err(errno_to_error());
@@ -196,7 +197,7 @@ impl context for context {
     }
 
     fn term() -> result<(), error> {
-        let rc = zmq::zmq_term(self);
+        let rc = zmq::zmq_term(self.ctx);
         if rc == -1i32 {
             err(errno_to_error())
         } else {
