@@ -7,5 +7,8 @@ test:
 example: all
 	rustc -L . example.rs
 
+msgsend-zmq: all
+	rustc -L . msgsend-zmq.rs
+
 clean:
-	rm -rf zmq example *.dylib *.dSYM
+	rm -rf zmq example msgsend-zmq *.dylib *.dSYM

@@ -5,3 +5,4 @@
 *.a
 zmq
 example
+msgsend-zmq
