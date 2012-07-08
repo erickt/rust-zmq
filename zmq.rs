@@ -464,7 +464,7 @@ class socket {
 
 impl socket_util for socket {
     fn send_str(data: str, flags: int) -> result<(), error> {
-        str::as_bytes(data, |bytes| self.send(bytes, flags))
+        str::byte_slice(data, |bytes| self.send(bytes, flags))
     }
 
     fn recv_str(flags: int) -> result<str, error> unsafe {
