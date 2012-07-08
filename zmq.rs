@@ -533,11 +533,11 @@ fn errno_to_error() -> error {
             let s = zmq::zmq_strerror(e);
             unsafe {
                 fail if unsafe::reinterpret_cast(s) == -1 {
+                    #fmt("unknown error: %i", e as int)
+                } else {
                     #fmt("unknown error: [%i] %s",
                         e as int,
                         str::unsafe::from_c_str(s))
-                } else {
-                    #fmt("unknown error: %i", e as int)
                 }
             }
         }
