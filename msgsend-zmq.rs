@@ -7,31 +7,33 @@
 use std;
 use zmq;
 
-import io::{writer, writer_util};
+//import io::{writer, writer_util};
 import result::{ok, err};
-import comm::methods;
-import dvec::{dvec, extensions};
-import zmq::{socket_util, to_str};
+//import comm::methods;
+import dvec::{DVec, dvec}; //, extensions};
+//import zmq::{socket_util, to_str};
 
-fn server(ctx: zmq::context, ch: comm::chan<()>, workers: uint) {
+fn server(ctx: zmq::context, ch: comm::Chan<()>, workers: uint) {
     let mut workers = workers;
 
-    let pull_socket = ctx.socket(zmq::PULL);
-    if pull_socket.is_err() { fail pull_socket.get_err().to_str() };
-    let pull_socket = result::unwrap(pull_socket);
+    let pull_socket = match ctx.socket(zmq::PULL) {
+      ok(socket) => socket.take(),
+      err(e) => fail e.to_str(),
+    };
 
-    let push_socket = ctx.socket(zmq::PUSH);
-    if push_socket.is_err() { fail push_socket.get_err().to_str() };
-    let push_socket = result::unwrap(push_socket);
+    let push_socket = match ctx.socket(zmq::PUSH) {
+      ok(socket) => socket.take(),
+      err(e) => fail e.to_str(),
+    };
 
-    alt pull_socket.bind("inproc://requests") {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match pull_socket.bind("tcp://127.0.0.1:3456") {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
-    alt push_socket.bind("inproc://responses") {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.bind("tcp://127.0.0.1:3457") {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
     // Let the main thread know we're ready.
@@ -39,20 +41,21 @@ fn server(ctx: zmq::context, ch: comm::chan<()>, workers: uint) {
 
     let mut count = 0u;
     while workers != 0 {
-        let msg = pull_socket.recv_str(0);
-        if msg.is_err() { fail msg.get_err().to_str() }
-        let msg = result::unwrap(msg);
+        let msg = match pull_socket.recv_str(0) {
+          ok(msg) => msg.take(),
+          err(e) => fail e.to_str(),
+        };
 
-        if msg == "" {
+        if msg == ~"" {
             workers -= 1;
         } else {
             count += uint::from_str(msg).get();
         }
     }
 
-    alt push_socket.send_str(uint::str(count), 0) {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.send_str(uint::str(count), 0) {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
     pull_socket.close();
@@ -62,26 +65,27 @@ fn server(ctx: zmq::context, ch: comm::chan<()>, workers: uint) {
 }
 
 fn worker(ctx: zmq::context, count: uint) {
-    let push_socket = ctx.socket(zmq::PUSH);
-    if push_socket.is_err() { fail push_socket.get_err().to_str() };
-    let push_socket = result::unwrap(push_socket);
+    let push_socket = match ctx.socket(zmq::PUSH) {
+      ok(socket) => socket.take(),
+      err(e) => fail e.to_str(),
+    };
 
-    alt push_socket.connect("inproc://requests") {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.connect("tcp://127.0.0.1:3456") {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
     for count.times {
-        alt push_socket.send_str(uint::str(100u), 0) {
-          ok(()) { }
-          err(e) { fail e.to_str(); }
+        match push_socket.send_str(uint::str(100u), 0) {
+          ok(()) => { }
+          err(e) => fail e.to_str(),
         }
     }
 
     // Let the server know we're done.
-    alt push_socket.send_str("", 0) {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.send_str("", 0) {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
     push_socket.close();
@@ -91,7 +95,7 @@ fn run(ctx: zmq::context, size: uint, workers: uint) {
     // Spawn the server.
     let po = comm::port();
     let ch = comm::chan(po);
-    do task::spawn_sched(task::single_threaded) {
+    do task::spawn_sched(task::SingleThreaded) {
         server(ctx, ch, workers);
     }
 
@@ -99,28 +103,30 @@ fn run(ctx: zmq::context, size: uint, workers: uint) {
     po.recv();
 
     // Create some command/control sockets.
-    let push_socket = ctx.socket(zmq::PUSH);
-    if push_socket.is_err() { fail push_socket.get_err().to_str() };
-    let push_socket = result::unwrap(push_socket);
+    let push_socket = match ctx.socket(zmq::PUSH) {
+      ok(socket) => socket.take(),
+      err(e) => fail e.to_str(),
+    };
 
-    alt push_socket.connect("inproc://requests") {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.connect("tcp://127.0.0.1:3456") {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
-    let pull_socket = ctx.socket(zmq::PULL);
-    if pull_socket.is_err() { fail pull_socket.get_err().to_str() };
-    let pull_socket = result::unwrap(pull_socket);
+    let pull_socket = match ctx.socket(zmq::PULL) {
+      ok(socket) => socket.take(),
+      err(e) => fail e.to_str(),
+    };
 
-    alt pull_socket.connect("inproc://responses") {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match pull_socket.connect("tcp://127.0.0.1:3457") {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
 
     let start = std::time::precise_time_s();
 
     // Spawn all the workers.
-    let worker_results: dvec<comm::port<()>> = dvec();
+    let worker_results: DVec<comm::Port<()>> = dvec();
 
     for workers.times {
         let po = comm::port();
@@ -128,7 +134,7 @@ fn run(ctx: zmq::context, size: uint, workers: uint) {
 
         worker_results.push(po);
 
-        do task::spawn_sched(task::single_threaded) {
+        do task::spawn_sched(task::SingleThreaded) {
             worker(ctx, size / workers);
             ch.send(());
         }
@@ -140,19 +146,19 @@ fn run(ctx: zmq::context, size: uint, workers: uint) {
     /*
     // Shut down the server.
     push_socket.send_str("stop", 0);
-    alt push_socket.close() {
-      ok(()) { }
-      err(e) { fail e.to_str(); }
+    match push_socket.close() {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     }
     */
 
     po.recv();
 
     // Receive the final count.
-    let msg = pull_socket.recv_str(0);
-    if msg.is_err() { fail msg.get_err().to_str(); }
-    let msg = result::unwrap(msg);
-    let result = uint::from_str(msg).get();
+    let result = match pull_socket.recv_str(0) {
+      ok(msg) => uint::from_str(msg.take()).get(),
+      err(e) => fail e.to_str(),
+    };
 
     let end = std::time::precise_time_s();
     let elapsed = end - start;
@@ -163,11 +169,11 @@ fn run(ctx: zmq::context, size: uint, workers: uint) {
     io::println(#fmt("Throughput=%f per sec", thruput));
 }
 
-fn main(args: ~[str]) {
-    let args = if os::getenv("RUST_BENCH").is_some() {
-        ~["", "1000000", "10000"]
+fn main(args: ~[~str]) {
+    let args = if os::getenv(~"RUST_BENCH").is_some() {
+        ~[~"", ~"1000000", ~"10000"]
     } else if args.len() <= 1u {
-        ~["", "10000", "4"]
+        ~[~"", ~"10000", ~"4"]
     } else {
         copy args
     };
@@ -175,15 +181,15 @@ fn main(args: ~[str]) {
     let size = uint::from_str(args[1]).get();
     let workers = uint::from_str(args[2]).get();
 
-    let ctx = alt zmq::init(1) {
-      ok(ctx) { ctx }
-      err(e) { fail e.to_str() }
+    let ctx = match zmq::init(1) {
+      ok(ctx) => ctx.take(),
+      err(e) => fail e.to_str(),
     };
 
     run(ctx, size, workers);
 
-    alt ctx.term() {
-      ok(()) { }
-      err(e) { fail e.to_str() }
+    match ctx.term() {
+      ok(()) => { }
+      err(e) => fail e.to_str(),
     };
 }

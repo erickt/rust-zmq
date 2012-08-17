@@ -60,12 +60,12 @@ extern mod zmq {
 
     fn zmq_getsockopt(
             socket: socket_t,
-            option: c_int,
+            opt: c_int,
             optval: *c_void,
             size: *size_t) -> c_int;
     fn zmq_setsockopt(
             socket: socket_t,
-            option: c_int,
+            opt: c_int,
             optval: *c_void,
             size: size_t) -> c_int;
 
@@ -167,17 +167,17 @@ fn version() -> (int, int, int) {
 }
 
 // Create a zeromq context.
-fn init(io_threads: int) -> result<context, error> unsafe {
+fn init(io_threads: int) -> result<Cell<context>, error> unsafe {
     let ctx = zmq::zmq_init(io_threads as i32);
 
     if unsafe::reinterpret_cast(ctx) == 0 {
-        ret err(errno_to_error());
+        return err(errno_to_error());
     }
 
-    ok(context(ctx))
+    ok(Cell(context(ctx)))
 }
 
-class context {
+struct context {
     priv {
         let ctx: context_t;
     }
@@ -186,14 +186,14 @@ class context {
         self.ctx = ctx;
     }
 
-    fn socket(socket_type: socket_type) -> result<socket, error> unsafe {
+    fn socket(socket_type: socket_type) -> result<Cell<socket>, error> unsafe {
         let sock = zmq::zmq_socket(self.ctx, socket_type as c_int);
 
         if unsafe::reinterpret_cast(sock) == 0 {
-            ret err(errno_to_error());
+            return err(errno_to_error());
         }
 
-        ok(socket(sock as socket_t))
+        ok(Cell(socket(sock as socket_t)))
     }
 
     fn term() -> result<(), error> {
@@ -206,7 +206,7 @@ class context {
     }
 }
 
-class socket {
+struct socket {
     priv {
         let sock: socket_t;
         let mut closed: bool;
@@ -218,16 +218,16 @@ class socket {
     }
 
     drop {
-        alt self.close() {
-          ok(()) { }
-          err(e) { fail e.to_str() }
+        match self.close() {
+          ok(()) => {}
+          err(e) => fail e.to_str()
         }
     }
 
     fn get_socket_type() -> result<socket_type, error> {
         do getsockopt_int(self.sock, constants::ZMQ_TYPE).chain |ty| {
             if ty < PAIR as int || ty > XSUB as int {
-                fail "socket type is out of range!";
+                fail ~"socket type is out of range!";
             }
             unsafe { ok(unsafe::reinterpret_cast(ty)) }
         }
@@ -309,17 +309,15 @@ class socket {
         setsockopt_u64(self.sock, constants::ZMQ_AFFINITY, value)
     }
 
-    fn set_identity(value: str) -> result<(), error> {
-        do str::as_bytes(value) |bytes| {
-            setsockopt_bytes(self.sock, constants::ZMQ_IDENTITY, bytes)
-        }
+    fn set_identity(value: &str) -> result<(), error> {
+        setsockopt_str(self.sock, constants::ZMQ_IDENTITY, value)
     }
 
-    fn set_subscribe(value: [u8]/&) -> result<(), error> {
+    fn set_subscribe(value: &[u8]) -> result<(), error> {
         setsockopt_bytes(self.sock, constants::ZMQ_SUBSCRIBE, value)
     }
 
-    fn set_unsubscribe(value: [u8]/&) -> result<(), error> {
+    fn set_unsubscribe(value: &[u8]) -> result<(), error> {
         setsockopt_bytes(self.sock, constants::ZMQ_UNSUBSCRIBE, value)
     }
 
@@ -365,7 +363,7 @@ class socket {
     }
 
     /// Accept connections on a socket.
-    fn bind(endpoint: str) -> result<(), error> unsafe {
+    fn bind(endpoint: &str) -> result<(), error> unsafe {
         let rc = do str::as_c_str(endpoint) |cstr| {
             zmq::zmq_bind(self.sock, cstr)
         };
@@ -374,7 +372,7 @@ class socket {
     }
 
     /// Connect a socket.
-    fn connect(endpoint: str) -> result<(), error> unsafe {
+    fn connect(endpoint: &str) -> result<(), error> unsafe {
         let rc = do str::as_c_str(endpoint) |cstr| {
             zmq::zmq_connect(self.sock, cstr)
         };
@@ -382,8 +380,8 @@ class socket {
         if rc == -1i32 { err(errno_to_error()) } else { ok(()) }
     }
 
-    fn send(data: [const u8]/&, flags: int) -> result<(), error> {
-        do vec::unpack_const_slice(data) |base_ptr, len| {
+    fn send(data: &[const u8], flags: int) -> result<(), error> {
+        do vec::as_const_buf(data) |base_ptr, len| {
             let msg = {
                 content: ptr::null(),
                 flags: 0u8,
@@ -415,7 +413,11 @@ class socket {
         }
     }
 
-    fn recv(flags: int) -> result<~[u8], error> unsafe {
+    fn send_str(data: &str, flags: int) -> result<(), error> {
+        str::byte_slice(data, |bytes| self.send(bytes, flags))
+    }
+
+    fn recv(flags: int) -> result<Cell<~[u8]>, error> unsafe {
         let msg = {
             content: ptr::null(),
             flags: 0u8,
@@ -440,13 +442,23 @@ class socket {
         vec::reserve(data, msg_size);
 
         unsafe {
-            vec::as_buf(data, |ptr| ptr::memcpy(ptr, msg_data, msg_size));
+            do vec::as_buf(data) |ptr, _len| {
+                ptr::memcpy(ptr, msg_data, msg_size);
+            }
             vec::unsafe::set_len(data, msg_size);
         }
 
         zmq::zmq_msg_close(msg);
 
-        if rc == -1i32 { err(errno_to_error()) } else { ok(data) }
+        if rc == -1i32 { err(errno_to_error()) } else { ok(Cell(data)) }
+    }
+
+    fn recv_str(flags: int) -> result<Cell<~str>, error> unsafe {
+        // FIXME: https://github.com/mozilla/rust/issues/2329.
+        match self.recv(flags) {
+          ok(msg) => ok(Cell(str::from_bytes(msg.take()))),
+          err(e) => err(copy e),
+        }
     }
 
     fn close() -> result<(), error> {
@@ -454,28 +466,11 @@ class socket {
             self.closed = true;
 
             if zmq::zmq_close(self.sock) == -1i32 {
-                ret err(errno_to_error());
+                return err(errno_to_error());
             }
         }
 
         ok(())
-    }
-}
-
-impl socket_util for socket {
-    fn send_str(data: str, flags: int) -> result<(), error> {
-        str::byte_slice(data, |bytes| self.send(bytes, flags))
-    }
-
-    fn recv_str(flags: int) -> result<str, error> unsafe {
-        let msg = self.recv(flags);
-
-        if result::is_err(msg) {
-            err(result::get_err(msg))
-        } else {
-            let bytes = result::unwrap(msg);
-            ok(str::from_bytes(bytes))
-        }
     }
 }
 
@@ -490,8 +485,8 @@ type pollitem = {
     mut revents: i16,
 };
 
-fn poll(items: [pollitem]/&, timeout: i64) -> result<(), error> unsafe {
-    do vec::unpack_slice(items) |p, len| {
+fn poll(items: &[pollitem], timeout: i64) -> result<(), error> unsafe {
+    do vec::as_buf(items) |p, len| {
         let rc = zmq::zmq_poll(
             p,
             len as c_int,
@@ -500,36 +495,36 @@ fn poll(items: [pollitem]/&, timeout: i64) -> result<(), error> unsafe {
     }
 }
 
-impl of to_str::to_str for error {
+impl error: to_str::ToStr {
     #[doc = "Return the error string for an error."]
-    fn to_str() -> str unsafe {
+    fn to_str() -> ~str unsafe {
         let s = zmq::zmq_strerror(self as c_int);
-        ret if unsafe::reinterpret_cast(s) == -1 {
+        return if unsafe::reinterpret_cast(s) == -1 {
             let s = unsafe::reinterpret_cast(s);
             str::unsafe::from_c_str(s)
         } else {
-            ""
+            ~""
         }
     }
 }
 
 #[doc = "Convert the errno into an error type."]
 fn errno_to_error() -> error {
-    alt zmq::zmq_errno() {
-        e if e == ENOTSUP as c_int { ENOTSUP }
-        e if e == EPROTONOSUPPORT as c_int { EPROTONOSUPPORT }
-        e if e == ENOBUFS as c_int { ENOBUFS }
-        e if e == ENETDOWN as c_int { ENETDOWN }
-        e if e == EADDRINUSE as c_int { EADDRINUSE }
-        e if e == EADDRNOTAVAIL as c_int { EADDRNOTAVAIL }
-        e if e == ECONNREFUSED as c_int { ECONNREFUSED }
-        e if e == EINPROGRESS as c_int { EINPROGRESS }
-        e if e == ENOTSOCK as c_int { ENOTSOCK }
-        e if e == EFSM as c_int { EFSM }
-        e if e == ENOCOMPATPROTO as c_int { ENOCOMPATPROTO }
-        e if e == ETERM as c_int { ETERM }
-        e if e == EMTHREAD as c_int { EMTHREAD }
-        e {
+    match zmq::zmq_errno() {
+        e if e == ENOTSUP as c_int         => ENOTSUP,
+        e if e == EPROTONOSUPPORT as c_int => EPROTONOSUPPORT,
+        e if e == ENOBUFS as c_int         => ENOBUFS,
+        e if e == ENETDOWN as c_int        => ENETDOWN,
+        e if e == EADDRINUSE as c_int      => EADDRINUSE,
+        e if e == EADDRNOTAVAIL as c_int   => EADDRNOTAVAIL,
+        e if e == ECONNREFUSED as c_int    => ECONNREFUSED,
+        e if e == EINPROGRESS as c_int     => EINPROGRESS,
+        e if e == ENOTSOCK as c_int        => ENOTSOCK,
+        e if e == EFSM as c_int            => EFSM,
+        e if e == ENOCOMPATPROTO as c_int  => ENOCOMPATPROTO,
+        e if e == ETERM as c_int           => ETERM,
+        e if e == EMTHREAD as c_int        => EMTHREAD,
+        e => {
             let s = zmq::zmq_strerror(e);
             unsafe {
                 fail if unsafe::reinterpret_cast(s) == -1 {
@@ -544,59 +539,59 @@ fn errno_to_error() -> error {
     }
 }
 
-fn getsockopt_int(sock: socket_t, option: c_int) -> result<int, error> {
+fn getsockopt_int(sock: socket_t, opt: c_int) -> result<int, error> {
     let value = 0u32 as c_int;
     let size = sys::size_of::<c_int>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         ptr::addr_of(value) as *c_void,
         ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value as int) }
 }
 
-fn getsockopt_u32(sock: socket_t, option: c_int) -> result<u32, error> {
+fn getsockopt_u32(sock: socket_t, opt: c_int) -> result<u32, error> {
     let value = 0u32;
     let size = sys::size_of::<u32>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
-        option,
+        opt,
         ptr::addr_of(value) as *c_void,
         ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
 
-fn getsockopt_i64(sock: socket_t, option: c_int) -> result<i64, error> {
+fn getsockopt_i64(sock: socket_t, opt: c_int) -> result<i64, error> {
     let value = 0i64;
     let size = sys::size_of::<i64>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         ptr::addr_of(value) as *c_void,
         ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
 
-fn getsockopt_u64(sock: socket_t, option: c_int) -> result<u64, error> {
+fn getsockopt_u64(sock: socket_t, opt: c_int) -> result<u64, error> {
     let value = 0u64;
     let size = sys::size_of::<u64>() as size_t;
 
     let r = zmq::zmq_getsockopt(
         sock,
-        option,
+        opt,
         ptr::addr_of(value) as *c_void,
         ptr::addr_of(size));
 
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
 
-fn getsockopt_bytes(sock: socket_t, option: c_int) ->
+fn getsockopt_bytes(sock: socket_t, opt: c_int) ->
   result<~[u8], error> unsafe {
     let mut value = ~[];
 
@@ -607,7 +602,7 @@ fn getsockopt_bytes(sock: socket_t, option: c_int) ->
 
     let r = zmq::zmq_getsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         unsafe { vec::unsafe::to_ptr(value) as *c_void },
         ptr::addr_of(size));
 
@@ -619,49 +614,57 @@ fn getsockopt_bytes(sock: socket_t, option: c_int) ->
     }
 }
 
-fn setsockopt_int(sock: socket_t, option: c_int, value: int) ->
+fn setsockopt_int(sock: socket_t, opt: c_int, value: int) ->
   result<(), error> {
     let value = value as c_int;
     let r = zmq::zmq_setsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         ptr::addr_of(value) as *c_void,
         sys::size_of::<c_int>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_i64(sock: socket_t, option: c_int, value: i64) ->
+fn setsockopt_i64(sock: socket_t, opt: c_int, value: i64) ->
   result<(), error> {
     let r = zmq::zmq_setsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         ptr::addr_of(value) as *c_void,
         sys::size_of::<i64>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_u64(sock: socket_t, option: c_int, value: u64) ->
+fn setsockopt_u64(sock: socket_t, opt: c_int, value: u64) ->
   result<(), error> {
     let r = zmq::zmq_setsockopt(
         sock,
-        option as c_int,
+        opt as c_int,
         ptr::addr_of(value) as *c_void,
         sys::size_of::<u64>() as size_t);
 
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_bytes(sock: socket_t, option: c_int, value: [u8]/&) ->
+fn setsockopt_buf(sock: socket_t, opt: c_int, p: *u8, len: uint) ->
   result<(), error> unsafe {
-    do vec::unpack_slice(value) |p, len| {
-        let r = zmq::zmq_setsockopt(
-            sock,
-            option as c_int,
-            unsafe { p as *c_void },
-            len as size_t);
+    let r = zmq::zmq_setsockopt(
+        sock,
+        opt as c_int,
+        unsafe { p as *c_void },
+        len as size_t);
 
-        if r == -1i32 { err(errno_to_error()) } else { ok(()) }
-    }
+    if r == -1i32 { err(errno_to_error()) } else { ok(()) }
+}
+
+fn setsockopt_bytes(sock: socket_t, opt: c_int, value: &[u8]) ->
+  result<(), error> unsafe {
+    vec::as_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
+}
+
+fn setsockopt_str(sock: socket_t, opt: c_int, value: &str) ->
+  result<(), error> unsafe {
+    str::as_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
 }
