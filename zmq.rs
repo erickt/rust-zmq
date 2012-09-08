@@ -219,8 +219,8 @@ struct socket {
 
     drop {
         match self.close() {
-          ok(()) => {}
-          err(e) => fail e.to_str()
+            ok(()) => {}
+            err(e) => fail e.to_str()
         }
     }
 
@@ -235,7 +235,7 @@ struct socket {
 
     fn get_rcvmore() -> result<bool, error> {
         do getsockopt_i64(self.sock, constants::ZMQ_RCVMORE).chain |o| {
-           ok(o == 1i64)
+            ok(o == 1i64)
         }
     }
 
@@ -456,8 +456,8 @@ struct socket {
     fn recv_str(flags: int) -> result<Cell<~str>, error> unsafe {
         // FIXME: https://github.com/mozilla/rust/issues/2329.
         match self.recv(flags) {
-          ok(msg) => ok(Cell(str::from_bytes(msg.take()))),
-          err(e) => err(copy e),
+            ok(msg) => ok(Cell(str::from_bytes(msg.take()))),
+            err(e) => err(copy e),
         }
     }
 
@@ -591,8 +591,10 @@ fn getsockopt_u64(sock: socket_t, opt: c_int) -> result<u64, error> {
     if r == -1i32 { err(errno_to_error()) } else { ok(value) }
 }
 
-fn getsockopt_bytes(sock: socket_t, opt: c_int) ->
-  result<~[u8], error> unsafe {
+fn getsockopt_bytes(
+    sock: socket_t,
+    opt: c_int
+) -> result<~[u8], error> unsafe {
     let mut value = ~[];
 
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
@@ -614,8 +616,11 @@ fn getsockopt_bytes(sock: socket_t, opt: c_int) ->
     }
 }
 
-fn setsockopt_int(sock: socket_t, opt: c_int, value: int) ->
-  result<(), error> {
+fn setsockopt_int(
+    sock: socket_t,
+    opt: c_int,
+    value: int
+) -> result<(), error> {
     let value = value as c_int;
     let r = zmq::zmq_setsockopt(
         sock,
@@ -626,8 +631,11 @@ fn setsockopt_int(sock: socket_t, opt: c_int, value: int) ->
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_i64(sock: socket_t, opt: c_int, value: i64) ->
-  result<(), error> {
+fn setsockopt_i64(
+    sock: socket_t,
+    opt: c_int,
+    value: i64
+) -> result<(), error> {
     let r = zmq::zmq_setsockopt(
         sock,
         opt as c_int,
@@ -637,8 +645,11 @@ fn setsockopt_i64(sock: socket_t, opt: c_int, value: i64) ->
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_u64(sock: socket_t, opt: c_int, value: u64) ->
-  result<(), error> {
+fn setsockopt_u64(
+    sock: socket_t,
+    opt: c_int,
+    value: u64
+) -> result<(), error> {
     let r = zmq::zmq_setsockopt(
         sock,
         opt as c_int,
@@ -648,8 +659,12 @@ fn setsockopt_u64(sock: socket_t, opt: c_int, value: u64) ->
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_buf(sock: socket_t, opt: c_int, p: *u8, len: uint) ->
-  result<(), error> unsafe {
+fn setsockopt_buf(
+    sock: socket_t,
+    opt: c_int,
+    p: *u8,
+    len: uint
+) -> result<(), error> unsafe {
     let r = zmq::zmq_setsockopt(
         sock,
         opt as c_int,
@@ -659,12 +674,18 @@ fn setsockopt_buf(sock: socket_t, opt: c_int, p: *u8, len: uint) ->
     if r == -1i32 { err(errno_to_error()) } else { ok(()) }
 }
 
-fn setsockopt_bytes(sock: socket_t, opt: c_int, value: &[u8]) ->
-  result<(), error> unsafe {
+fn setsockopt_bytes(
+    sock: socket_t,
+    opt: c_int,
+    value: &[u8]
+) -> result<(), error> unsafe {
     vec::as_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
 }
 
-fn setsockopt_str(sock: socket_t, opt: c_int, value: &str) ->
-  result<(), error> unsafe {
+fn setsockopt_str(
+    sock: socket_t,
+    opt: c_int,
+    value: &str
+) -> result<(), error> unsafe {
     str::as_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
 }
