@@ -1,4 +1,4 @@
-#[doc = "Module: zmq"]
+//! Module: zmq
 
 export context;
 export socket;
@@ -26,13 +26,13 @@ export poll;
 export error;
 export to_str;
 
-#[doc = "The ZMQ container that manages all the sockets"]
+/// The ZMQ container that manages all the sockets
 type context_t = *c_void;
 
-#[doc = "A ZMQ socket"]
+/// A ZMQ socket
 type socket_t = *c_void;
 
-#[doc = "A message"]
+/// A message
 type msg = {
     content: *c_void,
     flags: u8,
@@ -84,7 +84,7 @@ extern mod zmq {
     fn zmq_poll(items: *pollitem, nitems: c_int, timeout: c_long) -> c_int;
 }
 
-#[doc = "Socket types"]
+/// Socket types
 enum socket_type {
     PAIR = 0,
     PUB = 1,
@@ -496,7 +496,7 @@ fn poll(items: &[pollitem], timeout: i64) -> result<(), error> unsafe {
 }
 
 impl error: to_str::ToStr {
-    #[doc = "Return the error string for an error."]
+    /// Return the error string for an error.
     fn to_str() -> ~str unsafe {
         let s = zmq::zmq_strerror(self as c_int);
         return if unsafe::reinterpret_cast(s) == -1 {
@@ -508,7 +508,7 @@ impl error: to_str::ToStr {
     }
 }
 
-#[doc = "Convert the errno into an error type."]
+/// Convert the errno into an error type.
 fn errno_to_error() -> error {
     match zmq::zmq_errno() {
         e if e == ENOTSUP as c_int         => ENOTSUP,
