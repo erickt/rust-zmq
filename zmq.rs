@@ -33,7 +33,7 @@ type context_t = *c_void;
 type socket_t = *c_void;
 
 /// A message
-type msg = {
+type msg_t = {
     content: *c_void,
     flags: u8,
     vsm_size: u8,
@@ -72,14 +72,14 @@ extern mod zmq {
     fn zmq_bind(socket: socket_t, endpoint: *c_char) -> c_int;
     fn zmq_connect(socket: socket_t, endpoint: *c_char) -> c_int;
 
-    fn zmq_msg_init(msg: msg) -> c_int;
-    fn zmq_msg_init_size(msg: msg, size: size_t) -> c_int;
-    fn zmq_msg_data(msg: msg) -> *u8;
-    fn zmq_msg_size(msg: msg) -> size_t;
-    fn zmq_msg_close(msg: msg) -> c_int;
+    fn zmq_msg_init(msg: msg_t) -> c_int;
+    fn zmq_msg_init_size(msg: msg_t, size: size_t) -> c_int;
+    fn zmq_msg_data(msg: msg_t) -> *u8;
+    fn zmq_msg_size(msg: msg_t) -> size_t;
+    fn zmq_msg_close(msg: msg_t) -> c_int;
 
-    fn zmq_send(socket: socket_t, msg: msg, flags: c_int) -> c_int;
-    fn zmq_recv(socket: socket_t, msg: msg, flags: c_int) -> c_int;
+    fn zmq_send(socket: socket_t, msg: msg_t, flags: c_int) -> c_int;
+    fn zmq_recv(socket: socket_t, msg: msg_t, flags: c_int) -> c_int;
 
     fn zmq_poll(items: *pollitem, nitems: c_int, timeout: c_long) -> c_int;
 }
@@ -418,7 +418,7 @@ impl Socket {
         str::byte_slice(data, |bytes| self.send(bytes, flags))
     }
 
-    fn recv(flags: int) -> Result<~[u8], Error> unsafe {
+    unsafe fn recv(flags: int) -> Result<Message, Error> {
         let msg = {
             content: ptr::null(),
             flags: 0u8,
@@ -433,30 +433,25 @@ impl Socket {
         };
 
         zmq::zmq_msg_init(msg);
-
         let rc = zmq::zmq_recv(self.sock, msg, flags as c_int);
-        let msg_data = zmq::zmq_msg_data(msg);
-        let msg_size = zmq::zmq_msg_size(msg) as uint;
 
-        // Extract the data out from the message.
-        let mut data = ~[];
-        vec::reserve(data, msg_size);
-
-        unsafe {
-            do vec::as_buf(data) |ptr, _len| {
-                ptr::memcpy(ptr, msg_data, msg_size);
-            }
-            vec::unsafe::set_len(data, msg_size);
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(Message { msg: msg })
         }
+    }
 
-        zmq::zmq_msg_close(msg);
-
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(data) }
+    fn recv_bytes(flags: int) -> Result<~[u8], Error> unsafe {
+        match move self.recv(flags) {
+            Ok(move msg) => Ok(msg.to_bytes()),
+            Err(move e) => Err(e),
+        }
     }
 
     fn recv_str(flags: int) -> Result<~str, Error> unsafe {
         match move self.recv(flags) {
-            Ok(move msg) => Ok(str::from_bytes(msg)),
+            Ok(move msg) => Ok(msg.to_str()),
             Err(move e) => Err(e),
         }
     }
@@ -471,6 +466,43 @@ impl Socket {
         }
 
         Ok(())
+    }
+}
+
+struct Message {
+    priv msg: msg_t,
+
+    drop {
+        zmq::zmq_msg_close(self.msg);
+    }
+}
+
+impl Message {
+    unsafe fn with_ptr<T>(f: fn(*u8, uint) -> T) -> T {
+        let data = zmq::zmq_msg_data(self.msg);
+        let len = zmq::zmq_msg_size(self.msg) as uint;
+
+        f(data, len)
+    }
+
+    fn with_bytes<T>(f: fn(v: &[u8]) -> T) -> T unsafe {
+        do self.with_ptr |data, len| {
+            vec::unsafe::form_slice(data, len, f)
+        }
+    }
+
+    fn with_str<T>(f: fn(v: &str) -> T) -> T unsafe {
+        do self.with_ptr |data, len| {
+            str::unsafe::form_slice(data, len, f)
+        }
+    }
+
+    fn to_bytes() -> ~[u8] {
+        self.with_bytes(|v| vec::from_slice(v))
+    }
+
+    fn to_str() -> ~str {
+        self.with_str(|s| str::from_slice(s))
     }
 }
 
