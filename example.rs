@@ -1,5 +1,5 @@
-use std;
-use zmq;
+extern mod std;
+extern mod zmq;
 
 fn new_server(ctx: zmq::Context, ch: comm::Chan<()>) {
     let socket = result::unwrap(ctx.socket(zmq::REP));

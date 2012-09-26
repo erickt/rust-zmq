@@ -4,10 +4,10 @@
 //
 // I *think* it's the same, more or less.
 
-use std;
-use zmq;
+extern mod std;
+extern mod zmq;
 
-import dvec::{DVec, dvec};
+use dvec::DVec;
 
 fn server(ctx: zmq::Context, ch: comm::Chan<()>, workers: uint) {
     let mut workers = workers;
