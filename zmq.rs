@@ -99,8 +99,8 @@ pub enum SocketType {
     XSUB = 10,
 }
 
-const DONTWAIT : int = 1;
-const SNDMORE : int = 2;
+pub const DONTWAIT : int = 1;
+pub const SNDMORE : int = 2;
 
 pub mod constants {
     pub const ZMQ_HWM : c_int = 1i32;
@@ -155,7 +155,7 @@ enum Error {
 }
 
 // Return the current zeromq version.
-fn version() -> (int, int, int) {
+pub fn version() -> (int, int, int) {
     let major = 0i32;
     let minor = 0i32;
     let patch = 0i32;
@@ -167,7 +167,7 @@ fn version() -> (int, int, int) {
 }
 
 // Create a zeromq context.
-fn init(io_threads: int) -> Result<Context, Error> unsafe {
+pub fn init(io_threads: int) -> Result<Context, Error> unsafe {
     let ctx = zmq::zmq_init(io_threads as i32);
 
     if ctx.is_null() {
@@ -181,7 +181,7 @@ struct Context {
     priv ctx: Context_,
 }
 
-impl Context {
+pub impl Context {
     fn socket(socket_type: SocketType) -> Result<Socket, Error> unsafe {
         let sock = zmq::zmq_socket(self.ctx, socket_type as c_int);
 
@@ -214,7 +214,7 @@ struct Socket {
     }
 }
 
-impl Socket {
+pub impl Socket {
     fn get_socket_type() -> Result<SocketType, Error> {
         do getsockopt_int(self.sock, constants::ZMQ_TYPE).map |ty| {
             match *ty {
@@ -477,7 +477,7 @@ struct Message {
     }
 }
 
-impl Message {
+pub impl Message {
     unsafe fn with_ptr<T>(f: fn(*u8, uint) -> T) -> T {
         let data = zmq::zmq_msg_data(&self.msg);
         let len = zmq::zmq_msg_size(&self.msg) as uint;
@@ -485,7 +485,7 @@ impl Message {
         f(data, len)
     }
 
-    fn with_bytes<T>(f: fn(&&v: &[u8]) -> T) -> T unsafe {
+    fn with_bytes<T>(f: fn(v: &[u8]) -> T) -> T unsafe {
         do self.with_ptr |data, len| {
             vec::raw::form_slice(data, len, f)
         }
@@ -506,18 +506,18 @@ impl Message {
     }
 }
 
-const POLLIN : i16 = 1i16;
-const POLLOUT : i16 = 2i16;
-const POLLERR : i16 = 4i16;
+pub const POLLIN : i16 = 1i16;
+pub const POLLOUT : i16 = 2i16;
+pub const POLLERR : i16 = 4i16;
 
-type PollItem = {
+pub type PollItem = {
     socket: Socket_,
     fd: c_int,
     mut events: i16,
     mut revents: i16,
 };
 
-fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> unsafe {
+pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> unsafe {
     do vec::as_imm_buf(items) |p, len| {
         let rc = zmq::zmq_poll(
             p,
@@ -527,7 +527,7 @@ fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> unsafe {
     }
 }
 
-impl Error: to_str::ToStr {
+pub impl Error: to_str::ToStr {
     /// Return the error string for an error.
     fn to_str() -> ~str unsafe {
         str::raw::from_c_str(zmq::zmq_strerror(self as c_int))
