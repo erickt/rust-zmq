@@ -310,7 +310,7 @@ pub impl Socket {
         setsockopt_u64(self.sock, constants::ZMQ_AFFINITY, value)
     }
 
-    fn set_identity(value: ~[u8]) -> Result<(), Error> {
+    fn set_identity(value: &[u8]) -> Result<(), Error> {
         setsockopt_bytes(self.sock, constants::ZMQ_IDENTITY, value)
     }
 
@@ -485,13 +485,13 @@ pub impl Message {
         f(data, len)
     }
 
-    fn with_bytes<T>(f: fn(v: &[u8]) -> T) -> T unsafe {
+    fn with_bytes<T>(f: fn(&[u8]) -> T) -> T unsafe {
         do self.with_ptr |data, len| {
             vec::raw::form_slice(data, len, f)
         }
     }
 
-    fn with_str<T>(f: fn(&&v: &str) -> T) -> T unsafe {
+    fn with_str<T>(f: fn(&str) -> T) -> T unsafe {
         do self.with_ptr |data, len| {
             str::raw::buf_as_slice(data, len, f)
         }
@@ -626,7 +626,7 @@ fn getsockopt_bytes(
     if r == -1i32 {
         Err(errno_to_error())
     } else {
-        vec::raw::set_len(value, size as uint);
+        vec::raw::set_len(&mut value, size as uint);
         Ok(value)
     }
 }
