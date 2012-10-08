@@ -47,7 +47,7 @@ fn main() {
 
     // We need to start the server in a separate scheduler as it blocks.
     let po = comm::Port();
-    let ch = comm::Chan(po);
+    let ch = comm::Chan(&po);
     do task::spawn_sched(task::SingleThreaded) { new_server(ctx, ch) }
 
     new_client(ctx);

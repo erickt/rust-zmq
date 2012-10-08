@@ -92,7 +92,7 @@ fn worker(ctx: zmq::Context, count: uint) {
 fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Spawn the server.
     let po = comm::Port();
-    let ch = comm::Chan(po);
+    let ch = comm::Chan(&po);
     do task::spawn_sched(task::SingleThreaded) {
         server(ctx, ch, workers);
     }
@@ -128,9 +128,9 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
 
     for workers.times {
         let po = comm::Port();
-        let ch = comm::Chan(po);
+        let ch = comm::Chan(&po);
 
-        vec::push(worker_results, po);
+        worker_results.push(po);
 
         do task::spawn_sched(task::SingleThreaded) {
             worker(ctx, size / workers);
@@ -167,13 +167,15 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     io::println(#fmt("Throughput=%f per sec", thruput));
 }
 
-fn main(++args: ~[~str]) {
+fn main() {
+    let args = os::args();
+
     let args = if os::getenv(~"RUST_BENCH").is_some() {
         ~[~"", ~"1000000", ~"10000"]
     } else if args.len() <= 1u {
         ~[~"", ~"10000", ~"4"]
     } else {
-        copy args
+        args
     };
 
     let size = uint::from_str(args[1]).get();
