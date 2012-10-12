@@ -529,7 +529,7 @@ pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> unsafe {
 
 pub impl Error: to_str::ToStr {
     /// Return the error string for an error.
-    fn to_str() -> ~str unsafe {
+    pure fn to_str() -> ~str unsafe {
         str::raw::from_c_str(zmq::zmq_strerror(self as c_int))
     }
 }
