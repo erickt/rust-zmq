@@ -9,7 +9,7 @@ extern mod zmq;
 
 use dvec::DVec;
 
-fn server(ctx: zmq::Context, ch: comm::Chan<()>, workers: uint) {
+fn server(ctx: zmq::Context, ch: oldcomm::Chan<()>, workers: uint) {
     let mut workers = workers;
 
     let pull_socket = match ctx.socket(zmq::PULL) {
@@ -91,8 +91,8 @@ fn worker(ctx: zmq::Context, count: uint) {
 
 fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Spawn the server.
-    let po = comm::Port();
-    let ch = comm::Chan(&po);
+    let po = oldcomm::Port();
+    let ch = oldcomm::Chan(&po);
     do task::spawn_sched(task::SingleThreaded) {
         server(ctx, ch, workers);
     }
@@ -100,7 +100,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Wait for the server to start.
     po.recv();
 
-    // Create some command/control sockets.
+    // Create some oldcommand/control sockets.
     let push_socket = match ctx.socket(zmq::PUSH) {
       Ok(move socket) => socket,
       Err(e) => fail e.to_str(),
@@ -127,8 +127,8 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     let mut worker_results = ~[];
 
     for workers.times {
-        let po = comm::Port();
-        let ch = comm::Chan(&po);
+        let po = oldcomm::Port();
+        let ch = oldcomm::Chan(&po);
 
         worker_results.push(po);
 
@@ -161,10 +161,10 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     let end = std::time::precise_time_s();
     let elapsed = end - start;
 
-    io::println(#fmt("Count is %?", result));
-    io::println(#fmt("Test took %? seconds", elapsed));
+    io::println(fmt!("Count is %?", result));
+    io::println(fmt!("Test took %? seconds", elapsed));
     let thruput = ((size / workers * workers) as float) / (elapsed as float);
-    io::println(#fmt("Throughput=%f per sec", thruput));
+    io::println(fmt!("Throughput=%f per sec", thruput));
 }
 
 fn main() {
