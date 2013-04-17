@@ -3,33 +3,30 @@ Rust Zeromq bindings.
 To build, just run `rustc zmq.rc`. rust-zmq is a pretty straight forward
 port of the C API into Rust:
 
-    use zmq;
-    import zmq::{context, socket, error};
-
+    extern mod zmq;
+    
     fn main() {
-        let ctx = alt zmq::init(1) {
-          ok(ctx) { ctx }
-          err(e) { fail e.to_str() }
+        let ctx = match zmq::init(1) {
+          Ok(ctx) => ctx,
+          Err(e) => fail!(e.to_str())
         };
-
-        let socket = alt.ctx.socket(zmq::REQ) {
-          ok(socket) { socket }
-          err(e) { fail e.to_str() }
+    
+        let socket = match ctx.socket(zmq::REQ) {
+          Ok(socket) => { socket },
+          Err(e) => { fail!(e.to_str()) }
         };
-
-        alt socket.connect("tcp://127.0.0.1:1234") {
-          ok(()) { }
-          err(e) { fail e.to_str() }
+    
+        match socket.connect("tcp://127.0.0.1:1234") {
+          Ok(()) => (),
+          Err(e) => fail!(e.to_str())
         }
-
-        alt socket.send_str("hello world!", 0) {
-          ok(()) { }
-          err(e) { fail e.to_str() }
+    
+        match socket.send_str("hello world!", 0) {
+          Ok(()) => (),
+          Err(e) => fail!(e.to_str())
         }
-
-        socket.close();
-        ctx.close();
     }
+
 
 Installation
 ------------
