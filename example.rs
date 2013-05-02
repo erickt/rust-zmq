@@ -1,7 +1,8 @@
 extern mod std;
 extern mod zmq;
+use core::comm::{stream, Chan};
 
-fn new_server(ctx: zmq::Context, ch: oldcomm::Chan<()>) {
+fn new_server(ctx: zmq::Context, ch: &Chan<()>) {
     let socket = result::unwrap(ctx.socket(zmq::REP));
     socket.bind("tcp://127.0.0.1:3456").get();
 
@@ -9,8 +10,8 @@ fn new_server(ctx: zmq::Context, ch: oldcomm::Chan<()>) {
     io::println(fmt!("received %s", msg));
 
     match socket.send_str(fmt!("hello %s", msg), 0) {
-        Ok(()) => { }
-        Err(e) => fail e.to_str()
+        Ok(()) => { },
+        Err(e) => fail!(e.to_str())
     }
 
     // Let the main thread know we're done.
@@ -46,9 +47,8 @@ fn main() {
     let ctx = result::unwrap(zmq::init(1));
 
     // We need to start the server in a separate scheduler as it blocks.
-    let po = oldcomm::Port();
-    let ch = oldcomm::Chan(&po);
-    do task::spawn_sched(task::SingleThreaded) { new_server(ctx, ch) }
+    let (po, ch) = stream();
+    do task::spawn_sched(task::SingleThreaded) { new_server(ctx, &ch) }
 
     new_client(ctx);
 
