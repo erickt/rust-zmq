@@ -499,11 +499,11 @@ pub impl Message {
     }
 
     fn to_bytes(&self) -> ~[u8] {
-        self.with_bytes(|v| vec::from_slice(v))
+        self.with_bytes(|v| vec::to_owned(v))
     }
 
     fn to_str(&self) -> ~str {
-        self.with_str(|s| str::from_slice(s))
+        self.with_str(|s| str::to_owned(s))
     }
 }
 
