@@ -29,7 +29,8 @@ struct Msg_ {
     vsm_data6: u32
 }
 
-extern mod zmq {
+#[link_name="zmq"]
+extern {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
     fn zmq_init(io_threads: c_int) -> Context_;
@@ -144,17 +145,17 @@ pub fn version() -> (int, int, int) {
     let minor = 0i32;
     let patch = 0i32;
     unsafe {
-        zmq::zmq_version(
-            ptr::addr_of(&major),
-            ptr::addr_of(&minor),
-            ptr::addr_of(&patch));
+        zmq_version(
+            &major,
+            &minor,
+            &patch);
     }
     (major as int, minor as int, patch as int)
 }
 
 // Create a zeromq context.
 pub fn init(io_threads: int) -> Result<Context, Error> {    
-    let ctx = unsafe {zmq::zmq_init(io_threads as i32)};
+    let ctx = unsafe {zmq_init(io_threads as i32)};
 
     if ctx.is_null() {
         return Err(errno_to_error());
@@ -169,7 +170,7 @@ pub struct Context {
 
 pub impl Context {
     fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
-        let sock = unsafe {zmq::zmq_socket(self.ctx, socket_type as c_int)};
+        let sock = unsafe {zmq_socket(self.ctx, socket_type as c_int)};
 
         if sock.is_null() {
             return Err(errno_to_error());
@@ -179,7 +180,7 @@ pub impl Context {
     }
 
     fn term(&self) -> Result<(), Error> {
-        let rc = unsafe{zmq::zmq_term(self.ctx)};
+        let rc = unsafe{zmq_term(self.ctx)};
         if rc == -1i32 {
             Err(errno_to_error())
         } else {
@@ -354,7 +355,7 @@ pub impl Socket {
     /// Accept connections on a socket.
     fn bind(&self, endpoint: &str) -> Result<(), Error> {
         let rc = do str::as_c_str(endpoint) |cstr| {
-            unsafe {zmq::zmq_bind(self.sock, cstr)}
+            unsafe {zmq_bind(self.sock, cstr)}
         };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -363,7 +364,7 @@ pub impl Socket {
     /// Connect a socket.
     fn connect(&self, endpoint: &str) -> Result<(), Error> {
         let rc = do str::as_c_str(endpoint) |cstr| {
-            unsafe {zmq::zmq_connect(self.sock, cstr)}
+            unsafe {zmq_connect(self.sock, cstr)}
         };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -385,18 +386,18 @@ pub impl Socket {
             };
 
             // Copy the data into the message.
-            unsafe{zmq::zmq_msg_init_size(&msg, len as size_t)};
+            unsafe{zmq_msg_init_size(&msg, len as size_t)};
 
             unsafe {
                 ptr::copy_memory(
-                    ::cast::transmute(zmq::zmq_msg_data(&msg)),
+                    ::cast::transmute(zmq_msg_data(&msg)),
                     base_ptr,
                     len);
             }
 
-            let rc = unsafe{zmq::zmq_send(self.sock, &msg, flags as c_int)};
+            let rc = unsafe{zmq_send(self.sock, &msg, flags as c_int)};
 
-            unsafe{zmq::zmq_msg_close(&msg)};
+            unsafe{zmq_msg_close(&msg)};
 
             if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
         }
@@ -420,8 +421,8 @@ pub impl Socket {
             vsm_data6: 0u32,
         };
 
-        zmq::zmq_msg_init(&msg);
-        let rc = zmq::zmq_recv(self.sock, &msg, flags as c_int);
+        zmq_msg_init(&msg);
+        let rc = zmq_recv(self.sock, &msg, flags as c_int);
 
         if rc == -1i32 {
             Err(errno_to_error())
@@ -448,7 +449,7 @@ pub impl Socket {
         if !self.closed {
             self.closed = true;
 
-            if unsafe{zmq::zmq_close(self.sock)} == -1i32 {
+            if unsafe{zmq_close(self.sock)} == -1i32 {
                 return Err(errno_to_error());
             }
         }
@@ -458,7 +459,7 @@ pub impl Socket {
 
     fn close_final(&self) -> Result<(), Error> {
         if !self.closed {
-            if unsafe{zmq::zmq_close(self.sock)} == -1i32 {
+            if unsafe{zmq_close(self.sock)} == -1i32 {
                 return Err(errno_to_error());
             }
         }
@@ -473,14 +474,14 @@ struct Message {
 
 impl Drop for Message {
     fn finalize(&self) {
-        unsafe{zmq::zmq_msg_close(&self.msg)};
+        unsafe{zmq_msg_close(&self.msg)};
     }
 }
 
 pub impl Message {
     fn with_ptr<T>(&self, f: &fn(*u8, uint) -> T) -> T {
-        let data = unsafe{zmq::zmq_msg_data(&self.msg)};
-        let len = unsafe{zmq::zmq_msg_size(&self.msg) as uint};
+        let data = unsafe{zmq_msg_data(&self.msg)};
+        let len = unsafe{zmq_msg_size(&self.msg) as uint};
 
         f(data, len)
     }
@@ -498,11 +499,11 @@ pub impl Message {
     }
 
     fn to_bytes(&self) -> ~[u8] {
-        self.with_bytes(|v| vec::from_slice(v))
+        self.with_bytes(|v| vec::to_owned(v))
     }
 
     fn to_str(&self) -> ~str {
-        self.with_str(|s| str::from_slice(s))
+        self.with_str(|s| str::to_owned(s))
     }
 }
 
@@ -519,7 +520,7 @@ pub struct PollItem {
 
 pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
     do vec::as_imm_buf(items) |p, len| {
-        let rc = unsafe {zmq::zmq_poll(
+        let rc = unsafe {zmq_poll(
             p,
             len as c_int,
             timeout as c_long)};
@@ -531,14 +532,14 @@ impl to_str::ToStr for Error {
     /// Return the error string for an error.
     fn to_str(&self) -> ~str {
         unsafe {
-            str::raw::from_c_str(unsafe{zmq::zmq_strerror(*self as c_int)})
+            str::raw::from_c_str(unsafe{zmq_strerror(*self as c_int)})
         }
     }
 }
 
 /// Convert the errno into an error type.
 fn errno_to_error() -> Error {
-    match unsafe{zmq::zmq_errno()} {
+    match unsafe{zmq_errno()} {
         e if e == ENOTSUP as c_int         => ENOTSUP,
         e if e == EPROTONOSUPPORT as c_int => EPROTONOSUPPORT,
         e if e == ENOBUFS as c_int         => ENOBUFS,
@@ -553,7 +554,7 @@ fn errno_to_error() -> Error {
         e if e == ETERM as c_int           => ETERM,
         e if e == EMTHREAD as c_int        => EMTHREAD,
         e => unsafe {
-            fail!(str::raw::from_c_str(zmq::zmq_strerror(e as c_int)))
+            fail!(str::raw::from_c_str(zmq_strerror(e as c_int)))
         }
     }
 }
@@ -562,11 +563,11 @@ fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
     let value = 0u32 as c_int;
     let size = sys::size_of::<c_int>() as size_t;
 
-    let r = unsafe{zmq::zmq_getsockopt}(
+    let r = unsafe{zmq_getsockopt}(
         sock,
         opt as c_int,
-        ptr::addr_of(&value) as *c_void,
-        ptr::addr_of(&size));
+        ptr::to_unsafe_ptr(&value) as *c_void,
+        &size);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value as int) }
 }
@@ -575,11 +576,11 @@ fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
     let value = 0u32;
     let size = sys::size_of::<u32>() as size_t;
 
-    let r = unsafe{zmq::zmq_getsockopt}(
+    let r = unsafe{zmq_getsockopt}(
         sock,
         opt,
-        ptr::addr_of(&value) as *c_void,
-        ptr::addr_of(&size));
+        ptr::to_unsafe_ptr(&value) as *c_void,
+        &size);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
 }
@@ -588,11 +589,11 @@ fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
     let value = 0i64;
     let size = sys::size_of::<i64>() as size_t;
 
-    let r = unsafe{zmq::zmq_getsockopt}(
+    let r = unsafe{zmq_getsockopt}(
         sock,
         opt as c_int,
-        ptr::addr_of(&value) as *c_void,
-        ptr::addr_of(&size));
+        ptr::to_unsafe_ptr(&value) as *c_void,
+        &size);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
 }
@@ -601,11 +602,11 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
     let value = 0u64;
     let size = sys::size_of::<u64>() as size_t;
 
-    let r = unsafe{zmq::zmq_getsockopt}(
+    let r = unsafe{zmq_getsockopt}(
         sock,
         opt,
-        ptr::addr_of(&value) as *c_void,
-        ptr::addr_of(&size));
+        ptr::to_unsafe_ptr(&value) as *c_void,
+        &size);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
 }
@@ -619,11 +620,11 @@ fn getsockopt_bytes(
     let mut size = 255 as size_t;
     let mut value = vec::with_capacity(size as uint);
 
-    let r = unsafe {zmq::zmq_getsockopt(
+    let r = unsafe {zmq_getsockopt(
         sock,
         opt as c_int,
         vec::raw::to_ptr(value) as *c_void,
-        ptr::addr_of(&size))};
+        &size)};
 
     if r == -1i32 {
         Err(errno_to_error())
@@ -639,10 +640,10 @@ fn setsockopt_int(
     value: int
 ) -> Result<(), Error> {
     let value = value as c_int;
-    let r = unsafe{zmq::zmq_setsockopt}(
+    let r = unsafe{zmq_setsockopt}(
         sock,
         opt as c_int,
-        ptr::addr_of(&value) as *c_void,
+        ptr::to_unsafe_ptr(&value) as *c_void,
         sys::size_of::<c_int>() as size_t);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -653,10 +654,10 @@ fn setsockopt_i64(
     opt: c_int,
     value: i64
 ) -> Result<(), Error> {
-    let r = unsafe{zmq::zmq_setsockopt}(
+    let r = unsafe{zmq_setsockopt}(
         sock,
         opt as c_int,
-        ptr::addr_of(&value) as *c_void,
+        ptr::to_unsafe_ptr(&value) as *c_void,
         sys::size_of::<i64>() as size_t);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -667,10 +668,10 @@ fn setsockopt_u64(
     opt: c_int,
     value: u64
 ) -> Result<(), Error> {
-    let r = unsafe{zmq::zmq_setsockopt}(
+    let r = unsafe{zmq_setsockopt}(
         sock,
         opt as c_int,
-        ptr::addr_of(&value) as *c_void,
+        ptr::to_unsafe_ptr(&value) as *c_void,
         sys::size_of::<u64>() as size_t);
 
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -683,7 +684,7 @@ fn setsockopt_buf(
     len: uint
 ) -> Result<(), Error> {
     let r = unsafe {
-        zmq::zmq_setsockopt(
+        zmq_setsockopt(
             sock,
             opt as c_int,
             unsafe { p as *c_void },
