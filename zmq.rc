@@ -87,10 +87,6 @@ pub static SNDMORE : int = 2;
 
 pub mod constants {
     use core::libc::c_int;
-    pub static ZMQ_HWM : c_int = 1i32;
-    pub static ZMQ_SNDHWM : c_int = 1i32;
-    pub static ZMQ_RCVHWM : c_int = 1i32;
-    pub static ZMQ_SWAP : c_int = 3i32;
     pub static ZMQ_AFFINITY : c_int = 4i32;
     pub static ZMQ_IDENTITY : c_int = 5i32;
     pub static ZMQ_SUBSCRIBE : c_int = 6i32;
@@ -109,6 +105,9 @@ pub mod constants {
     pub static ZMQ_BACKLOG : c_int = 19i32;
     pub static ZMQ_RECOVERY_IVL_MSEC : c_int = 20i32;
     pub static ZMQ_RECONNECT_IVL_MAX : c_int = 21i32;
+    pub static ZMQ_MAXMSGSIZE : c_int = 22i32;
+    pub static ZMQ_SNDHWM : c_int = 23i32;
+    pub static ZMQ_RCVHWM : c_int = 24i32;
 
     pub static ZMQ_MAX_VSM_SIZE : c_int = 30i32;
     pub static ZMQ_DELIMITER : c_int = 31i32;
@@ -228,8 +227,12 @@ pub impl Socket {
         }
     }
 
-    fn get_hwm(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, constants::ZMQ_HWM)
+    fn get_sndhwm(&self) -> Result<int, Error> {
+        getsockopt_int(self.sock, constants::ZMQ_SNDHWM)
+    }
+
+    fn get_rcvhwm(&self) -> Result<int, Error> {
+        getsockopt_int(self.sock, constants::ZMQ_RCVHWM)
     }
 
     fn get_affinity(&self) -> Result<u64, Error> {
@@ -290,8 +293,12 @@ pub impl Socket {
         getsockopt_u32(self.sock, constants::ZMQ_EVENTS)
     }
 
-    fn set_hwm(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, constants::ZMQ_HWM, value)
+    fn set_sndhwm(&self, value: int) -> Result<(), Error> {
+        setsockopt_int(self.sock, constants::ZMQ_SNDHWM, value)
+    }
+
+    fn set_rcvhwm(&self, value: int) -> Result<(), Error> {
+        setsockopt_int(self.sock, constants::ZMQ_RCVHWM, value)
     }
 
     fn set_affinity(&self, value: u64) -> Result<(), Error> {
