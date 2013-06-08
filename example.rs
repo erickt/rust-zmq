@@ -1,12 +1,16 @@
 extern mod std;
 extern mod zmq;
-use core::comm::{stream, Chan};
+
+use std::comm::{stream, Chan};
+use std::io;
+use std::str;
+use std::task;
 
 fn new_server(ctx: zmq::Context, ch: &Chan<()>) {
-    let socket = result::unwrap(ctx.socket(zmq::REP));
+    let socket = ctx.socket(zmq::REP).unwrap();
     socket.bind("tcp://127.0.0.1:3456").get();
 
-    let msg = result::unwrap(socket.recv_str(0));
+    let msg = socket.recv_str(0).unwrap();
     io::println(fmt!("received %s", msg));
 
     match socket.send_str(fmt!("hello %s", msg), 0) {
@@ -21,14 +25,14 @@ fn new_server(ctx: zmq::Context, ch: &Chan<()>) {
 fn new_client(ctx: zmq::Context) {
     io::println("starting client");
 
-    let socket = result::unwrap(ctx.socket(zmq::REQ));
+    let socket = ctx.socket(zmq::REQ).unwrap();
 
     socket.set_hwm(10u64).get();
     io::println(fmt!("hwm: %?", socket.get_hwm().get()));
 
     socket.set_identity(str::to_bytes("identity")).get();
 
-    let identity = result::unwrap(socket.get_identity());
+    let identity = socket.get_identity().unwrap();
     io::println(fmt!("identity: %s", str::from_bytes(identity)));
 
     io::println("client connecting to server");
@@ -36,7 +40,7 @@ fn new_client(ctx: zmq::Context) {
     socket.connect("tcp://127.0.0.1:3456").get();
     socket.send_str("foo", 0).get();
 
-    io::println(result::unwrap(socket.recv_str(0)));
+    io::println(socket.recv_str(0).unwrap());
 }
 
 fn main() {
@@ -44,7 +48,7 @@ fn main() {
 
     io::println(fmt!("version: %d %d %d", major, minor, patch));
 
-    let ctx = result::unwrap(zmq::init(1));
+    let ctx = zmq::init(1).unwrap();
 
     // We need to start the server in a separate scheduler as it blocks.
     let (po, ch) = stream();
