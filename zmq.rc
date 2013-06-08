@@ -56,8 +56,8 @@ extern {
     fn zmq_msg_size(msg: &Msg_) -> size_t;
     fn zmq_msg_close(msg: &Msg_) -> c_int;
 
-    fn zmq_send(socket: Socket_, msg: &Msg_, flags: c_int) -> c_int;
-    fn zmq_recv(socket: Socket_, msg: &Msg_, flags: c_int) -> c_int;
+    fn zmq_msg_send(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
+    fn zmq_msg_recv(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
 
     fn zmq_poll(items: *PollItem, nitems: c_int, timeout: c_long) -> c_int;
 }
@@ -382,7 +382,7 @@ impl Socket {
 
     pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
         do vec::as_const_buf(data) |base_ptr, len| {
-            let msg: Msg_ = [0, ..32];
+            let msg = [0, ..32];
 
             unsafe {
                 // Copy the data into the message.
@@ -393,7 +393,7 @@ impl Socket {
                     base_ptr,
                     len);
 
-                let rc = zmq_send(self.sock, &msg, flags as c_int);
+                let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
 
                 zmq_msg_close(&msg);
 
@@ -407,10 +407,10 @@ impl Socket {
     }
 
     pub unsafe fn recv(&self, flags: int) -> Result<Message, Error> {
-        let msg: Msg_ = [0, ..32];
+        let msg = [0, ..32];
 
         zmq_msg_init(&msg);
-        let rc = zmq_recv(self.sock, &msg, flags as c_int);
+        let rc = zmq_msg_recv(&msg, self.sock, flags as c_int);
 
         if rc == -1i32 {
             Err(errno_to_error())
@@ -478,22 +478,20 @@ impl Message {
 
     pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
         do self.with_ptr |data, len| {
-            unsafe {vec::raw::buf_as_slice(data, len, f)}
+            unsafe { vec::raw::buf_as_slice(data, len, f) }
         }
     }
 
     pub fn with_str<T>(&self, f: &fn(&str) -> T) -> T {
-        do self.with_ptr |data, len| {
-            unsafe {str::raw::buf_as_slice(data, len, f)}
-        }
+        self.with_bytes(|v| f(str::from_bytes_slice(v)))
     }
 
     pub fn to_bytes(&self) -> ~[u8] {
-        self.with_bytes(|v| vec::to_owned(v))
+        self.with_bytes(|v| v.to_owned())
     }
 
     pub fn to_str(&self) -> ~str {
-        self.with_str(|s| str::to_owned(s))
+        self.with_str(|s| s.to_owned())
     }
 }
 
