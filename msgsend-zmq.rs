@@ -5,31 +5,36 @@
 // I *think* it's the same, more or less.
 
 extern mod std;
+extern mod extra;
 extern mod zmq;
 
-use dvec::DVec;
+use std::comm;
+use std::io;
+use std::os;
+use std::task;
+use std::uint;
 
-fn server(ctx: zmq::Context, ch: oldcomm::Chan<()>, workers: uint) {
+fn server(ctx: zmq::Context, ch: &comm::Chan<()>, workers: uint) {
     let mut workers = workers;
 
-    let pull_socket = match ctx.socket(zmq::PULL) {
-      Ok(move socket) => socket,
-      Err(e) => fail e.to_str(),
+    let mut pull_socket = match ctx.socket(zmq::PULL) {
+        Ok(socket) => socket,
+        Err(e) => fail!(e.to_str()),
     };
 
-    let push_socket = match ctx.socket(zmq::PUSH) {
-      Ok(move socket) => socket,
-      Err(e) => fail e.to_str(),
+    let mut push_socket = match ctx.socket(zmq::PUSH) {
+        Ok(socket) => socket,
+        Err(e) => fail!(e.to_str()),
     };
 
     match pull_socket.bind("tcp://127.0.0.1:3456") {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     match push_socket.bind("tcp://127.0.0.1:3457") {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     // Let the main thread know we're ready.
@@ -37,8 +42,8 @@ fn server(ctx: zmq::Context, ch: oldcomm::Chan<()>, workers: uint) {
 
     let mut count = 0u;
     while workers != 0 {
-        match pull_socket.recv(0) {
-            Err(e) => fail e.to_str(),
+        match unsafe { pull_socket.recv(0) } {
+            Err(e) => fail!(e.to_str()),
             Ok(msg) => {
                 do msg.with_str |s| {
                     if s == "" {
@@ -51,9 +56,9 @@ fn server(ctx: zmq::Context, ch: oldcomm::Chan<()>, workers: uint) {
         }
     }
 
-    match push_socket.send_str(uint::str(count), 0) {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+    match push_socket.send_str(count.to_str(), 0) {
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     pull_socket.close();
@@ -63,27 +68,27 @@ fn server(ctx: zmq::Context, ch: oldcomm::Chan<()>, workers: uint) {
 }
 
 fn worker(ctx: zmq::Context, count: uint) {
-    let push_socket = match ctx.socket(zmq::PUSH) {
-      Ok(move socket) => socket,
-      Err(e) => fail e.to_str(),
+    let mut push_socket = match ctx.socket(zmq::PUSH) {
+        Ok(socket) => socket,
+        Err(e) => fail!(e.to_str()),
     };
 
     match push_socket.connect("tcp://127.0.0.1:3456") {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     for count.times {
-        match push_socket.send_str(uint::str(100u), 0) {
+        match push_socket.send_str(100u.to_str(), 0) {
           Ok(()) => { }
-          Err(e) => fail e.to_str(),
+          Err(e) => fail!(e.to_str()),
         }
     }
 
     // Let the server know we're done.
     match push_socket.send_str("", 0) {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     push_socket.close();
@@ -91,44 +96,42 @@ fn worker(ctx: zmq::Context, count: uint) {
 
 fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Spawn the server.
-    let po = oldcomm::Port();
-    let ch = oldcomm::Chan(&po);
+    let (po, ch) = comm::stream();
     do task::spawn_sched(task::SingleThreaded) {
-        server(ctx, ch, workers);
+        server(ctx, &ch, workers);
     }
 
     // Wait for the server to start.
     po.recv();
 
-    // Create some oldcommand/control sockets.
+    // Create some command/control sockets.
     let push_socket = match ctx.socket(zmq::PUSH) {
-      Ok(move socket) => socket,
-      Err(e) => fail e.to_str(),
+        Ok(socket) => socket,
+        Err(e) => fail!(e.to_str()),
     };
 
     match push_socket.connect("tcp://127.0.0.1:3456") {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
     let pull_socket = match ctx.socket(zmq::PULL) {
-      Ok(move socket) => socket,
-      Err(e) => fail e.to_str(),
+        Ok(socket) => socket,
+        Err(e) => fail!(e.to_str()),
     };
 
     match pull_socket.connect("tcp://127.0.0.1:3457") {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
 
-    let start = std::time::precise_time_s();
+    let start = extra::time::precise_time_s();
 
     // Spawn all the workers.
     let mut worker_results = ~[];
 
     for workers.times {
-        let po = oldcomm::Port();
-        let ch = oldcomm::Chan(&po);
+        let (po, ch) = comm::stream();
 
         worker_results.push(po);
 
@@ -145,20 +148,20 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Shut down the server.
     push_socket.send_str("stop", 0);
     match push_socket.close() {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     }
     */
 
     po.recv();
 
     // Receive the final count.
-    let result = match pull_socket.recv(0) {
-      Ok(msg) => msg.with_str(|s| uint::from_str(s).get()),
-      Err(e) => fail e.to_str(),
+    let result = match unsafe { pull_socket.recv(0) } {
+        Ok(msg) => msg.with_str(|s| uint::from_str(s).get()),
+        Err(e) => fail!(e.to_str()),
     };
 
-    let end = std::time::precise_time_s();
+    let end = extra::time::precise_time_s();
     let elapsed = end - start;
 
     io::println(fmt!("Count is %?", result));
@@ -170,7 +173,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
 fn main() {
     let args = os::args();
 
-    let args = if os::getenv(~"RUST_BENCH").is_some() {
+    let args = if os::getenv("RUST_BENCH").is_some() {
         ~[~"", ~"1000000", ~"10000"]
     } else if args.len() <= 1u {
         ~[~"", ~"10000", ~"4"]
@@ -182,14 +185,14 @@ fn main() {
     let workers = uint::from_str(args[2]).get();
 
     let ctx = match zmq::init(1) {
-      Ok(ctx) => ctx,
-      Err(e) => fail e.to_str(),
+        Ok(ctx) => ctx,
+        Err(e) => fail!(e.to_str()),
     };
 
     run(ctx, size, workers);
 
     match ctx.term() {
-      Ok(()) => { }
-      Err(e) => fail e.to_str(),
+        Ok(()) => { }
+        Err(e) => fail!(e.to_str()),
     };
 }
