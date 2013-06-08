@@ -27,8 +27,10 @@ fn new_client(ctx: zmq::Context) {
 
     let socket = ctx.socket(zmq::REQ).unwrap();
 
-    socket.set_hwm(10u64).get();
-    io::println(fmt!("hwm: %?", socket.get_hwm().get()));
+    socket.set_sndhwm(10).get();
+    socket.set_rcvhwm(10).get();
+    io::println(fmt!("rcvhwm: %?", socket.get_rcvhwm().get()));
+    io::println(fmt!("sndhwm: %?", socket.get_sndhwm().get()));
 
     socket.set_identity(str::to_bytes("identity")).get();
 
