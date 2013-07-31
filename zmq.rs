@@ -609,10 +609,7 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
 }
 
-fn getsockopt_bytes(
-    sock: Socket_,
-    opt: c_int
-) -> Result<~[u8], Error> {
+fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
@@ -632,11 +629,7 @@ fn getsockopt_bytes(
     }
 }
 
-fn setsockopt_int(
-    sock: Socket_,
-    opt: c_int,
-    value: int
-) -> Result<(), Error> {
+fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
     let value = value as c_int;
     let r = unsafe {
         zmq_setsockopt(
@@ -649,11 +642,7 @@ fn setsockopt_int(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_i64(
-    sock: Socket_,
-    opt: c_int,
-    value: i64
-) -> Result<(), Error> {
+fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -665,11 +654,7 @@ fn setsockopt_i64(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_u64(
-    sock: Socket_,
-    opt: c_int,
-    value: u64
-) -> Result<(), Error> {
+fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -681,12 +666,7 @@ fn setsockopt_u64(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_buf(
-    sock: Socket_,
-    opt: c_int,
-    p: *u8,
-    len: uint
-) -> Result<(), Error> {
+fn setsockopt_buf(sock: Socket_, opt: c_int, p: *u8, len: uint) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -702,10 +682,6 @@ fn setsockopt_bytes( sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Erro
     value.as_imm_buf(|p, len| setsockopt_buf(sock, opt, p, len))
 }
 
-fn setsockopt_str(
-    sock: Socket_,
-    opt: c_int,
-    value: &str
-) -> Result<(), Error> {
+fn setsockopt_str(sock: Socket_, opt: c_int, value: &str) -> Result<(), Error> {
     value.as_bytes().as_imm_buf(|bytes, len| setsockopt_buf(sock, opt, bytes, len))
 }
