@@ -1,8 +1,8 @@
 all:
-	rustc zmq.rc
+	rustc zmq.rs
 
 test:
-	rustc --test zmq.rc
+	rustc --test zmq.rs
 
 example: all
 	rustc -L . example.rs

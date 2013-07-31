@@ -142,7 +142,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     }
 
     // Block until all the workers finish.
-    for worker_results.each |po| { po.recv(); }
+    for worker_results.iter().advance |po| { po.recv(); }
 
     /*
     // Shut down the server.

@@ -1,6 +1,6 @@
 Rust Zeromq bindings.
 
-To build, just run `rustc zmq.rc`. rust-zmq is a pretty straight forward
+To build, just run `rustc zmq.rs`. rust-zmq is a pretty straight forward
 port of the C API into Rust:
 
     extern mod zmq;
