@@ -27,8 +27,8 @@ type Msg_ = [c_char, ..32];
 extern {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
-    fn zmq_init(io_threads: c_int) -> Context_;
-    fn zmq_term(ctx: Context_) -> c_int;
+    fn zmq_ctx_new() -> Context_;
+    fn zmq_ctx_destroy(ctx: Context_) -> c_int;
 
     fn zmq_errno() -> c_int;
     fn zmq_strerror(errnum: c_int) -> *c_char;
@@ -36,16 +36,8 @@ extern {
     fn zmq_socket(ctx: Context_, typ: c_int) -> Socket_;
     fn zmq_close(socket: Socket_) -> c_int;
 
-    fn zmq_getsockopt(
-            socket: Socket_,
-            opt: c_int,
-            optval: *c_void,
-            size: *size_t) -> c_int;
-    fn zmq_setsockopt(
-            socket: Socket_,
-            opt: c_int,
-            optval: *c_void,
-            size: size_t) -> c_int;
+    fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: *size_t) -> c_int;
+    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: size_t) -> c_int;
 
     fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
     fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int;
@@ -161,8 +153,43 @@ impl Constants {
     }
 }
 
-#[deriving(Clone)]
+#[deriving(Clone, Eq, TotalEq)]
 pub enum Error {
+    EPERM   = 1,
+    ENOENT  = 2,
+    ESRCH   = 3,
+    EINTR   = 4,
+    EIO     = 5,
+    ENXIO   = 6,
+    E2BIG   = 7,
+    ENOEXEC = 8,
+    EBADF   = 9,
+    ECHILD  = 10,
+    EAGAIN  = 11,
+    ENOMEM  = 12,
+    EACCES  = 13,
+    EFAULT  = 14,
+    ENOTBLK = 15,
+    EBUSY   = 16,
+    EEXIST  = 17,
+    EXDEV   = 18,
+    ENODEV  = 19,
+    ENOTDIR = 20,
+    EISDIR  = 21,
+    EINVAL  = 22,
+    ENFILE  = 23,
+    EMFILE  = 24,
+    ENOTTY  = 25,
+    ETXTBSY = 26,
+    EFBIG   = 27,
+    ENOSPC  = 28,
+    ESPIPE  = 29,
+    EROFS   = 30,
+    EMLINK  = 31,
+    EPIPE   = 32,
+    EDOM    = 33,
+    ERANGE  = 34,
+
     // the magic number is ZMQ_HAUSNUMERO
     ENOTSUP         = 156384712 + 1,
     EPROTONOSUPPORT = 156384712 + 2,
@@ -180,29 +207,78 @@ pub enum Error {
     EMTHREAD        = 156384712 + 54,
 }
 
-// Return the current zeromq version.
-pub fn version() -> (int, int, int) {
-    let major = 0i32;
-    let minor = 0i32;
-    let patch = 0i32;
-    unsafe {
-        zmq_version(
-            &major,
-            &minor,
-            &patch);
+impl Error {
+    pub fn to_raw(&self) -> i32 {
+        *self as i32
     }
-    (major as int, minor as int, patch as int)
+
+    pub fn from_raw(raw: i32) -> Error {
+        match raw {
+            1  => EPERM,
+            2  => ENOENT,
+            3  => ESRCH,
+            4  => EINTR,
+            5  => EIO,
+            6  => ENXIO,
+            7  => E2BIG,
+            8  => ENOEXEC,
+            9  => EBADF,
+            10 => ECHILD,
+            11 => EAGAIN,
+            12 => ENOMEM,
+            13 => EACCES,
+            14 => EFAULT,
+            15 => ENOTBLK,
+            16 => EBUSY,
+            17 => EEXIST,
+            18 => EXDEV,
+            19 => ENODEV,
+            20 => ENOTDIR,
+            21 => EISDIR,
+            22 => EINVAL,
+            23 => ENFILE,
+            24 => EMFILE,
+            25 => ENOTTY,
+            26 => ETXTBSY,
+            27 => EFBIG,
+            28 => ENOSPC,
+            29 => ESPIPE,
+            30 => EROFS,
+            31 => EMLINK,
+            32 => EPIPE,
+            33 => EDOM,
+            34 => ERANGE,
+
+            156384713 => ENOTSUP,
+            156384714 => EPROTONOSUPPORT,
+            156384715 => ENOBUFS,
+            156384716 => ENETDOWN,
+            156384717 => EADDRINUSE,
+            156384718 => EADDRNOTAVAIL,
+            156384719 => ECONNREFUSED,
+            156384720 => EINPROGRESS,
+            156384721 => ENOTSOCK,
+            156384763 => EFSM,
+            156384764 => ENOCOMPATPROTO,
+            156384765 => ETERM,
+            156384766 => EMTHREAD,
+
+            x => fail!("invalid error %d", x as int),
+        }
+    }
 }
 
-// Create a zeromq context.
-pub fn init(io_threads: int) -> Result<Context, Error> {    
-    let ctx = unsafe {zmq_init(io_threads as i32)};
+// Return the current zeromq version.
+pub fn version() -> (int, int, int) {
+    let major = 0;
+    let minor = 0;
+    let patch = 0;
 
-    if ctx.is_null() {
-        return Err(errno_to_error());
+    unsafe {
+        zmq_version(&major, &minor, &patch);
     }
 
-    Ok(Context { ctx: ctx })
+    (major as int, minor as int, patch as int)
 }
 
 /// zmq context, used to create sockets. Is thread safe, and can be safely
@@ -216,6 +292,12 @@ pub struct Context {
 }
 
 impl Context {
+    pub fn new() -> Context {
+        Context {
+            ctx: unsafe { zmq_ctx_new() }
+        }
+    }
+
     pub fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
         let sock = unsafe {zmq_socket(self.ctx, socket_type as c_int)};
 
@@ -226,12 +308,20 @@ impl Context {
         Ok(Socket { sock: sock as Socket_, closed: false })
     }
 
-    pub fn term(&self) -> Result<(), Error> {
-        if unsafe { zmq_term(self.ctx) } == -1i32 {
+    /// Try to destroy the context. This is different than the destructor; the
+    /// destructor will loop when zmq_ctx_destroy returns EINTR
+    pub fn destroy(&self) -> Result<(), Error> {
+        if unsafe { zmq_ctx_destroy(self.ctx) } == -1i32 {
             Err(errno_to_error())
         } else {
             Ok(())
         }
+    }
+}
+
+impl Drop for Context {
+    pub fn drop(&self) {
+        while self.destroy().get_err() != EFAULT { }
     }
 }
 
@@ -579,28 +669,6 @@ impl ToStr for Error {
     }
 }
 
-/// Convert the errno into an error type.
-fn errno_to_error() -> Error {
-    unsafe {
-        match zmq_errno() {
-            e if e == ENOTSUP as c_int         => ENOTSUP,
-            e if e == EPROTONOSUPPORT as c_int => EPROTONOSUPPORT,
-            e if e == ENOBUFS as c_int         => ENOBUFS,
-            e if e == ENETDOWN as c_int        => ENETDOWN,
-            e if e == EADDRINUSE as c_int      => EADDRINUSE,
-            e if e == EADDRNOTAVAIL as c_int   => EADDRNOTAVAIL,
-            e if e == ECONNREFUSED as c_int    => ECONNREFUSED,
-            e if e == EINPROGRESS as c_int     => EINPROGRESS,
-            e if e == ENOTSOCK as c_int        => ENOTSOCK,
-            e if e == EFSM as c_int            => EFSM,
-            e if e == ENOCOMPATPROTO as c_int  => ENOCOMPATPROTO,
-            e if e == ETERM as c_int           => ETERM,
-            e if e == EMTHREAD as c_int        => EMTHREAD,
-            e => fail!(str::raw::from_c_str(zmq_strerror(e as c_int))),
-        }
-    }
-}
-
 fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
     let value = 0u32 as c_int;
     let size = sys::size_of::<c_int>() as size_t;
@@ -736,4 +804,8 @@ fn setsockopt_bytes( sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Erro
 
 fn setsockopt_str(sock: Socket_, opt: c_int, value: &str) -> Result<(), Error> {
     value.as_bytes().as_imm_buf(|bytes, len| setsockopt_buf(sock, opt, bytes, len))
+}
+
+fn errno_to_error() -> Error {
+    Error::from_raw(unsafe { zmq_errno() })
 }
