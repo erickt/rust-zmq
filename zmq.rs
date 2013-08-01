@@ -65,73 +65,119 @@ extern {
 /// Socket types
 #[deriving(Clone)]
 pub enum SocketType {
-    PAIR = 0,
-    PUB = 1,
-    SUB = 2,
-    REQ = 3,
-    REP = 4,
+    PAIR   = 0,
+    PUB    = 1,
+    SUB    = 2,
+    REQ    = 3,
+    REP    = 4,
     DEALER = 5,
     ROUTER = 6,
-    PULL = 7,
-    PUSH = 8,
-    XPUB = 9,
-    XSUB = 10,
+    PULL   = 7,
+    PUSH   = 8,
+    XPUB   = 9,
+    XSUB   = 10,
 }
 
 pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
-pub mod constants {
-    use std::libc::c_int;
-    pub static ZMQ_AFFINITY : c_int = 4i32;
-    pub static ZMQ_IDENTITY : c_int = 5i32;
-    pub static ZMQ_SUBSCRIBE : c_int = 6i32;
-    pub static ZMQ_UNSUBSCRIBE : c_int = 7i32;
-    pub static ZMQ_RATE : c_int = 8i32;
-    pub static ZMQ_RECOVERY_IVL : c_int = 9i32;
-    pub static ZMQ_MCAST_LOOP : c_int = 10i32;
-    pub static ZMQ_SNDBUF : c_int = 11i32;
-    pub static ZMQ_RCVBUF : c_int = 12i32;
-    pub static ZMQ_RCVMORE : c_int = 13i32;
-    pub static ZMQ_FD : c_int = 14i32;
-    pub static ZMQ_EVENTS : c_int = 15i32;
-    pub static ZMQ_TYPE : c_int = 16i32;
-    pub static ZMQ_LINGER : c_int = 17i32;
-    pub static ZMQ_RECONNECT_IVL : c_int = 18i32;
-    pub static ZMQ_BACKLOG : c_int = 19i32;
-    pub static ZMQ_RECOVERY_IVL_MSEC : c_int = 20i32;
-    pub static ZMQ_RECONNECT_IVL_MAX : c_int = 21i32;
-    pub static ZMQ_MAXMSGSIZE : c_int = 22i32;
-    pub static ZMQ_SNDHWM : c_int = 23i32;
-    pub static ZMQ_RCVHWM : c_int = 24i32;
+#[deriving(Clone)]
+pub enum Constants {
+    ZMQ_AFFINITY          = 4,
+    ZMQ_IDENTITY          = 5,
+    ZMQ_SUBSCRIBE         = 6,
+    ZMQ_UNSUBSCRIBE       = 7,
+    ZMQ_RATE              = 8,
+    ZMQ_RECOVERY_IVL      = 9,
+    ZMQ_MCAST_LOOP        = 10,
+    ZMQ_SNDBUF            = 11,
+    ZMQ_RCVBUF            = 12,
+    ZMQ_RCVMORE           = 13,
+    ZMQ_FD                = 14,
+    ZMQ_EVENTS            = 15,
+    ZMQ_TYPE              = 16,
+    ZMQ_LINGER            = 17,
+    ZMQ_RECONNECT_IVL     = 18,
+    ZMQ_BACKLOG           = 19,
+    ZMQ_RECOVERY_IVL_MSEC = 20,
+    ZMQ_RECONNECT_IVL_MAX = 21,
+    ZMQ_MAXMSGSIZE        = 22,
+    ZMQ_SNDHWM            = 23,
+    ZMQ_RCVHWM            = 24,
 
-    pub static ZMQ_MAX_VSM_SIZE : c_int = 30i32;
-    pub static ZMQ_DELIMITER : c_int = 31i32;
-    pub static ZMQ_VSM : c_int = 32i32;
+    ZMQ_MAX_VSM_SIZE      = 30,
+    ZMQ_DELIMITER         = 31,
+    ZMQ_VSM               = 32,
 
-    pub static ZMQ_MSG_MORE : c_int = 1i32;
-    pub static ZMQ_MSG_SHARED : c_int = 128i32;
-    pub static ZMQ_MSG_MASK : c_int = 129i32;
+    ZMQ_MSG_MORE          = 1,
+    ZMQ_MSG_SHARED        = 128,
+    ZMQ_MSG_MASK          = 129,
 
-    pub static ZMQ_HAUSNUMERO : c_int = 156384712i32;
+    ZMQ_HAUSNUMERO        = 156384712,
+}
+
+impl Constants {
+    pub fn to_raw(&self) -> i32 {
+        *self as i32
+    }
+
+    pub fn from_raw(raw: i32) -> Constants {
+        // fails if `raw` is not a valid value
+        match raw {
+            4         => ZMQ_AFFINITY,
+            5         => ZMQ_IDENTITY,
+            6         => ZMQ_SUBSCRIBE,
+            7         => ZMQ_UNSUBSCRIBE,
+            8         => ZMQ_RATE,
+            9         => ZMQ_RECOVERY_IVL,
+            10        => ZMQ_MCAST_LOOP,
+            11        => ZMQ_SNDBUF,
+            12        => ZMQ_RCVBUF,
+            13        => ZMQ_RCVMORE,
+            14        => ZMQ_FD,
+            15        => ZMQ_EVENTS,
+            16        => ZMQ_TYPE,
+            17        => ZMQ_LINGER,
+            18        => ZMQ_RECONNECT_IVL,
+            19        => ZMQ_BACKLOG,
+            20        => ZMQ_RECOVERY_IVL_MSEC,
+            21        => ZMQ_RECONNECT_IVL_MAX,
+            22        => ZMQ_MAXMSGSIZE,
+            23        => ZMQ_SNDHWM,
+            24        => ZMQ_RCVHWM,
+
+            30        => ZMQ_MAX_VSM_SIZE,
+            31        => ZMQ_DELIMITER,
+            32        => ZMQ_VSM,
+
+            1         => ZMQ_MSG_MORE,
+            128       => ZMQ_MSG_SHARED,
+            129       => ZMQ_MSG_MASK,
+
+            156384712 => ZMQ_HAUSNUMERO,
+
+            x         => fail!("invalid constant %d", x as int),
+        }
+    }
 }
 
 #[deriving(Clone)]
 pub enum Error {
-    ENOTSUP = 156384712 + 1, //ZMQ_HAUSNUMERO + 1,
-    EPROTONOSUPPORT = 156384712 + 2, //ZMQ_HAUSNUMERO + 2,
-    ENOBUFS = 156384712 + 3, //ZMQ_HAUSNUMERO + 3,
-    ENETDOWN = 156384712 + 4, //ZMQ_HAUSNUMERO + 4,
-    EADDRINUSE = 156384712 + 5, //ZMQ_HAUSNUMERO + 5,
-    EADDRNOTAVAIL = 156384712 + 6, //ZMQ_HAUSNUMERO + 6,
-    ECONNREFUSED = 156384712 + 7, //ZMQ_HAUSNUMERO + 7,
-    EINPROGRESS = 156384712 + 8, //ZMQ_HAUSNUMERO + 8,
-    ENOTSOCK = 156384712 + 9, //ZMQ_HAUSNUMERO + 9,
+    // the magic number is ZMQ_HAUSNUMERO
+    ENOTSUP         = 156384712 + 1,
+    EPROTONOSUPPORT = 156384712 + 2,
+    ENOBUFS         = 156384712 + 3,
+    ENETDOWN        = 156384712 + 4,
+    EADDRINUSE      = 156384712 + 5,
+    EADDRNOTAVAIL   = 156384712 + 6,
+    ECONNREFUSED    = 156384712 + 7,
+    EINPROGRESS     = 156384712 + 8,
+    ENOTSOCK        = 156384712 + 9,
 
-    EFSM = 156384712 + 51, //ZMQ_HAUSNUMERO + 51,
-    ENOCOMPATPROTO = 156384712 + 52, //ZMQ_HAUSNUMERO + 52,
-    ETERM = 156384712 + 53, //ZMQ_HAUSNUMERO + 53,
-    EMTHREAD = 156384712 + 54, //ZMQ_HAUSNUMERO + 54,
+    EFSM            = 156384712 + 51,
+    ENOCOMPATPROTO  = 156384712 + 52,
+    ETERM           = 156384712 + 53,
+    EMTHREAD        = 156384712 + 54,
 }
 
 // Return the current zeromq version.
@@ -159,6 +205,12 @@ pub fn init(io_threads: int) -> Result<Context, Error> {
     Ok(Context { ctx: ctx })
 }
 
+/// zmq context, used to create sockets. Is thread safe, and can be safely
+/// shared, but dropping it while sockets are still open will cause them to
+/// close (see zmq_ctx_destroy(3)).
+///
+/// For this reason, one should use an Arc to share it, rather than any unsafe
+/// trickery you might think up that would call the destructor.
 pub struct Context {
     priv ctx: Context_,
 }
@@ -199,7 +251,7 @@ impl Drop for Socket {
 
 impl Socket {
     pub fn get_socket_type(&self) -> Result<SocketType, Error> {
-        do getsockopt_int(self.sock, constants::ZMQ_TYPE).map |ty| {
+        do getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map |ty| {
             match *ty {
                 0 => PAIR,
                 1 => PUB,
@@ -218,150 +270,150 @@ impl Socket {
     }
 
     pub fn get_rcvmore(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, constants::ZMQ_RCVMORE).chain |o| {
+        do getsockopt_i64(self.sock, ZMQ_RCVMORE.to_raw()).chain |o| {
             Ok(o == 1i64)
         }
     }
 
     pub fn get_maxmsgsize(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_MAXMSGSIZE)
+        getsockopt_i64(self.sock, ZMQ_MAXMSGSIZE.to_raw())
     }
 
 
     pub fn get_sndhwm(&self) -> Result<int, Error> {
-        getsockopt_int(self.sock, constants::ZMQ_SNDHWM)
+        getsockopt_int(self.sock, ZMQ_SNDHWM.to_raw())
     }
 
     pub fn get_rcvhwm(&self) -> Result<int, Error> {
-        getsockopt_int(self.sock, constants::ZMQ_RCVHWM)
+        getsockopt_int(self.sock, ZMQ_RCVHWM.to_raw())
     }
 
     pub fn get_affinity(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, constants::ZMQ_AFFINITY)
+        getsockopt_u64(self.sock, ZMQ_AFFINITY.to_raw())
     }
 
     pub fn get_identity(&self) -> Result<~[u8], Error> {
-        getsockopt_bytes(self.sock, constants::ZMQ_IDENTITY)
+        getsockopt_bytes(self.sock, ZMQ_IDENTITY.to_raw())
     }
 
     pub fn get_rate(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_RATE)
+        getsockopt_i64(self.sock, ZMQ_RATE.to_raw())
     }
 
     pub fn get_recovery_ivl(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_RECOVERY_IVL)
+        getsockopt_i64(self.sock, ZMQ_RECOVERY_IVL.to_raw())
     }
 
     pub fn get_recovery_ivl_msec(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_RECOVERY_IVL_MSEC)
+        getsockopt_i64(self.sock, ZMQ_RECOVERY_IVL_MSEC.to_raw())
     }
 
     pub fn get_mcast_loop(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, constants::ZMQ_MCAST_LOOP).chain |o| {
+        do getsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw()).chain |o| {
             Ok(o == 1i64)
         }
     }
 
     pub fn get_sndbuf(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, constants::ZMQ_SNDBUF)
+        getsockopt_u64(self.sock, ZMQ_SNDBUF.to_raw())
     }
 
     pub fn get_rcvbuf(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, constants::ZMQ_RCVBUF)
+        getsockopt_u64(self.sock, ZMQ_RCVBUF.to_raw())
     }
 
     pub fn get_linger(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_LINGER)
+        getsockopt_i64(self.sock, ZMQ_LINGER.to_raw())
     }
 
     pub fn get_reconnect_ivl(&self) -> Result<int, Error> {
-        getsockopt_int(self.sock, constants::ZMQ_RECONNECT_IVL)
+        getsockopt_int(self.sock, ZMQ_RECONNECT_IVL.to_raw())
     }
 
     pub fn get_reconnect_ivl_max(&self) -> Result<int, Error> {
-        getsockopt_int(self.sock, constants::ZMQ_RECONNECT_IVL_MAX)
+        getsockopt_int(self.sock, ZMQ_RECONNECT_IVL_MAX.to_raw())
     }
 
     pub fn get_backlog(&self) -> Result<int, Error> {
-        getsockopt_int(self.sock, constants::ZMQ_BACKLOG)
+        getsockopt_int(self.sock, ZMQ_BACKLOG.to_raw())
     }
 
     pub fn get_fd(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, constants::ZMQ_FD)
+        getsockopt_i64(self.sock, ZMQ_FD.to_raw())
     }
 
     pub fn get_events(&self) -> Result<u32, Error> {
-        getsockopt_u32(self.sock, constants::ZMQ_EVENTS)
+        getsockopt_u32(self.sock, ZMQ_EVENTS.to_raw())
     }
 
     pub fn set_maxmsgsize(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, constants::ZMQ_MAXMSGSIZE, value)
+        setsockopt_i64(self.sock, ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
 
     pub fn set_sndhwm(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_SNDHWM, value)
+        setsockopt_int(self.sock, ZMQ_SNDHWM.to_raw(), value)
     }
 
     pub fn set_rcvhwm(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_RCVHWM, value)
+        setsockopt_int(self.sock, ZMQ_RCVHWM.to_raw(), value)
     }
 
     pub fn set_affinity(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, constants::ZMQ_AFFINITY, value)
+        setsockopt_u64(self.sock, ZMQ_AFFINITY.to_raw(), value)
     }
 
     pub fn set_identity(&self, value: &[u8]) -> Result<(), Error> {
-        setsockopt_bytes(self.sock, constants::ZMQ_IDENTITY, value)
+        setsockopt_bytes(self.sock, ZMQ_IDENTITY.to_raw(), value)
     }
 
     pub fn set_subscribe(&self, value: &[u8]) -> Result<(), Error> {
-        setsockopt_bytes(self.sock, constants::ZMQ_SUBSCRIBE, value)
+        setsockopt_bytes(self.sock, ZMQ_SUBSCRIBE.to_raw(), value)
     }
 
     pub fn set_unsubscribe(&self, value: &[u8]) -> Result<(), Error> {
-        setsockopt_bytes(self.sock, constants::ZMQ_UNSUBSCRIBE, value)
+        setsockopt_bytes(self.sock, ZMQ_UNSUBSCRIBE.to_raw(), value)
     }
 
     pub fn set_rate(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, constants::ZMQ_RATE, value)
+        setsockopt_i64(self.sock, ZMQ_RATE.to_raw(), value)
     }
 
     pub fn set_recovery_ivl(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, constants::ZMQ_RECOVERY_IVL, value)
+        setsockopt_i64(self.sock, ZMQ_RECOVERY_IVL.to_raw(), value)
     }
 
     pub fn set_recovery_ivl_msec(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, constants::ZMQ_RECOVERY_IVL_MSEC, value)
+        setsockopt_i64(self.sock, ZMQ_RECOVERY_IVL_MSEC.to_raw(), value)
     }
 
     pub fn set_mcast_loop(&self, value: bool) -> Result<(), Error> {
         let value = if value { 1i64 } else { 0i64 };
-        setsockopt_i64(self.sock, constants::ZMQ_MCAST_LOOP, value)
+        setsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw(), value)
     }
 
     pub fn set_sndbuf(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, constants::ZMQ_SNDBUF, value)
+        setsockopt_u64(self.sock, ZMQ_SNDBUF.to_raw(), value)
     }
 
     pub fn set_rcvbuf(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, constants::ZMQ_RCVBUF, value)
+        setsockopt_u64(self.sock, ZMQ_RCVBUF.to_raw(), value)
     }
 
     pub fn set_linger(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_LINGER, value)
+        setsockopt_int(self.sock, ZMQ_LINGER.to_raw(), value)
     }
 
     pub fn set_reconnect_ivl(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_RECONNECT_IVL, value)
+        setsockopt_int(self.sock, ZMQ_RECONNECT_IVL.to_raw(), value)
     }
 
     pub fn set_reconnect_ivl_max(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_RECONNECT_IVL_MAX, value)
+        setsockopt_int(self.sock, ZMQ_RECONNECT_IVL_MAX.to_raw(), value)
     }
 
     pub fn set_backlog(&self, value: int) -> Result<(), Error> {
-        setsockopt_int(self.sock, constants::ZMQ_BACKLOG, value)
+        setsockopt_int(self.sock, ZMQ_BACKLOG.to_raw(), value)
     }
 
     /// Accept connections on a socket.
