@@ -35,7 +35,7 @@ fn new_client(ctx: zmq::Context) {
     io::println(fmt!("rcvhwm: %?", socket.get_rcvhwm().get()));
     io::println(fmt!("sndhwm: %?", socket.get_sndhwm().get()));
 
-    socket.set_identity(str::to_bytes("identity")).get();
+    socket.set_identity("identity".as_bytes()).get();
 
     let identity = socket.get_identity().unwrap();
     io::println(fmt!("identity: %?", str::from_bytes(identity)));

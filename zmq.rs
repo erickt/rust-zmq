@@ -63,6 +63,7 @@ extern {
 }
 
 /// Socket types
+#[deriving(Clone)]
 pub enum SocketType {
     PAIR = 0,
     PUB = 1,
@@ -115,6 +116,7 @@ pub mod constants {
     pub static ZMQ_HAUSNUMERO : c_int = 156384712i32;
 }
 
+#[deriving(Clone)]
 pub enum Error {
     ENOTSUP = 156384712 + 1, //ZMQ_HAUSNUMERO + 1,
     EPROTONOSUPPORT = 156384712 + 2, //ZMQ_HAUSNUMERO + 2,
@@ -187,7 +189,7 @@ pub struct Socket {
 }
 
 impl Drop for Socket {
-    pub fn finalize(&self) {
+    pub fn drop(&self) {
         match self.close_final() {
             Ok(()) => {},
             Err(e) => fail!(e.to_str())
@@ -364,7 +366,7 @@ impl Socket {
 
     /// Accept connections on a socket.
     pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do str::as_c_str(endpoint) |cstr| {
+        let rc = do endpoint.as_c_str |cstr| {
             unsafe {zmq_bind(self.sock, cstr)}
         };
 
@@ -373,7 +375,7 @@ impl Socket {
 
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do str::as_c_str(endpoint) |cstr| {
+        let rc = do endpoint.as_c_str |cstr| {
             unsafe {zmq_connect(self.sock, cstr)}
         };
 
@@ -381,7 +383,7 @@ impl Socket {
     }
 
     pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
-        do vec::as_const_buf(data) |base_ptr, len| {
+        do data.as_imm_buf |base_ptr, len| {
             let msg = [0, ..32];
 
             unsafe {
@@ -403,7 +405,7 @@ impl Socket {
     }
 
     pub fn send_str(&self, data: &str, flags: int) -> Result<(), Error> {
-        str::byte_slice(data, |bytes| self.send(bytes, flags))
+        self.send(data.as_bytes(), flags)
     }
 
     pub unsafe fn recv(&self, flags: int) -> Result<Message, Error> {
@@ -461,7 +463,7 @@ struct Message {
 }
 
 impl Drop for Message {
-    pub fn finalize(&self) {
+    pub fn drop(&self) {
         unsafe { zmq_msg_close(&self.msg); }
     }
 }
@@ -478,7 +480,7 @@ impl Message {
 
     pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
         do self.with_ptr |data, len| {
-            unsafe { vec::raw::buf_as_slice(data, len, f) }
+            unsafe { vec::raw::buf_as_slice(data, len, |x| f(x)) }
         }
     }
 
@@ -507,7 +509,7 @@ pub struct PollItem {
 }
 
 pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
-    do vec::as_imm_buf(items) |p, len| {
+    do items.as_imm_buf |p, len| {
         let rc = unsafe {zmq_poll(
             p,
             len as c_int,
@@ -607,10 +609,7 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
     if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
 }
 
-fn getsockopt_bytes(
-    sock: Socket_,
-    opt: c_int
-) -> Result<~[u8], Error> {
+fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
@@ -630,11 +629,7 @@ fn getsockopt_bytes(
     }
 }
 
-fn setsockopt_int(
-    sock: Socket_,
-    opt: c_int,
-    value: int
-) -> Result<(), Error> {
+fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
     let value = value as c_int;
     let r = unsafe {
         zmq_setsockopt(
@@ -647,11 +642,7 @@ fn setsockopt_int(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_i64(
-    sock: Socket_,
-    opt: c_int,
-    value: i64
-) -> Result<(), Error> {
+fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -663,11 +654,7 @@ fn setsockopt_i64(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_u64(
-    sock: Socket_,
-    opt: c_int,
-    value: u64
-) -> Result<(), Error> {
+fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -679,12 +666,7 @@ fn setsockopt_u64(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_buf(
-    sock: Socket_,
-    opt: c_int,
-    p: *u8,
-    len: uint
-) -> Result<(), Error> {
+fn setsockopt_buf(sock: Socket_, opt: c_int, p: *u8, len: uint) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -696,18 +678,10 @@ fn setsockopt_buf(
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_bytes(
-    sock: Socket_,
-    opt: c_int,
-    value: &[u8]
-) -> Result<(), Error> {
-    vec::as_imm_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
+fn setsockopt_bytes( sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
+    value.as_imm_buf(|p, len| setsockopt_buf(sock, opt, p, len))
 }
 
-fn setsockopt_str(
-    sock: Socket_,
-    opt: c_int,
-    value: &str
-) -> Result<(), Error> {
-    str::as_buf(value, |p, len| setsockopt_buf(sock, opt, p, len))
+fn setsockopt_str(sock: Socket_, opt: c_int, value: &str) -> Result<(), Error> {
+    value.as_bytes().as_imm_buf(|bytes, len| setsockopt_buf(sock, opt, bytes, len))
 }
