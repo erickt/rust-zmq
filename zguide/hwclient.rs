@@ -1,3 +1,5 @@
+//! Hello World client
+
 extern mod zmq;
 
 use std::iterator::Counter;
@@ -18,4 +20,3 @@ fn main() {
         printfln!("Received World %d", x);
     }
 }
-        
