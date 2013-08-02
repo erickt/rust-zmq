@@ -7,12 +7,8 @@
 
 extern mod extra;
 
-use std::cast;
+use std::{cast, ptr, str, sys, vec, libc};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
-use std::ptr;
-use std::str;
-use std::sys;
-use std::vec;
 
 /// The ZMQ container that manages all the sockets
 type Context_ = *c_void;
@@ -41,6 +37,8 @@ extern {
 
     fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
     fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int;
+
+    fn zmq_recv(socket: Socket_, buf: *mut u8, len: size_t, flags: c_int) -> c_int;
 
     fn zmq_msg_init(msg: &Msg_) -> c_int;
     fn zmq_msg_init_size(msg: &Msg_, size: size_t) -> c_int;
@@ -155,56 +153,36 @@ impl Constants {
 
 #[deriving(Clone, Eq, TotalEq)]
 pub enum Error {
-    EPERM   = 1,
-    ENOENT  = 2,
-    ESRCH   = 3,
-    EINTR   = 4,
-    EIO     = 5,
-    ENXIO   = 6,
-    E2BIG   = 7,
-    ENOEXEC = 8,
-    EBADF   = 9,
-    ECHILD  = 10,
-    EAGAIN  = 11,
-    ENOMEM  = 12,
-    EACCES  = 13,
-    EFAULT  = 14,
-    ENOTBLK = 15,
-    EBUSY   = 16,
-    EEXIST  = 17,
-    EXDEV   = 18,
-    ENODEV  = 19,
-    ENOTDIR = 20,
-    EISDIR  = 21,
-    EINVAL  = 22,
-    ENFILE  = 23,
-    EMFILE  = 24,
-    ENOTTY  = 25,
-    ETXTBSY = 26,
-    EFBIG   = 27,
-    ENOSPC  = 28,
-    ESPIPE  = 29,
-    EROFS   = 30,
-    EMLINK  = 31,
-    EPIPE   = 32,
-    EDOM    = 33,
-    ERANGE  = 34,
+    EACCES          = libc::EACCES,
+    EADDRINUSE      = libc::EADDRINUSE,
+    EAGAIN          = libc::EAGAIN,
+    EBUSY           = libc::EBUSY,
+    ECONNREFUSED    = libc::ECONNREFUSED,
+    EFAULT          = libc::EFAULT,
+    EHOSTUNREACH    = libc::EHOSTUNREACH,
+    EINPROGRESS     = libc::EINPROGRESS,
+    EINVAL          = libc::EINVAL,
+    EMFILE          = libc::EMFILE,
+    EMSGSIZE        = libc::EMSGSIZE,
+    ENAMETOOLONG    = libc::ENAMETOOLONG,
+    ENODEV          = libc::ENODEV,
+    ENOENT          = libc::ENOENT,
+    ENOMEM          = libc::ENOMEM,
+    ENOTCONN        = libc::ENOTCONN,
+    ENOTSOCK        = libc::ENOTSOCK,
+    EPROTO          = libc::EPROTO,
+    EPROTONOSUPPORT = libc::EPROTONOSUPPORT,
+    // magic number is EHAUSNUMERO + num
+    ENOTSUP         = 156384713,
+    ENOBUFS         = 156384715,
+    ENETDOWN        = 156384716,
+    EADDRNOTAVAIL   = 156384718,
 
-    // the magic number is ZMQ_HAUSNUMERO
-    ENOTSUP         = 156384712 + 1,
-    EPROTONOSUPPORT = 156384712 + 2,
-    ENOBUFS         = 156384712 + 3,
-    ENETDOWN        = 156384712 + 4,
-    EADDRINUSE      = 156384712 + 5,
-    EADDRNOTAVAIL   = 156384712 + 6,
-    ECONNREFUSED    = 156384712 + 7,
-    EINPROGRESS     = 156384712 + 8,
-    ENOTSOCK        = 156384712 + 9,
-
-    EFSM            = 156384712 + 51,
-    ENOCOMPATPROTO  = 156384712 + 52,
-    ETERM           = 156384712 + 53,
-    EMTHREAD        = 156384712 + 54,
+    // native zmq error codes
+    EFSM            = 156384763,
+    ENOCOMPATPROTO  = 156384764,
+    ETERM           = 156384765,
+    EMTHREAD        = 156384766,
 }
 
 impl Error {
@@ -214,54 +192,38 @@ impl Error {
 
     pub fn from_raw(raw: i32) -> Error {
         match raw {
-            1  => EPERM,
-            2  => ENOENT,
-            3  => ESRCH,
-            4  => EINTR,
-            5  => EIO,
-            6  => ENXIO,
-            7  => E2BIG,
-            8  => ENOEXEC,
-            9  => EBADF,
-            10 => ECHILD,
-            11 => EAGAIN,
-            12 => ENOMEM,
-            13 => EACCES,
-            14 => EFAULT,
-            15 => ENOTBLK,
-            16 => EBUSY,
-            17 => EEXIST,
-            18 => EXDEV,
-            19 => ENODEV,
-            20 => ENOTDIR,
-            21 => EISDIR,
-            22 => EINVAL,
-            23 => ENFILE,
-            24 => EMFILE,
-            25 => ENOTTY,
-            26 => ETXTBSY,
-            27 => EFBIG,
-            28 => ENOSPC,
-            29 => ESPIPE,
-            30 => EROFS,
-            31 => EMLINK,
-            32 => EPIPE,
-            33 => EDOM,
-            34 => ERANGE,
-
-            156384713 => ENOTSUP,
-            156384714 => EPROTONOSUPPORT,
-            156384715 => ENOBUFS,
-            156384716 => ENETDOWN,
-            156384717 => EADDRINUSE,
-            156384718 => EADDRNOTAVAIL,
-            156384719 => ECONNREFUSED,
-            156384720 => EINPROGRESS,
-            156384721 => ENOTSOCK,
-            156384763 => EFSM,
-            156384764 => ENOCOMPATPROTO,
-            156384765 => ETERM,
-            156384766 => EMTHREAD,
+            libc::EACCES          => EACCES,
+            libc::EADDRINUSE      => EADDRINUSE,
+            libc::EAGAIN          => EAGAIN,
+            libc::EBUSY           => EBUSY,
+            libc::ECONNREFUSED    => ECONNREFUSED,
+            libc::EFAULT          => EFAULT,
+            libc::EHOSTUNREACH    => EHOSTUNREACH,
+            libc::EINPROGRESS     => EINPROGRESS,
+            libc::EINVAL          => EINVAL,
+            libc::EMFILE          => EMFILE,
+            libc::EMSGSIZE        => EMSGSIZE,
+            libc::ENAMETOOLONG    => ENAMETOOLONG,
+            libc::ENODEV          => ENODEV,
+            libc::ENOENT          => ENOENT,
+            libc::ENOMEM          => ENOMEM,
+            libc::ENOTCONN        => ENOTCONN,
+            libc::ENOTSOCK        => ENOTSOCK,
+            libc::EPROTO          => EPROTO,
+            libc::EPROTONOSUPPORT => EPROTONOSUPPORT,
+            156384713             => ENOTSUP,
+            156384714             => EPROTONOSUPPORT,
+            156384715             => ENOBUFS,
+            156384716             => ENETDOWN,
+            156384717             => EADDRINUSE,
+            156384718             => EADDRNOTAVAIL,
+            156384719             => ECONNREFUSED,
+            156384720             => EINPROGRESS,
+            156384721             => ENOTSOCK,
+            156384763             => EFSM,
+            156384764             => ENOCOMPATPROTO,
+            156384765             => ETERM,
+            156384766             => EMTHREAD,
 
             x => fail!("invalid error %d", x as int),
         }
@@ -325,6 +287,7 @@ impl Drop for Context {
     }
 }
 
+#[deriving(Clone)]
 pub struct Socket {
     priv sock: Socket_,
     priv closed: bool
@@ -567,6 +530,16 @@ impl Socket {
         match unsafe { self.recv(flags) } {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
+        }
+    }
+
+    /// Receive a message into a buffer. The length passed to zmq_recv is the
+    /// length of the buffer. Returns the size of the message received, just
+    /// as zmq_recv would.
+    pub unsafe fn recv_into(&self, buf: &mut [u8], flags: int) -> Result<int, Error> {
+        match zmq_recv(self.sock, vec::raw::to_mut_ptr(buf), buf.len() as u64, flags as i32) {
+            -1 => Err(errno_to_error()),
+            x  => Ok(x as int),
         }
     }
 
