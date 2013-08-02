@@ -283,11 +283,14 @@ impl Context {
 
 impl Drop for Context {
     pub fn drop(&self) {
-        while self.destroy().get_err() != EFAULT { }
+        debug!("context dropped");
+        let mut e = self.destroy();
+        while e.is_err() && (e.unwrap_err() != EFAULT) {
+            e = self.destroy();
+        }
     }
 }
 
-#[deriving(Clone)]
 pub struct Socket {
     priv sock: Socket_,
     priv closed: bool
@@ -296,7 +299,7 @@ pub struct Socket {
 impl Drop for Socket {
     pub fn drop(&self) {
         match self.close_final() {
-            Ok(()) => {},
+            Ok(()) => { debug!("socket dropped") },
             Err(e) => fail!(e.to_str())
         }
     }
