@@ -306,6 +306,107 @@ impl Drop for Socket {
 }
 
 impl Socket {
+    /// Accept connections on a socket.
+    pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
+        let rc = do endpoint.as_c_str |cstr| {
+            unsafe {zmq_bind(self.sock, cstr)}
+        };
+
+        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+    }
+
+    /// Connect a socket.
+    pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
+        let rc = do endpoint.as_c_str |cstr| {
+            unsafe {zmq_connect(self.sock, cstr)}
+        };
+
+        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+    }
+
+    /// Send a message
+    pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
+        do data.as_imm_buf |base_ptr, len| {
+            let msg = [0, ..32];
+
+            unsafe {
+                // Copy the data into the message.
+                zmq_msg_init_size(&msg, len as size_t);
+
+                ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+
+                let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
+
+                zmq_msg_close(&msg);
+
+                if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+            }
+        }
+    }
+
+    pub fn send_str(&self, data: &str, flags: int) -> Result<(), Error> {
+        self.send(data.as_bytes(), flags)
+    }
+
+    pub fn recv_bytes(&self, flags: int) -> Result<~[u8], Error> {
+        match unsafe { self.recv(flags) } {
+            Ok(msg) => Ok(msg.to_bytes()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub unsafe fn recv(&self, flags: int) -> Result<Message, Error> {
+        let msg = [0, ..32];
+
+        zmq_msg_init(&msg);
+        let rc = zmq_msg_recv(&msg, self.sock, flags as c_int);
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(Message { msg: msg })
+        }
+    }
+
+    /// Receive a message into a buffer. The length passed to zmq_recv is the
+    /// length of the buffer. Returns the size of the message received, just
+    /// as zmq_recv would. You really shouldn't use this.
+    pub unsafe fn recv_into(&self, buf: &mut [u8], flags: int) -> Result<int, Error> {
+        match zmq_recv(self.sock, vec::raw::to_mut_ptr(buf), buf.len() as u64, flags as i32) {
+            -1 => Err(errno_to_error()),
+            x  => Ok(x as int),
+        }
+    }
+
+    pub fn recv_str(&self, flags: int) -> Result<~str, Error> {
+        match unsafe { self.recv(flags) } {
+            Ok(msg) => Ok(msg.to_str()),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn close(&mut self) -> Result<(), Error> {
+        if !self.closed {
+            self.closed = true;
+
+            if unsafe { zmq_close(self.sock) } == -1i32 {
+                return Err(errno_to_error());
+            }
+        }
+
+        Ok(())
+    }
+
+    pub fn close_final(&self) -> Result<(), Error> {
+        if !self.closed {
+            if unsafe { zmq_close(self.sock) } == -1i32 {
+                return Err(errno_to_error());
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn get_socket_type(&self) -> Result<SocketType, Error> {
         do getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map |ty| {
             match *ty {
@@ -406,7 +507,6 @@ impl Socket {
         setsockopt_i64(self.sock, ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
-
     pub fn set_sndhwm(&self, value: int) -> Result<(), Error> {
         setsockopt_int(self.sock, ZMQ_SNDHWM.to_raw(), value)
     }
@@ -472,108 +572,6 @@ impl Socket {
         setsockopt_int(self.sock, ZMQ_BACKLOG.to_raw(), value)
     }
 
-    /// Accept connections on a socket.
-    pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.as_c_str |cstr| {
-            unsafe {zmq_bind(self.sock, cstr)}
-        };
-
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-    }
-
-    /// Connect a socket.
-    pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.as_c_str |cstr| {
-            unsafe {zmq_connect(self.sock, cstr)}
-        };
-
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-    }
-
-    pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
-        do data.as_imm_buf |base_ptr, len| {
-            let msg = [0, ..32];
-
-            unsafe {
-                // Copy the data into the message.
-                zmq_msg_init_size(&msg, len as size_t);
-
-                ptr::copy_memory(
-                    ::cast::transmute(zmq_msg_data(&msg)),
-                    base_ptr,
-                    len);
-
-                let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
-
-                zmq_msg_close(&msg);
-
-                if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-            }
-        }
-    }
-
-    pub fn send_str(&self, data: &str, flags: int) -> Result<(), Error> {
-        self.send(data.as_bytes(), flags)
-    }
-
-    pub unsafe fn recv(&self, flags: int) -> Result<Message, Error> {
-        let msg = [0, ..32];
-
-        zmq_msg_init(&msg);
-        let rc = zmq_msg_recv(&msg, self.sock, flags as c_int);
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(Message { msg: msg })
-        }
-    }
-
-    pub fn recv_bytes(&self, flags: int) -> Result<~[u8], Error> {
-        match unsafe { self.recv(flags) } {
-            Ok(msg) => Ok(msg.to_bytes()),
-            Err(e) => Err(e),
-        }
-    }
-
-    /// Receive a message into a buffer. The length passed to zmq_recv is the
-    /// length of the buffer. Returns the size of the message received, just
-    /// as zmq_recv would.
-    pub unsafe fn recv_into(&self, buf: &mut [u8], flags: int) -> Result<int, Error> {
-        match zmq_recv(self.sock, vec::raw::to_mut_ptr(buf), buf.len() as u64, flags as i32) {
-            -1 => Err(errno_to_error()),
-            x  => Ok(x as int),
-        }
-    }
-
-    pub fn recv_str(&self, flags: int) -> Result<~str, Error> {
-        match unsafe { self.recv(flags) } {
-            Ok(msg) => Ok(msg.to_str()),
-            Err(e) => Err(e),
-        }
-    }
-
-    pub fn close(&mut self) -> Result<(), Error> {
-        if !self.closed {
-            self.closed = true;
-
-            if unsafe { zmq_close(self.sock) } == -1i32 {
-                return Err(errno_to_error());
-            }
-        }
-
-        Ok(())
-    }
-
-    pub fn close_final(&self) -> Result<(), Error> {
-        if !self.closed {
-            if unsafe { zmq_close(self.sock) } == -1i32 {
-                return Err(errno_to_error());
-            }
-        }
-
-        Ok(())
-    }
 }
 
 struct Message {
