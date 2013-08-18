@@ -3,6 +3,6 @@
 *.dSYM
 *.o
 *.a
-zmq
+lib
 example
 msgsend-zmq

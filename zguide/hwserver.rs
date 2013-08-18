@@ -1,4 +1,4 @@
-/*! 
+/*!
  * Hello World server in Rust
  * Binds REP socket to tcp://*:5555
  * Expects "Hello" from client, replies with "World"
@@ -11,14 +11,16 @@ use std::libc;
 fn main() {
     let context = zmq::Context::new();
     let responder = context.socket(zmq::REP).unwrap();
-    
+
     assert!(responder.bind("tcp://*:5555").is_ok());
 
+    let mut msg = zmq::Message::new();
     loop {
-        let mut buf = [0, ..10];
-        unsafe { responder.recv_into(buf, 0) };
-        println("Received Hello");
-        responder.send(bytes!("World"), 0);
+        responder.recv(&mut msg, 0);
+        do msg.with_str |s| {
+            printfln!("Received %s", s);
+        }
+        responder.send_str("World", 0);
         unsafe { libc::sleep(1) };
     }
 }

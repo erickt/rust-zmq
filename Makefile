@@ -1,13 +1,14 @@
 all:
 	rustc lib.rs
 
-test:
+test: all
 	rustc --test lib.rs
-
-example: all
 	rustc -L . example.rs
-
-msgsend-zmq: all
+	rustc -L . zguide/hwclient.rs
+	rustc -L . zguide/hwserver.rs
+	rustc -L . zguide/version.rs
+	rustc -L . zguide/wuclient.rs
+	rustc -L . zguide/wuserver.rs
 	rustc -L . msgsend-zmq.rs
 
 clean:

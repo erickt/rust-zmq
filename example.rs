@@ -1,15 +1,11 @@
 extern mod std;
 extern mod zmq;
 
-use std::comm::{stream, Chan};
 use std::io;
 use std::str;
 use std::task;
 
-fn new_server(ctx: zmq::Context, ch: &Chan<()>) {
-    let socket = ctx.socket(zmq::REP).unwrap();
-    socket.bind("tcp://127.0.0.1:3456").get();
-
+fn new_server(socket: zmq::Socket) {
     let msg = socket.recv_str(0).unwrap();
     io::println(fmt!("server received %?", msg));
 
@@ -20,33 +16,24 @@ fn new_server(ctx: zmq::Context, ch: &Chan<()>) {
         Ok(()) => { },
         Err(e) => fail!(e.to_str())
     }
-
-    // Let the main thread know we're done.
-    ch.send(());
 }
 
-fn new_client(ctx: zmq::Context) {
+fn new_client(socket: zmq::Socket) {
     io::println("starting client");
 
-    let socket = ctx.socket(zmq::REQ).unwrap();
+    socket.set_sndhwm(10).unwrap();
+    socket.set_rcvhwm(10).unwrap();
+    io::println(fmt!("rcvhwm: %?", socket.get_rcvhwm().unwrap()));
+    io::println(fmt!("sndhwm: %?", socket.get_sndhwm().unwrap()));
 
-    socket.set_sndhwm(10).get();
-    socket.set_rcvhwm(10).get();
-    io::println(fmt!("rcvhwm: %?", socket.get_rcvhwm().get()));
-    io::println(fmt!("sndhwm: %?", socket.get_sndhwm().get()));
-
-    socket.set_identity("identity".as_bytes()).get();
+    socket.set_identity("identity".as_bytes()).unwrap();
 
     let identity = socket.get_identity().unwrap();
     io::println(fmt!("identity: %?", str::from_bytes(identity)));
 
-    io::println("client connecting to server");
-
-    socket.connect("tcp://127.0.0.1:3456").get();
-
     let msg = "foo";
     io::println(fmt!("client sending %?", msg));
-    socket.send_str(msg, 0).get();
+    socket.send_str(msg, 0).unwrap();
 
     let msg = socket.recv_str(0).unwrap();
     io::println(fmt!("client recieving %?", msg));
@@ -57,16 +44,19 @@ fn main() {
 
     io::println(fmt!("version: %d %d %d", major, minor, patch));
 
-    let ctx = zmq::init(1).unwrap();
+    let ctx = zmq::Context::new();
 
-    // We need to start the server in a separate scheduler as it blocks.
-    let (po, ch) = stream();
-    do task::spawn_sched(task::SingleThreaded) { new_server(ctx, &ch) }
+    let server_socket = ctx.socket(zmq::REP).unwrap();
+    let client_socket = ctx.socket(zmq::REQ).unwrap();
 
-    new_client(ctx);
+    // Connect the two sockets to each other.
+    server_socket.bind("tcp://127.0.0.1:3456").unwrap();
+    client_socket.connect("tcp://127.0.0.1:3456").unwrap();
 
-    // Wait for the server to shut down.
-    po.recv();
+    // We need to start the server in a separate thread as it blocks.
+    let mut task = task::task();
+    task.sched_mode(task::SingleThreaded);
+    task.spawn_with(server_socket, new_server);
 
-    ctx.term().get();
+    new_client(client_socket);
 }

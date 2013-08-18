@@ -2,7 +2,7 @@
 
 extern mod zmq;
 
-use std::iterator::Counter;
+use std::iterator::count;
 
 fn main() {
     println("Conneting to hello world server...\n");
@@ -12,11 +12,15 @@ fn main() {
 
     assert!(requester.connect("tcp://localhost:5555").is_ok());
 
-    foreach x in Counter::new(0, 1).take_(10) {
-        let mut buf = [0, ..10];
+    let mut msg = zmq::Message::new();
+
+    for x in count(0, 1).take(10) {
         printfln!("Sending Hello %d", x);
         requester.send(bytes!("Hello"), 0);
-        unsafe { requester.recv_into(buf, 0) };
-        printfln!("Received World %d", x);
+
+        requester.recv(&mut msg, 0).unwrap();
+        do msg.with_str |s| {
+            printfln!("Received World %s: %d", s, x);
+        }
     }
 }

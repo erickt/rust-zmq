@@ -30,6 +30,6 @@ fn main() {
         let update = fmt!("%05d %d %d", zipcode, temperature, relhumidity);
         publisher.send(update.as_bytes(), 0);
     }
-    
+
     // note: destructors mean no explicit cleanup necessary
 }

@@ -225,7 +225,14 @@ impl Error {
             156384765             => ETERM,
             156384766             => EMTHREAD,
 
-            x => fail!("invalid error %d", x as int),
+            x => {
+                unsafe {
+                    fail!("unknown error [%d]: %s",
+                        x as int,
+                        str::raw::from_c_str(zmq_strerror(x as c_int))
+                    )
+                }
+            }
         }
     }
 }
@@ -282,7 +289,7 @@ impl Context {
 }
 
 impl Drop for Context {
-    pub fn drop(&self) {
+    fn drop(&self) {
         debug!("context dropped");
         let mut e = self.destroy();
         while e.is_err() && (e.unwrap_err() != EFAULT) {
@@ -297,7 +304,7 @@ pub struct Socket {
 }
 
 impl Drop for Socket {
-    pub fn drop(&self) {
+    fn drop(&self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
             Err(e) => fail!(e.to_str())
@@ -308,7 +315,7 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.as_c_str |cstr| {
+        let rc = do endpoint.with_c_str |cstr| {
             unsafe {zmq_bind(self.sock, cstr)}
         };
 
@@ -317,7 +324,7 @@ impl Socket {
 
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.as_c_str |cstr| {
+        let rc = do endpoint.with_c_str |cstr| {
             unsafe {zmq_connect(self.sock, cstr)}
         };
 
@@ -348,38 +355,37 @@ impl Socket {
         self.send(data.as_bytes(), flags)
     }
 
+    /// Receive a message into a `Message`. The length passed to zmq_msg_recv
+    /// is the length of the buffer.
+    pub fn recv(&self, msg: &mut Message, flags: int) -> Result<(), Error> {
+        let rc = unsafe {
+            zmq_msg_recv(&msg.msg, self.sock, flags as c_int)
+        };
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
+
+    pub fn recv_msg(&self, flags: int) -> Result<Message, Error> {
+        let mut msg = Message::new();
+        match self.recv(&mut msg, flags) {
+            Ok(()) => Ok(msg),
+            Err(e) => Err(e),
+        }
+    }
+
     pub fn recv_bytes(&self, flags: int) -> Result<~[u8], Error> {
-        match unsafe { self.recv(flags) } {
+        match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
         }
     }
 
-    pub unsafe fn recv(&self, flags: int) -> Result<Message, Error> {
-        let msg = [0, ..32];
-
-        zmq_msg_init(&msg);
-        let rc = zmq_msg_recv(&msg, self.sock, flags as c_int);
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(Message { msg: msg })
-        }
-    }
-
-    /// Receive a message into a buffer. The length passed to zmq_recv is the
-    /// length of the buffer. Returns the size of the message received, just
-    /// as zmq_recv would. You really shouldn't use this.
-    pub unsafe fn recv_into(&self, buf: &mut [u8], flags: int) -> Result<int, Error> {
-        match zmq_recv(self.sock, vec::raw::to_mut_ptr(buf), buf.len() as u64, flags as i32) {
-            -1 => Err(errno_to_error()),
-            x  => Ok(x as int),
-        }
-    }
-
     pub fn recv_str(&self, flags: int) -> Result<~str, Error> {
-        match unsafe { self.recv(flags) } {
+        match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_str()),
             Err(e) => Err(e),
         }
@@ -579,24 +585,23 @@ struct Message {
 }
 
 impl Drop for Message {
-    pub fn drop(&self) {
+    fn drop(&self) {
         unsafe { zmq_msg_close(&self.msg); }
     }
 }
 
 impl Message {
-    pub fn with_ptr<T>(&self, f: &fn(*u8, uint) -> T) -> T {
-        unsafe {
-            let data = zmq_msg_data(&self.msg);
-            let len = zmq_msg_size(&self.msg) as uint;
-
-            f(data, len)
-        }
+    pub fn new() -> Message {
+        let message = Message { msg: [0, ..32] };
+        unsafe { zmq_msg_init(&message.msg) };
+        message
     }
 
     pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
-        do self.with_ptr |data, len| {
-            unsafe { vec::raw::buf_as_slice(data, len, |x| f(x)) }
+        unsafe {
+            let data = zmq_msg_data(&self.msg);
+            let len = zmq_msg_size(&self.msg) as uint;
+            vec::raw::buf_as_slice(data, len, f)
         }
     }
 
