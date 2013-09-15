@@ -191,6 +191,8 @@ impl Error {
     }
 
     pub fn from_raw(raw: i32) -> Error {
+#[fixed_stack_segment]; #[inline(never)];
+
         match raw {
             libc::EACCES          => EACCES,
             libc::EADDRINUSE      => EADDRINUSE,
@@ -239,6 +241,8 @@ impl Error {
 
 // Return the current zeromq version.
 pub fn version() -> (int, int, int) {
+#[fixed_stack_segment]; #[inline(never)];
+
     let major = 0;
     let minor = 0;
     let patch = 0;
@@ -262,12 +266,16 @@ pub struct Context {
 
 impl Context {
     pub fn new() -> Context {
+#[fixed_stack_segment]; #[inline(never)];
+
         Context {
             ctx: unsafe { zmq_ctx_new() }
         }
     }
 
     pub fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         let sock = unsafe {zmq_socket(self.ctx, socket_type as c_int)};
 
         if sock.is_null() {
@@ -280,6 +288,8 @@ impl Context {
     /// Try to destroy the context. This is different than the destructor; the
     /// destructor will loop when zmq_ctx_destroy returns EINTR
     pub fn destroy(&self) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         if unsafe { zmq_ctx_destroy(self.ctx) } == -1i32 {
             Err(errno_to_error())
         } else {
@@ -315,6 +325,8 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         let rc = do endpoint.with_c_str |cstr| {
             unsafe {zmq_bind(self.sock, cstr)}
         };
@@ -324,6 +336,8 @@ impl Socket {
 
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         let rc = do endpoint.with_c_str |cstr| {
             unsafe {zmq_connect(self.sock, cstr)}
         };
@@ -333,6 +347,8 @@ impl Socket {
 
     /// Send a message
     pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         do data.as_imm_buf |base_ptr, len| {
             let msg = [0, ..32];
 
@@ -358,6 +374,8 @@ impl Socket {
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
     pub fn recv(&self, msg: &mut Message, flags: int) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         let rc = unsafe {
             zmq_msg_recv(&msg.msg, self.sock, flags as c_int)
         };
@@ -392,6 +410,8 @@ impl Socket {
     }
 
     pub fn close(&mut self) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         if !self.closed {
             self.closed = true;
 
@@ -404,6 +424,8 @@ impl Socket {
     }
 
     pub fn close_final(&self) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
         if !self.closed {
             if unsafe { zmq_close(self.sock) } == -1i32 {
                 return Err(errno_to_error());
@@ -586,18 +608,24 @@ struct Message {
 
 impl Drop for Message {
     fn drop(&self) {
+#[fixed_stack_segment]; #[inline(never)];
+
         unsafe { zmq_msg_close(&self.msg); }
     }
 }
 
 impl Message {
     pub fn new() -> Message {
+#[fixed_stack_segment]; #[inline(never)];
+
         let message = Message { msg: [0, ..32] };
         unsafe { zmq_msg_init(&message.msg) };
         message
     }
 
     pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
+#[fixed_stack_segment]; #[inline(never)];
+
         unsafe {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
@@ -606,7 +634,7 @@ impl Message {
     }
 
     pub fn with_str<T>(&self, f: &fn(&str) -> T) -> T {
-        self.with_bytes(|v| f(str::from_bytes_slice(v)))
+            self.with_bytes(|v| f(str::from_utf8_slice(v)))
     }
 
     pub fn to_bytes(&self) -> ~[u8] {
@@ -630,6 +658,8 @@ pub struct PollItem {
 }
 
 pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
     do items.as_imm_buf |p, len| {
         let rc = unsafe {zmq_poll(
             p,
@@ -642,6 +672,8 @@ pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
 impl ToStr for Error {
     /// Return the error string for an error.
     fn to_str(&self) -> ~str {
+#[fixed_stack_segment]; #[inline(never)];
+
         unsafe {
             str::raw::from_c_str(zmq_strerror(*self as c_int))
         }
@@ -649,6 +681,8 @@ impl ToStr for Error {
 }
 
 fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
     let value = 0u32 as c_int;
     let size = sys::size_of::<c_int>() as size_t;
 
@@ -664,6 +698,8 @@ fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
 }
 
 fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
     let value = 0u32;
     let size = sys::size_of::<u32>() as size_t;
 
@@ -679,6 +715,7 @@ fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
 }
 
 fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
+#[fixed_stack_segment]; #[inline(never)];
     let value = 0i64;
     let size = sys::size_of::<i64>() as size_t;
 
@@ -694,6 +731,7 @@ fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
 }
 
 fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
+#[fixed_stack_segment]; #[inline(never)];
     let value = 0u64;
     let size = sys::size_of::<u64>() as size_t;
 
@@ -709,6 +747,7 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
 }
 
 fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
+#[fixed_stack_segment]; #[inline(never)];
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
@@ -729,6 +768,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
 }
 
 fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
     let value = value as c_int;
     let r = unsafe {
         zmq_setsockopt(
@@ -742,6 +782,7 @@ fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
 }
 
 fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -754,6 +795,8 @@ fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
 }
 
 fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
+
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -766,6 +809,7 @@ fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
 }
 
 fn setsockopt_buf(sock: Socket_, opt: c_int, p: *u8, len: uint) -> Result<(), Error> {
+#[fixed_stack_segment]; #[inline(never)];
     let r = unsafe {
         zmq_setsockopt(
             sock,
@@ -786,5 +830,6 @@ fn setsockopt_str(sock: Socket_, opt: c_int, value: &str) -> Result<(), Error> {
 }
 
 fn errno_to_error() -> Error {
+#[fixed_stack_segment]; #[inline(never)];
     Error::from_raw(unsafe { zmq_errno() })
 }

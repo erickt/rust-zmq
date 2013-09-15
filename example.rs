@@ -29,7 +29,7 @@ fn new_client(socket: zmq::Socket) {
     socket.set_identity("identity".as_bytes()).unwrap();
 
     let identity = socket.get_identity().unwrap();
-    io::println(fmt!("identity: %?", str::from_bytes(identity)));
+    io::println(fmt!("identity: %?", str::from_utf8(identity)));
 
     let msg = "foo";
     io::println(fmt!("client sending %?", msg));

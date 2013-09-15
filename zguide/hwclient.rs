@@ -2,8 +2,6 @@
 
 extern mod zmq;
 
-use std::iterator::count;
-
 fn main() {
     println("Conneting to hello world server...\n");
 
@@ -14,7 +12,7 @@ fn main() {
 
     let mut msg = zmq::Message::new();
 
-    for x in count(0, 1).take(10) {
+    for x in range(0, 10) {
         printfln!("Sending Hello %d", x);
         requester.send(bytes!("Hello"), 0);
 
