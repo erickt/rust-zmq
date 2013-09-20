@@ -299,7 +299,7 @@ impl Context {
 }
 
 impl Drop for Context {
-    fn drop(&self) {
+    fn drop(&mut self) {
         debug!("context dropped");
         let mut e = self.destroy();
         while e.is_err() && (e.unwrap_err() != EFAULT) {
@@ -314,7 +314,7 @@ pub struct Socket {
 }
 
 impl Drop for Socket {
-    fn drop(&self) {
+    fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
             Err(e) => fail!(e.to_str())
@@ -607,7 +607,7 @@ struct Message {
 }
 
 impl Drop for Message {
-    fn drop(&self) {
+    fn drop(&mut self) {
 #[fixed_stack_segment]; #[inline(never)];
 
         unsafe { zmq_msg_close(&self.msg); }
