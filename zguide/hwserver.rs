@@ -6,7 +6,7 @@
 
 extern mod zmq;
 
-use std::libc;
+use std::rt;
 
 fn main() {
 #[fixed_stack_segment];
@@ -23,6 +23,7 @@ fn main() {
             printfln!("Received %s", s);
         }
         responder.send_str("World", 0);
-        unsafe { libc::sleep(1); }
+        let timer = ~rt::io::Timer::new();
+        do timer.map_move |mut t| { t.sleep(1) };
     }
 }
