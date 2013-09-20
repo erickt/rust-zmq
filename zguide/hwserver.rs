@@ -23,7 +23,6 @@ fn main() {
             printfln!("Received %s", s);
         }
         responder.send_str("World", 0);
-        let timer = ~rt::io::Timer::new();
-        do timer.map_move |mut t| { t.sleep(1000) };
+        rt::io::timer::sleep(1000);
     }
 }
