@@ -24,6 +24,6 @@ fn main() {
         }
         responder.send_str("World", 0);
         let timer = ~rt::io::Timer::new();
-        do timer.map_move |mut t| { t.sleep(1) };
+        do timer.map_move |mut t| { t.sleep(1000) };
     }
 }
