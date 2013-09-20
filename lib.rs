@@ -455,7 +455,7 @@ impl Socket {
     }
 
     pub fn get_rcvmore(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, ZMQ_RCVMORE.to_raw()).chain |o| {
+        do getsockopt_i64(self.sock, ZMQ_RCVMORE.to_raw()).and_then |o| {
             Ok(o == 1i64)
         }
     }
@@ -494,7 +494,7 @@ impl Socket {
     }
 
     pub fn get_mcast_loop(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw()).chain |o| {
+        do getsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw()).and_then |o| {
             Ok(o == 1i64)
         }
     }
