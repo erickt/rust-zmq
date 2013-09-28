@@ -139,10 +139,10 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     let end = extra::time::precise_time_s();
     let elapsed = end - start;
 
-    io::println(fmt!("Count is %?", result));
-    io::println(fmt!("Test took %? seconds", elapsed));
+    io::println(format!("Count is {}", result));
+    io::println(format!("Test took {} seconds", elapsed));
     let thruput = ((size / workers * workers) as float) / (elapsed as float);
-    io::println(fmt!("Throughput=%f per sec", thruput));
+    io::println(format!("Throughput={:f} per sec", thruput));
 }
 
 fn main() {

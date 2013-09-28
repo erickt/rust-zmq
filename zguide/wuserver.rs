@@ -24,10 +24,10 @@ fn main() {
         let temperature = randof!(215) - 80;
         let relhumidity = randof!(50) + 10;
 
-        // this is slower than C because the current fmt! implementation is
+        // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
         // sprintf
-        let update = fmt!("%05d %d %d", zipcode, temperature, relhumidity);
+        let update = format!("{:05d} {:d} {:d}", zipcode, temperature, relhumidity);
         publisher.send(update.as_bytes(), 0);
     }
 
