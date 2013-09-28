@@ -6,10 +6,8 @@
 
 extern mod zmq;
 
-use std::int;
-
 macro_rules! atoi (
-    ($x:expr) => { int::from_str($x).unwrap() }
+    ($x:expr) => { from_str::<int>($x).unwrap() }
 )
 
 fn main() {

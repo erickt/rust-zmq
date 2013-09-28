@@ -12,7 +12,6 @@ use std::comm;
 use std::io;
 use std::os;
 use std::task;
-use std::uint;
 
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
@@ -26,7 +25,7 @@ fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint)
                     if s == "" {
                         workers -= 1;
                     } else {
-                        count += uint::from_str(s).unwrap();
+                        count += from_str::<uint>(s).unwrap();
                     }
                 }
             }
@@ -133,7 +132,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
 
     // Receive the final count.
     let result = match pull_socket.recv_msg(0) {
-        Ok(msg) => msg.with_str(|s| uint::from_str(s).unwrap()),
+        Ok(msg) => msg.with_str(|s| from_str::<uint>(s).unwrap()),
         Err(e) => fail!(e.to_str()),
     };
 
@@ -157,8 +156,8 @@ fn main() {
         args
     };
 
-    let size = uint::from_str(args[1]).unwrap();
-    let workers = uint::from_str(args[2]).unwrap();
+    let size = from_str::<uint>(args[1]).unwrap();
+    let workers = from_str::<uint>(args[2]).unwrap();
 
     let ctx = zmq::Context::new();
 
