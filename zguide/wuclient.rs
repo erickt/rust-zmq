@@ -6,10 +6,8 @@
 
 extern mod zmq;
 
-use std::iterator::count;
-
 macro_rules! atoi (
-    ($x:expr) => { FromStr::from_str::<int>($x).unwrap() }
+    ($x:expr) => { from_str::<int>($x).unwrap() }
 )
 
 fn main() {
@@ -25,7 +23,7 @@ fn main() {
 
     let mut total_temp = 0;
 
-    for _ in count(0, 1).take(100) {
+    do 100.times {
         let string = subscriber.recv_str(0).unwrap();
         let chks = string.split_iter(' ').to_owned_vec();
         let (_zipcode, temperature, _relhumidity) = (atoi!(chks[0]), atoi!(chks[1]), atoi!(chks[2]));
