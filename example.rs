@@ -7,10 +7,10 @@ use std::task;
 
 fn new_server(socket: zmq::Socket) {
     let msg = socket.recv_str(0).unwrap();
-    io::println(fmt!("server received %?", msg));
+    io::println(format!("server received {}", msg));
 
-    let msg = fmt!("hello %?", msg);
-    io::println(fmt!("server sending %?", msg));
+    let msg = format!("hello {}", msg);
+    io::println(format!("server sending {}", msg));
 
     match socket.send_str(msg, 0) {
         Ok(()) => { },
@@ -23,26 +23,26 @@ fn new_client(socket: zmq::Socket) {
 
     socket.set_sndhwm(10).unwrap();
     socket.set_rcvhwm(10).unwrap();
-    io::println(fmt!("rcvhwm: %?", socket.get_rcvhwm().unwrap()));
-    io::println(fmt!("sndhwm: %?", socket.get_sndhwm().unwrap()));
+    io::println(format!("rcvhwm: {}", socket.get_rcvhwm().unwrap()));
+    io::println(format!("sndhwm: {}", socket.get_sndhwm().unwrap()));
 
     socket.set_identity("identity".as_bytes()).unwrap();
 
     let identity = socket.get_identity().unwrap();
-    io::println(fmt!("identity: %?", str::from_bytes(identity)));
+    io::println(format!("identity: {}", str::from_utf8(identity)));
 
     let msg = "foo";
-    io::println(fmt!("client sending %?", msg));
+    io::println(format!("client sending {}", msg));
     socket.send_str(msg, 0).unwrap();
 
     let msg = socket.recv_str(0).unwrap();
-    io::println(fmt!("client recieving %?", msg));
+    io::println(format!("client recieving {}", msg));
 }
 
 fn main() {
     let (major, minor, patch) = zmq::version();
 
-    io::println(fmt!("version: %d %d %d", major, minor, patch));
+    io::println(format!("version: {:d} {:d} {:d}", major, minor, patch));
 
     let ctx = zmq::Context::new();
 

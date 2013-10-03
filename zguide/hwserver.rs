@@ -6,9 +6,11 @@
 
 extern mod zmq;
 
-use std::libc;
+use std::rt;
 
 fn main() {
+#[fixed_stack_segment];
+
     let context = zmq::Context::new();
     let responder = context.socket(zmq::REP).unwrap();
 
@@ -21,6 +23,6 @@ fn main() {
             printfln!("Received %s", s);
         }
         responder.send_str("World", 0);
-        unsafe { libc::sleep(1) };
+        rt::io::timer::sleep(1000);
     }
 }
