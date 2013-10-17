@@ -12,4 +12,6 @@ test: all
 	rustc -L src/zmq msgsend-zmq.rs
 
 clean:
-	rm -rf zmq example msgsend-zmq *.dylib *.dSYM
+	rm -rf example msgsend-zmq *.dylib *.dSYM
+	rm -rf zguide/hwclient zguide/hwserver zguide/version zguide/wuclient zguide/wuserver zguide/*.dylib zguide/*.dSYM
+	rm -rf src/zmq/lib src/zmq/*.dylib src/zmq/*.dSYM

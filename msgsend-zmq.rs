@@ -141,7 +141,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
 
     io::println(format!("Count is {}", result));
     io::println(format!("Test took {} seconds", elapsed));
-    let thruput = ((size / workers * workers) as float) / (elapsed as float);
+    let thruput = ((size / workers * workers) as f64) / (elapsed as f64);
     io::println(format!("Throughput={:f} per sec", thruput));
 }
 

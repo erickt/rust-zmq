@@ -6,9 +6,9 @@
 
 extern mod zmq;
 
-macro_rules! atoi (
-    ($x:expr) => { from_str::<int>($x).unwrap() }
-)
+fn atoi(s: &str) -> int {
+    from_str(s).unwrap()
+}
 
 fn main() {
     println("Collecting updates from weather server...");
@@ -26,9 +26,9 @@ fn main() {
     do 100.times {
         let string = subscriber.recv_str(0).unwrap();
         let chks = string.split_iter(' ').to_owned_vec();
-        let (_zipcode, temperature, _relhumidity) = (atoi!(chks[0]), atoi!(chks[1]), atoi!(chks[2]));
+        let (_zipcode, temperature, _relhumidity) = (atoi(chks[0]), atoi(chks[1]), atoi(chks[2]));
         total_temp += temperature;
     }
 
-    printfln!("Average temperature for zipcode '%s' was %dF", filter, (total_temp / 100) as int);
+    println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100) as int);
 }

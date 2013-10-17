@@ -8,10 +8,6 @@ extern mod zmq;
 
 use std::rand::random;
 
-macro_rules! randof (
-    ($x:expr) => { random::<int>() % $x }
-)
-
 fn main() {
     let context = zmq::Context::new();
     let publisher = context.socket(zmq::PUB).unwrap();
@@ -20,9 +16,9 @@ fn main() {
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
     loop {
-        let zipcode     = randof!(100000);
-        let temperature = randof!(215) - 80;
-        let relhumidity = randof!(50) + 10;
+        let zipcode     = random::<int>() % 100000;
+        let temperature = (random::<int>() % 215) - 80;
+        let relhumidity = (random::<int>() % 50) + 10;
 
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's

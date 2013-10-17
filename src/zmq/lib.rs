@@ -602,13 +602,14 @@ impl Socket {
 
 }
 
-struct Message {
+pub struct Message {
     priv msg: Msg_
 }
 
 impl Drop for Message {
     fn drop(&mut self) {
-#[fixed_stack_segment]; #[inline(never)];
+        #[fixed_stack_segment];
+        #[inline(never)];
 
         unsafe { zmq_msg_close(&self.msg); }
     }
@@ -616,7 +617,8 @@ impl Drop for Message {
 
 impl Message {
     pub fn new() -> Message {
-#[fixed_stack_segment]; #[inline(never)];
+        #[fixed_stack_segment];
+        #[inline(never)];
 
         let message = Message { msg: [0, ..32] };
         unsafe { zmq_msg_init(&message.msg) };
@@ -624,7 +626,8 @@ impl Message {
     }
 
     pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
-#[fixed_stack_segment]; #[inline(never)];
+        #[fixed_stack_segment];
+        #[inline(never)];
 
         unsafe {
             let data = zmq_msg_data(&self.msg);

@@ -9,7 +9,7 @@ extern mod zmq;
 use std::rt;
 
 fn main() {
-#[fixed_stack_segment];
+    #[fixed_stack_segment];
 
     let context = zmq::Context::new();
     let responder = context.socket(zmq::REP).unwrap();
@@ -20,7 +20,7 @@ fn main() {
     loop {
         responder.recv(&mut msg, 0);
         do msg.with_str |s| {
-            printfln!("Received %s", s);
+            println!("Received {}", s);
         }
         responder.send_str("World", 0);
         rt::io::timer::sleep(1000);
