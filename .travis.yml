@@ -1,0 +1,12 @@
+before_install:
+  - yes | sudo add-apt-repository ppa:hansjorg/rust
+  - yes | sudo add-apt-repository ppa:travis-ci/zero-mq
+  - sudo apt-get update
+install:
+  - sudo apt-get install zeromq3 rust-nightly
+script:
+  - make all test
+  - ./src/zmq/lib
+  - ./example
+  - ./msgsend-zmq
+  - ./zguide/version
