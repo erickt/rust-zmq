@@ -145,7 +145,7 @@ impl Constants {
 
             156384712 => ZMQ_HAUSNUMERO,
 
-            x         => fail!("invalid constant %d", x as int),
+            x         => fail!("invalid constant {}", x as int),
         }
     }
 }
@@ -226,9 +226,9 @@ impl Error {
 
             x => {
                 unsafe {
-                    fail!("unknown error [%d]: %s",
-                        x as int,
-                        str::raw::from_c_str(zmq_strerror(x as c_int))
+                    fail!("unknown error [{}]: {}",
+                          x as int,
+                          str::raw::from_c_str(zmq_strerror(x as c_int))
                     )
                 }
             }
