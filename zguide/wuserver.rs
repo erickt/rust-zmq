@@ -1,8 +1,6 @@
-/*!
- * Weather update server
- * Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
- * Publishes random weather updates
- */
+/// Weather update server
+/// Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
+/// Publishes random weather updates
 
 extern mod zmq;
 
