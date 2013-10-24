@@ -33,7 +33,7 @@ Installation
 
 Install for users of rust-zmq:
 
-    % cargo install zmq
+    % rustpkg install github.com/erickt/rust-zmq
 
 Install for developers:
 
