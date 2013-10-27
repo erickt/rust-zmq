@@ -9,7 +9,6 @@ extern mod extra;
 extern mod zmq;
 
 use std::comm;
-use std::io;
 use std::os;
 use std::task;
 
@@ -139,10 +138,10 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     let end = extra::time::precise_time_s();
     let elapsed = end - start;
 
-    io::println(format!("Count is {}", result));
-    io::println(format!("Test took {} seconds", elapsed));
+    println!("Count is {}", result);
+    println!("Test took {} seconds", elapsed);
     let thruput = ((size / workers * workers) as f64) / (elapsed as f64);
-    io::println(format!("Throughput={:f} per sec", thruput));
+    println!("Throughput={:f} per sec", thruput);
 }
 
 fn main() {

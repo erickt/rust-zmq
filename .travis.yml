@@ -4,8 +4,7 @@ before_install:
 install:
   - sudo apt-get install rust-nightly libzmq3-dev
 script:
-  - make all test
-  - ./src/zmq/lib
-  - ./example
-  - ./msgsend-zmq
-  - ./zguide/version
+  - make all examples
+  - ./bin/example
+  - ./bin/msgsend-zmq
+  - ./bin/version

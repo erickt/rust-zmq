@@ -1,17 +1,13 @@
 all:
-	rustc src/zmq/lib.rs
+	rustpkg install zmq
 
-test: all
-	rustc --test src/zmq/lib.rs
-	rustc -L src/zmq example.rs
-	rustc -L src/zmq zguide/hwclient.rs
-	rustc -L src/zmq zguide/hwserver.rs
-	rustc -L src/zmq zguide/version.rs
-	rustc -L src/zmq zguide/wuclient.rs
-	rustc -L src/zmq zguide/wuserver.rs
-	rustc -L src/zmq msgsend-zmq.rs
+examples: all
+	rustpkg install examples/msgsend
+	rustpkg install examples/zguide/helloworld-client
+	rustpkg install examples/zguide/helloworld-server
+	rustpkg install examples/zguide/version
+	rustpkg install examples/zguide/weather-client
+	rustpkg install examples/zguide/weather-server
 
 clean:
-	rm -rf example msgsend-zmq *.dylib *.dSYM
-	rm -rf zguide/hwclient zguide/hwserver zguide/version zguide/wuclient zguide/wuserver zguide/*.dylib zguide/*.dSYM
-	rm -rf src/zmq/lib src/zmq/*.dylib src/zmq/*.dSYM
+	rm -rf bin build lib

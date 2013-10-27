@@ -3,6 +3,7 @@
 *.dSYM
 *.o
 *.a
-lib
-example
-msgsend-zmq
+.rust/
+bin/
+build/
+lib/
