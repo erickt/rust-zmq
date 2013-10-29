@@ -6,5 +6,5 @@ install:
 script:
   - make all examples
   - ./bin/example
-  - ./bin/msgsend-zmq
+  - ./bin/msgsend
   - ./bin/version
