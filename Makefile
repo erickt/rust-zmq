@@ -1,13 +1,16 @@
+RUSTPKG ?= rustpkg
+RUST_FLAGS ?= -Z debug-info -O
+
 all:
-	rustpkg install zmq
+	$(RUSTPKG) $(RUST_FLAGS) install zmq
 
 examples: all
-	rustpkg install examples/msgsend
-	rustpkg install examples/zguide/helloworld-client
-	rustpkg install examples/zguide/helloworld-server
-	rustpkg install examples/zguide/version
-	rustpkg install examples/zguide/weather-client
-	rustpkg install examples/zguide/weather-server
+	$(RUSTPKG) $(RUST_FLAGS) install examples/msgsend
+	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/helloworld-client
+	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/helloworld-server
+	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/version
+	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/weather-client
+	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/weather-server
 
 clean:
 	rm -rf bin build lib
