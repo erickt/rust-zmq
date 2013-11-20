@@ -5,8 +5,6 @@
        uuid = "54cc1bc9-02b8-447c-a227-75ebc923bc29")];
 #[crate_type = "lib"];
 
-#[link_args = "-lzmq"];
-
 extern mod extra;
 
 use std::{cast, libc, mem, ptr, str, vec};
@@ -21,35 +19,38 @@ type Socket_ = *c_void;
 /// A message
 type Msg_ = [c_char, ..32];
 
-externfn!(fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int))
+#[link_args = "-lzmq"]
+extern {
+    fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
-externfn!(fn zmq_ctx_new() -> Context_)
-externfn!(fn zmq_ctx_destroy(ctx: Context_) -> c_int)
+    fn zmq_ctx_new() -> Context_;
+    fn zmq_ctx_destroy(ctx: Context_) -> c_int;
 
-externfn!(fn zmq_errno() -> c_int)
-externfn!(fn zmq_strerror(errnum: c_int) -> *c_char)
+    fn zmq_errno() -> c_int;
+    fn zmq_strerror(errnum: c_int) -> *c_char;
 
-externfn!(fn zmq_socket(ctx: Context_, typ: c_int) -> Socket_)
-externfn!(fn zmq_close(socket: Socket_) -> c_int)
+    fn zmq_socket(ctx: Context_, typ: c_int) -> Socket_;
+    fn zmq_close(socket: Socket_) -> c_int;
 
-externfn!(fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: *size_t) -> c_int)
-externfn!(fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: size_t) -> c_int)
+    fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: *size_t) -> c_int;
+    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: size_t) -> c_int;
 
-externfn!(fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int)
-externfn!(fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int)
+    fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
+    fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int;
 
-externfn!(fn zmq_recv(socket: Socket_, buf: *mut u8, len: size_t, flags: c_int) -> c_int)
+    fn zmq_recv(socket: Socket_, buf: *mut u8, len: size_t, flags: c_int) -> c_int;
 
-externfn!(fn zmq_msg_init(msg: &Msg_) -> c_int)
-externfn!(fn zmq_msg_init_size(msg: &Msg_, size: size_t) -> c_int)
-externfn!(fn zmq_msg_data(msg: &Msg_) -> *u8)
-externfn!(fn zmq_msg_size(msg: &Msg_) -> size_t)
-externfn!(fn zmq_msg_close(msg: &Msg_) -> c_int)
+    fn zmq_msg_init(msg: &Msg_) -> c_int;
+    fn zmq_msg_init_size(msg: &Msg_, size: size_t) -> c_int;
+    fn zmq_msg_data(msg: &Msg_) -> *u8;
+    fn zmq_msg_size(msg: &Msg_) -> size_t;
+    fn zmq_msg_close(msg: &Msg_) -> c_int;
 
-externfn!(fn zmq_msg_send(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int)
-externfn!(fn zmq_msg_recv(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int)
+    fn zmq_msg_send(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
+    fn zmq_msg_recv(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
 
-externfn!(fn zmq_poll(items: *PollItem, nitems: c_int, timeout: c_long) -> c_int)
+    fn zmq_poll(items: *PollItem, nitems: c_int, timeout: c_long) -> c_int;
+}
 
 /// Socket types
 #[deriving(Clone)]
@@ -414,7 +415,7 @@ impl Socket {
 
     pub fn get_socket_type(&self) -> Result<SocketType, Error> {
         do getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map |ty| {
-            match *ty {
+            match ty {
                 0 => PAIR,
                 1 => PUB,
                 2 => SUB,

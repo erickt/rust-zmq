@@ -2,6 +2,9 @@
 
 extern mod zmq;
 
+#[link_args="-lzmq"]
+extern {}
+
 fn main() {
     println("Conneting to hello world server...\n");
 
