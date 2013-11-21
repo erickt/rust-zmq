@@ -6,6 +6,9 @@
 
 extern mod zmq;
 
+#[link_args="-lzmq"]
+extern {}
+
 fn atoi(s: &str) -> int {
     from_str(s).unwrap()
 }

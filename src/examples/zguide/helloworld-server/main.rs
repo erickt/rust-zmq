@@ -4,7 +4,10 @@
 
 extern mod zmq;
 
-use std::rt;
+use std::io;
+
+#[link_args="-lzmq"]
+extern {}
 
 fn main() {
     #[fixed_stack_segment];
@@ -21,6 +24,6 @@ fn main() {
             println!("Received {}", s);
         }
         responder.send_str("World", 0);
-        rt::io::timer::sleep(1000);
+        io::timer::sleep(1000);
     }
 }

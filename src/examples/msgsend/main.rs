@@ -12,6 +12,9 @@ use std::comm;
 use std::os;
 use std::task;
 
+#[link_args="-lzmq"]
+extern {}
+
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
     let mut msg = zmq::Message::new();
