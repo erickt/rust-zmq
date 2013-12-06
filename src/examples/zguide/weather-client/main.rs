@@ -6,9 +6,6 @@
 
 extern mod zmq;
 
-#[link_args="-lzmq"]
-extern {}
-
 fn atoi(s: &str) -> int {
     from_str(s).unwrap()
 }
@@ -26,12 +23,12 @@ fn main() {
 
     let mut total_temp = 0;
 
-    do 100.times {
+    100.times( ||{
         let string = subscriber.recv_str(0).unwrap();
-        let chks = string.split_iter(' ').to_owned_vec();
+        let chks = string.split(' ').to_owned_vec();
         let (_zipcode, temperature, _relhumidity) = (atoi(chks[0]), atoi(chks[1]), atoi(chks[2]));
         total_temp += temperature;
-    }
+    });
 
     println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100) as int);
 }
