@@ -12,9 +12,6 @@ use std::comm;
 use std::os;
 use std::task;
 
-#[link_args="-lzmq"]
-extern {}
-
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
     let mut msg = zmq::Message::new();
@@ -23,13 +20,13 @@ fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint)
         match pull_socket.recv(&mut msg, 0) {
             Err(e) => fail!(e.to_str()),
             Ok(()) => {
-                do msg.with_str |s| {
+                msg.with_str(|s| {
                     if s == "" {
                         workers -= 1;
                     } else {
                         count += from_str::<uint>(s).unwrap();
                     }
-                }
+                })
             }
         }
     }
@@ -55,7 +52,7 @@ fn spawn_server(ctx: &zmq::Context, workers: uint) -> comm::Chan<()> {
 
     let mut task = task::task();
     task.sched_mode(task::SingleThreaded);
-    do task.spawn_with((pull_socket, push_socket)) |(pull_socket, push_socket)| {
+    do task.spawn {
         // Let the main thread know we're ready.
         ready_ch.send(());
 
@@ -72,7 +69,7 @@ fn spawn_server(ctx: &zmq::Context, workers: uint) -> comm::Chan<()> {
 }
 
 fn worker(push_socket: zmq::Socket, count: uint) {
-    do count.times {
+    for _ in range(0, count) {
         push_socket.send_str(100u.to_str(), 0).unwrap();
     }
 
@@ -90,7 +87,7 @@ fn spawn_worker(ctx: &zmq::Context, count: uint) -> comm::Port<()> {
     let (po, ch) = comm::stream();
     let mut task = task::task();
     task.sched_mode(task::SingleThreaded);
-    do task.spawn_with(push_socket) |push_socket| {
+    do task.spawn {
         // Let the main thread we're ready.
         ch.send(());
 

@@ -6,9 +6,6 @@ extern mod zmq;
 
 use std::rand::random;
 
-#[link_args="-lzmq"]
-extern {}
-
 fn main() {
     let context = zmq::Context::new();
     let publisher = context.socket(zmq::PUB).unwrap();

@@ -2,9 +2,6 @@
 
 extern mod zmq;
 
-#[link_args="-lzmq"]
-extern {}
-
 fn main() {
     println("Conneting to hello world server...\n");
 
@@ -20,8 +17,8 @@ fn main() {
         requester.send(bytes!("Hello"), 0);
 
         requester.recv(&mut msg, 0).unwrap();
-        do msg.with_str |s| {
+        msg.with_str(|s| {
             println!("Received World {}: {}", s, x);
-        }
+        })
     }
 }

@@ -6,12 +6,7 @@ extern mod zmq;
 
 use std::io;
 
-#[link_args="-lzmq"]
-extern {}
-
 fn main() {
-    #[fixed_stack_segment];
-
     let context = zmq::Context::new();
     let responder = context.socket(zmq::REP).unwrap();
 
@@ -20,9 +15,9 @@ fn main() {
     let mut msg = zmq::Message::new();
     loop {
         responder.recv(&mut msg, 0);
-        do msg.with_str |s| {
+        msg.with_str(|s| {
             println!("Received {}", s);
-        }
+        });
         responder.send_str("World", 0);
         io::timer::sleep(1000);
     }
