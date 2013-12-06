@@ -19,7 +19,7 @@ type Socket_ = *c_void;
 /// A message
 type Msg_ = [c_char, ..32];
 
-#[link_args = "-lzmq"]
+#[link(name = "zmq")]
 extern {
     fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
 
@@ -315,25 +315,25 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.with_c_str |cstr| {
+        let rc = endpoint.with_c_str (|cstr| {
             unsafe {zmq_bind(self.sock, cstr)}
-        };
+        });
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
-        let rc = do endpoint.with_c_str |cstr| {
+        let rc = endpoint.with_c_str (|cstr| {
             unsafe {zmq_connect(self.sock, cstr)}
-        };
+        });
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Send a message
     pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
-        do data.as_imm_buf |base_ptr, len| {
+        data.as_imm_buf (|base_ptr, len| {
             let msg = [0, ..32];
 
             unsafe {
@@ -348,7 +348,7 @@ impl Socket {
 
                 if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
             }
-        }
+        })
     }
 
     pub fn send_str(&self, data: &str, flags: int) -> Result<(), Error> {
@@ -414,7 +414,7 @@ impl Socket {
     }
 
     pub fn get_socket_type(&self) -> Result<SocketType, Error> {
-        do getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map |ty| {
+        getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map( |ty| {
             match ty {
                 0 => PAIR,
                 1 => PUB,
@@ -429,13 +429,13 @@ impl Socket {
                 10 => XSUB,
                 _ => fail!(~"socket type is out of range!")
             }
-        }
+        })
     }
 
     pub fn get_rcvmore(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, ZMQ_RCVMORE.to_raw()).and_then |o| {
+        getsockopt_i64(self.sock, ZMQ_RCVMORE.to_raw()).and_then (|o| {
             Ok(o == 1i64)
-        }
+        })
     }
 
     pub fn get_maxmsgsize(&self) -> Result<i64, Error> {
@@ -472,9 +472,9 @@ impl Socket {
     }
 
     pub fn get_mcast_loop(&self) -> Result<bool, Error> {
-        do getsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw()).and_then |o| {
+        getsockopt_i64(self.sock, ZMQ_MCAST_LOOP.to_raw()).and_then(|o| {
             Ok(o == 1i64)
-        }
+        })
     }
 
     pub fn get_sndbuf(&self) -> Result<u64, Error> {
@@ -597,7 +597,7 @@ impl Message {
         message
     }
 
-    pub fn with_bytes<T>(&self, f: &fn(&[u8]) -> T) -> T {
+    pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
         unsafe {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
@@ -605,8 +605,8 @@ impl Message {
         }
     }
 
-    pub fn with_str<T>(&self, f: &fn(&str) -> T) -> T {
-            self.with_bytes(|v| f(str::from_utf8_slice(v)))
+    pub fn with_str<T>(&self, f: |&str| -> T) -> T {
+            self.with_bytes(|v| f(str::from_utf8(v)))
     }
 
     pub fn to_bytes(&self) -> ~[u8] {
@@ -630,13 +630,13 @@ pub struct PollItem {
 }
 
 pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
-    do items.as_imm_buf |p, len| {
+    items.as_imm_buf (|p, len| {
         let rc = unsafe {zmq_poll(
             p,
             len as c_int,
             timeout as c_long)};
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-    }
+    })
 }
 
 impl ToStr for Error {
