@@ -38,8 +38,6 @@ extern {
     fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
     fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int;
 
-    fn zmq_recv(socket: Socket_, buf: *mut u8, len: size_t, flags: c_int) -> c_int;
-
     fn zmq_msg_init(msg: &Msg_) -> c_int;
     fn zmq_msg_init_size(msg: &Msg_, size: size_t) -> c_int;
     fn zmq_msg_data(msg: &Msg_) -> *u8;
@@ -714,17 +712,19 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     let size = 255 as size_t;
     let mut value = vec::with_capacity(size as uint);
 
-    let r = unsafe {zmq_getsockopt(
-        sock,
-        opt as c_int,
-        vec::raw::to_ptr(value) as *c_void,
-        &size)};
+    unsafe {
+        let r = zmq_getsockopt(
+            sock,
+            opt as c_int,
+            value.as_ptr() as *c_void,
+            &size);
 
-    if r == -1i32 {
-        Err(errno_to_error())
-    } else {
-        unsafe {vec::raw::set_len(&mut value, size as uint)};
-        Ok(value)
+        if r == -1i32 {
+            Err(errno_to_error())
+        } else {
+            value.set_len(size as uint);
+            Ok(value)
+        }
     }
 }
 
@@ -777,12 +777,8 @@ fn setsockopt_buf(sock: Socket_, opt: c_int, p: *u8, len: uint) -> Result<(), Er
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_bytes( sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
+fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
     value.as_imm_buf(|p, len| setsockopt_buf(sock, opt, p, len))
-}
-
-fn setsockopt_str(sock: Socket_, opt: c_int, value: &str) -> Result<(), Error> {
-    value.as_bytes().as_imm_buf(|bytes, len| setsockopt_buf(sock, opt, bytes, len))
 }
 
 fn errno_to_error() -> Error {
