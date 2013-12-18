@@ -47,8 +47,8 @@ fn spawn_server(ctx: &zmq::Context, workers: uint) -> comm::Chan<()> {
     //push_socket.bind("tcp://127.0.0.1:3457").unwrap();
 
     // Spawn the server.
-    let (ready_po, ready_ch) = comm::stream();
-    let (start_po, start_ch) = comm::stream();
+    let (ready_po, ready_ch) = comm::Chan::new();
+    let (start_po, start_ch) = comm::Chan::new();
 
     let mut task = task::task();
     task.sched_mode(task::SingleThreaded);
@@ -84,7 +84,7 @@ fn spawn_worker(ctx: &zmq::Context, count: uint) -> comm::Port<()> {
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
 
     // Spawn the worker.
-    let (po, ch) = comm::stream();
+    let (po, ch) = comm::Chan::new();
     let mut task = task::task();
     task.sched_mode(task::SingleThreaded);
     do task.spawn {
