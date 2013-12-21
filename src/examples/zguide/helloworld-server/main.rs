@@ -7,8 +7,8 @@ extern mod zmq;
 use std::io;
 
 fn main() {
-    let context = zmq::Context::new();
-    let responder = context.socket(zmq::REP).unwrap();
+    let mut context = zmq::Context::new();
+    let mut responder = context.socket(zmq::REP).unwrap();
 
     assert!(responder.bind("tcp://*:5555").is_ok());
 

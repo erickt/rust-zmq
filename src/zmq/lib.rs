@@ -1,9 +1,6 @@
 //! Module: zmq
 
-#[link(name = "zmq",
-       vers = "0.4",
-       uuid = "54cc1bc9-02b8-447c-a227-75ebc923bc29")];
-#[crate_type = "lib"];
+#[crate_id="github.com/erickt/rust-zmq#zmq:0.5-pre"];
 
 extern mod extra;
 
@@ -265,7 +262,7 @@ impl Context {
         }
     }
 
-    pub fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket, Error> {
         let sock = unsafe {zmq_socket(self.ctx, socket_type as c_int)};
 
         if sock.is_null() {
@@ -277,7 +274,7 @@ impl Context {
 
     /// Try to destroy the context. This is different than the destructor; the
     /// destructor will loop when zmq_ctx_destroy returns EINTR
-    pub fn destroy(&self) -> Result<(), Error> {
+    pub fn destroy(&mut self) -> Result<(), Error> {
         if unsafe { zmq_ctx_destroy(self.ctx) } == -1i32 {
             Err(errno_to_error())
         } else {
@@ -312,7 +309,7 @@ impl Drop for Socket {
 
 impl Socket {
     /// Accept connections on a socket.
-    pub fn bind(&self, endpoint: &str) -> Result<(), Error> {
+    pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = endpoint.with_c_str (|cstr| {
             unsafe {zmq_bind(self.sock, cstr)}
         });
@@ -321,7 +318,7 @@ impl Socket {
     }
 
     /// Connect a socket.
-    pub fn connect(&self, endpoint: &str) -> Result<(), Error> {
+    pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = endpoint.with_c_str (|cstr| {
             unsafe {zmq_connect(self.sock, cstr)}
         });
@@ -330,32 +327,32 @@ impl Socket {
     }
 
     /// Send a message
-    pub fn send(&self, data: &[u8], flags: int) -> Result<(), Error> {
-        data.as_imm_buf (|base_ptr, len| {
+    pub fn send(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
+        unsafe {
+            let base_ptr = data.as_ptr();
+            let len = data.len();
             let msg = [0, ..32];
 
-            unsafe {
-                // Copy the data into the message.
-                zmq_msg_init_size(&msg, len as size_t);
+            // Copy the data into the message.
+            zmq_msg_init_size(&msg, len as size_t);
 
-                ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
 
-                let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
+            let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
 
-                zmq_msg_close(&msg);
+            zmq_msg_close(&msg);
 
-                if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-            }
-        })
+            if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+        }
     }
 
-    pub fn send_str(&self, data: &str, flags: int) -> Result<(), Error> {
+    pub fn send_str(&mut self, data: &str, flags: int) -> Result<(), Error> {
         self.send(data.as_bytes(), flags)
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&self, msg: &mut Message, flags: int) -> Result<(), Error> {
+    pub fn recv(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
         let rc = unsafe {
             zmq_msg_recv(&msg.msg, self.sock, flags as c_int)
         };
@@ -367,7 +364,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_msg(&self, flags: int) -> Result<Message, Error> {
+    pub fn recv_msg(&mut self, flags: int) -> Result<Message, Error> {
         let mut msg = Message::new();
         match self.recv(&mut msg, flags) {
             Ok(()) => Ok(msg),
@@ -375,14 +372,14 @@ impl Socket {
         }
     }
 
-    pub fn recv_bytes(&self, flags: int) -> Result<~[u8], Error> {
+    pub fn recv_bytes(&mut self, flags: int) -> Result<~[u8], Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
         }
     }
 
-    pub fn recv_str(&self, flags: int) -> Result<~str, Error> {
+    pub fn recv_str(&mut self, flags: int) -> Result<~str, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_str()),
             Err(e) => Err(e),
@@ -401,7 +398,7 @@ impl Socket {
         Ok(())
     }
 
-    pub fn close_final(&self) -> Result<(), Error> {
+    pub fn close_final(&mut self) -> Result<(), Error> {
         if !self.closed {
             if unsafe { zmq_close(self.sock) } == -1i32 {
                 return Err(errno_to_error());
@@ -628,13 +625,17 @@ pub struct PollItem {
 }
 
 pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
-    items.as_imm_buf (|p, len| {
-        let rc = unsafe {zmq_poll(
-            p,
-            len as c_int,
-            timeout as c_long)};
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-    })
+    unsafe {
+        let rc = zmq_poll(
+            items.as_ptr(),
+            items.len() as c_int,
+            timeout as c_long);
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 impl ToStr for Error {
@@ -765,20 +766,21 @@ fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
     if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
 }
 
-fn setsockopt_buf(sock: Socket_, opt: c_int, p: *u8, len: uint) -> Result<(), Error> {
-    let r = unsafe {
-        zmq_setsockopt(
+fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
+    unsafe {
+        let r = zmq_setsockopt(
             sock,
             opt as c_int,
-            p as *c_void,
-            len as size_t)
-    };
+            value.as_ptr() as *c_void,
+            value.len() as size_t
+        );
 
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-}
-
-fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
-    value.as_imm_buf(|p, len| setsockopt_buf(sock, opt, p, len))
+        if r == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 fn errno_to_error() -> Error {

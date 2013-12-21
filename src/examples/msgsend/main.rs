@@ -12,7 +12,7 @@ use std::comm;
 use std::os;
 use std::task;
 
-fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint) {
+fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
     let mut msg = zmq::Message::new();
 
@@ -37,18 +37,20 @@ fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: uint)
     }
 }
 
-fn spawn_server(ctx: &zmq::Context, workers: uint) -> comm::Chan<()> {
-    let pull_socket = ctx.socket(zmq::PULL).unwrap();
-    let push_socket = ctx.socket(zmq::PUSH).unwrap();
+fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
+    let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
+    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     pull_socket.bind("inproc://server-pull").unwrap();
     push_socket.bind("inproc://server-push").unwrap();
-    //pull_socket.bind("tcp://127.0.0.1:3456").unwrap();
-    //push_socket.bind("tcp://127.0.0.1:3457").unwrap();
 
     // Spawn the server.
     let (ready_po, ready_ch) = comm::Chan::new();
     let (start_po, start_ch) = comm::Chan::new();
+
+    // Mutable sockets cannot be implicitly captured.
+    let pull_socket = pull_socket;
+    let push_socket = push_socket;
 
     let mut task = task::task();
     task.sched_mode(task::SingleThreaded);
@@ -68,7 +70,7 @@ fn spawn_server(ctx: &zmq::Context, workers: uint) -> comm::Chan<()> {
     start_ch
 }
 
-fn worker(push_socket: zmq::Socket, count: uint) {
+fn worker(mut push_socket: zmq::Socket, count: uint) {
     for _ in range(0, count) {
         push_socket.send_str(100u.to_str(), 0).unwrap();
     }
@@ -77,11 +79,14 @@ fn worker(push_socket: zmq::Socket, count: uint) {
     push_socket.send_str("", 0).unwrap();
 }
 
-fn spawn_worker(ctx: &zmq::Context, count: uint) -> comm::Port<()> {
-    let push_socket = ctx.socket(zmq::PUSH).unwrap();
+fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Port<()> {
+    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
+
+    // Mutable sockets cannot be implicitly captured.
+    let push_socket = push_socket;
 
     // Spawn the worker.
     let (po, ch) = comm::Chan::new();
@@ -102,12 +107,12 @@ fn spawn_worker(ctx: &zmq::Context, count: uint) -> comm::Port<()> {
     po
 }
 
-fn run(ctx: zmq::Context, size: uint, workers: uint) {
-    let start_ch = spawn_server(&ctx, workers);
+fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
+    let start_ch = spawn_server(ctx, workers);
 
     // Create some command/control sockets.
-    let push_socket = ctx.socket(zmq::PUSH).unwrap();
-    let pull_socket = ctx.socket(zmq::PULL).unwrap();
+    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+    let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
     pull_socket.connect("inproc://server-push").unwrap();
@@ -117,7 +122,7 @@ fn run(ctx: zmq::Context, size: uint, workers: uint) {
     // Spawn all the workers.
     let mut worker_results = ~[];
     for _ in range(0, workers) {
-        worker_results.push(spawn_worker(&ctx, size / workers));
+        worker_results.push(spawn_worker(ctx, size / workers));
     }
 
     let start = extra::time::precise_time_s();
@@ -158,7 +163,7 @@ fn main() {
     let size = from_str::<uint>(args[1]).unwrap();
     let workers = from_str::<uint>(args[2]).unwrap();
 
-    let ctx = zmq::Context::new();
+    let mut ctx = zmq::Context::new();
 
-    run(ctx, size, workers);
+    run(&mut ctx, size, workers);
 }

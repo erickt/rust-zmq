@@ -7,8 +7,8 @@ extern mod zmq;
 use std::rand::random;
 
 fn main() {
-    let context = zmq::Context::new();
-    let publisher = context.socket(zmq::PUB).unwrap();
+    let mut context = zmq::Context::new();
+    let mut publisher = context.socket(zmq::PUB).unwrap();
 
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
