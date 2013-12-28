@@ -6,11 +6,11 @@
 
 extern mod std;
 extern mod extra;
+extern mod native;
 extern mod zmq;
 
 use std::comm;
 use std::os;
-use std::task;
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
@@ -52,9 +52,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
     let pull_socket = pull_socket;
     let push_socket = push_socket;
 
-    let mut task = task::task();
-    task.sched_mode(task::SingleThreaded);
-    do task.spawn {
+    do native::task::spawn {
         // Let the main thread know we're ready.
         ready_ch.send(());
 
@@ -90,9 +88,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Port<()> {
 
     // Spawn the worker.
     let (po, ch) = comm::Chan::new();
-    let mut task = task::task();
-    task.sched_mode(task::SingleThreaded);
-    do task.spawn {
+    do native::task::spawn {
         // Let the main thread we're ready.
         ch.send(());
 
