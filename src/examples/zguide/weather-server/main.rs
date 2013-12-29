@@ -4,7 +4,7 @@
 
 extern mod zmq;
 
-use std::rand::random;
+use std::rand::Rng;
 
 fn main() {
     let mut context = zmq::Context::new();
@@ -13,10 +13,12 @@ fn main() {
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
+    let mut rng = std::rand::weak_rng();
+
     loop {
-        let zipcode     = random::<int>() % 100000;
-        let temperature = (random::<int>() % 215) - 80;
-        let relhumidity = (random::<int>() % 50) + 10;
+        let zipcode     = rng.gen_range::<int>(0, 100000);
+        let temperature = rng.gen_range::<int>(-80, 135);
+        let relhumidity = rng.gen_range::<int>(10, 60);
 
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
