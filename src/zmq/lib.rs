@@ -44,7 +44,7 @@ extern {
     fn zmq_msg_send(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
     fn zmq_msg_recv(msg: &Msg_, socket: Socket_, flags: c_int) -> c_int;
 
-    fn zmq_poll(items: *PollItem, nitems: c_int, timeout: c_long) -> c_int;
+    fn zmq_poll(items: *mut PollItem, nitems: c_int, timeout: c_long) -> c_int;
 }
 
 /// Socket types
@@ -573,6 +573,14 @@ impl Socket {
         setsockopt_int(self.sock, ZMQ_BACKLOG.to_raw(), value)
     }
 
+    pub fn as_poll_item(&self, events: i16) -> PollItem {
+        PollItem {
+            socket: self.sock,
+            fd: 0,
+            events: events,
+            revents: 0
+        }
+    }
 }
 
 pub struct Message {
@@ -624,10 +632,10 @@ pub struct PollItem {
     revents: i16
 }
 
-pub fn poll(items: &[PollItem], timeout: i64) -> Result<(), Error> {
+pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
     unsafe {
         let rc = zmq_poll(
-            items.as_ptr(),
+            items.as_mut_ptr(),
             items.len() as c_int,
             timeout as c_long);
         if rc == -1i32 {
