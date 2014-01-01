@@ -3,7 +3,7 @@
 extern mod zmq;
 
 fn main() {
-    println("Conneting to hello world server...\n");
+    println("Connecting to hello world server...\n");
 
     let mut context = zmq::Context::new();
     let mut requester = context.socket(zmq::REQ).unwrap();
