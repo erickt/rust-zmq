@@ -1,6 +1,6 @@
 //! Module: zmq
 
-#[crate_id="github.com/erickt/rust-zmq:0.5-pre"];
+#[crate_id="github.com/erickt/rust-zmq#0.5-pre"];
 
 extern mod extra;
 
