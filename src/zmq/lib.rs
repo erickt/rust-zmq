@@ -609,7 +609,7 @@ impl Message {
     }
 
     pub fn with_str<T>(&self, f: |&str| -> T) -> T {
-            self.with_bytes(|v| f(str::from_utf8(v)))
+            self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
     }
 
     pub fn to_bytes(&self) -> ~[u8] {
