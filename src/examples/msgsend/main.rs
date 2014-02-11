@@ -52,7 +52,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
     let pull_socket = pull_socket;
     let push_socket = push_socket;
 
-    do native::task::spawn {
+    native::task::spawn(proc() {
         // Let the main thread know we're ready.
         ready_ch.send(());
 
@@ -60,7 +60,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
         start_po.recv();
 
         server(pull_socket, push_socket, workers);
-    }
+    });
 
     // Wait for the server to start.
     ready_po.recv();
@@ -88,14 +88,14 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Port<()> {
 
     // Spawn the worker.
     let (po, ch) = comm::Chan::new();
-    do native::task::spawn {
+    native::task::spawn(proc() {
         // Let the main thread we're ready.
         ch.send(());
 
         worker(push_socket, count);
 
         ch.send(());
-    }
+    });
 
     // Wait for the worker to start.
     po.recv();
