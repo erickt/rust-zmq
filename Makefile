@@ -1,16 +1,36 @@
-RUSTPKG ?= rustpkg
-RUST_FLAGS ?= -Z debug-info -O
+# Rust parameters
+ARCH=`uname -s`-`uname -r`-`uname -m`
+SRC=src
+BUILD=build
+RUSTC=rustc -W unnecessary-typecast -W unused-result -W non-camel-case-types -W non-uppercase-statics --out-dir $(BUILD) -L $(BUILD)
+LIBZMQ_SRC=$(SRC)/zmq/lib.rs
 
-all:
-	$(RUSTPKG) $(RUST_FLAGS) install zmq
 
-examples: all
-	$(RUSTPKG) $(RUST_FLAGS) install examples/msgsend
-	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/helloworld-client
-	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/helloworld-server
-	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/version
-	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/weather-client
-	$(RUSTPKG) $(RUST_FLAGS) install examples/zguide/weather-server
+all: clean lib examples
+
+examples: msgsend helloworld weather version
 
 clean:
-	rm -rf bin build lib
+		rm -fr $(BUILD)/* || true
+
+lib:
+		mkdir $(BUILD) || true
+		$(RUSTC) --crate-type dylib $(LIBZMQ_SRC) 
+
+msgsend:
+		mkdir $(BUILD) || true
+		$(RUSTC) src/examples/msgsend/main.rs -o $(BUILD)/msgsend
+
+helloworld:
+		mkdir $(BUILD) || true
+		$(RUSTC) src/examples/zguide/helloworld-server/main.rs -o $(BUILD)/helloworld-server
+		$(RUSTC) src/examples/zguide/helloworld-client/main.rs -o $(BUILD)/helloworld-client
+
+weather:
+		mkdir $(BUILD) || true
+		$(RUSTC) src/examples/zguide/weather-server/main.rs -o $(BUILD)/weather-server
+		$(RUSTC) src/examples/zguide/weather-client/main.rs -o $(BUILD)/weather-client
+
+version:
+		mkdir $(BUILD) || true
+		$(RUSTC) src/examples/zguide/version/main.rs -o $(BUILD)/version
