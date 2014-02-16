@@ -1,9 +1,9 @@
 //! Hello World client
 
-extern mod zmq;
+extern crate zmq;
 
 fn main() {
-    println("Connecting to hello world server...\n");
+    println!("Connecting to hello world server...\n");
 
     let mut context = zmq::Context::new();
     let mut requester = context.socket(zmq::REQ).unwrap();
