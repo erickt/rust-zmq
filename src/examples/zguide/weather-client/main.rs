@@ -4,7 +4,7 @@
  * Collects weather updates and find avg temp in zipcode
  */
 
-extern mod zmq;
+extern crate zmq;
 
 fn atoi(s: &str) -> int {
     from_str(s).unwrap()

@@ -2,9 +2,9 @@
 
 #[crate_id="github.com/erickt/rust-zmq#0.5-pre"];
 
-extern mod extra;
+extern crate extra;
 
-use std::{cast, libc, mem, ptr, str, vec};
+use std::{libc, mem, ptr, str, vec};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
 
 /// The ZMQ container that manages all the sockets
@@ -48,6 +48,7 @@ extern {
 }
 
 /// Socket types
+#[allow(non_camel_case_types)]
 #[deriving(Clone)]
 pub enum SocketType {
     PAIR   = 0,
@@ -66,6 +67,7 @@ pub enum SocketType {
 pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
+#[allow(non_camel_case_types)]
 #[deriving(Clone)]
 pub enum Constants {
     ZMQ_AFFINITY          = 4,
@@ -336,7 +338,7 @@ impl Socket {
             // Copy the data into the message.
             zmq_msg_init_size(&msg, len as size_t);
 
-            ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
 
@@ -663,7 +665,7 @@ fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
         zmq_getsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *c_int as *c_void,
             &size)
     };
 
@@ -678,7 +680,7 @@ fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
         zmq_getsockopt(
             sock,
             opt,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u32 as *c_void,
             &size)
     };
 
@@ -693,7 +695,7 @@ fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
         zmq_getsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *i64 as *c_void,
             &size)
     };
 
@@ -708,7 +710,7 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
         zmq_getsockopt(
             sock,
             opt,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u64 as *c_void,
             &size)
     };
 
@@ -743,7 +745,7 @@ fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *c_int as *c_void,
             mem::size_of::<c_int>() as size_t)
     };
 
@@ -755,7 +757,7 @@ fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *i64 as *c_void,
             mem::size_of::<i64>() as size_t)
     };
 
@@ -767,7 +769,7 @@ fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u64 as *c_void,
             mem::size_of::<u64>() as size_t)
     };
 

@@ -2,7 +2,7 @@
 /// Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
 /// Publishes random weather updates
 
-extern mod zmq;
+extern crate zmq;
 
 use std::rand::Rng;
 
