@@ -48,6 +48,7 @@ extern {
 }
 
 /// Socket types
+#[allow(non_camel_case_types)]
 #[deriving(Clone)]
 pub enum SocketType {
     PAIR   = 0,
@@ -66,6 +67,7 @@ pub enum SocketType {
 pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
+#[allow(non_camel_case_types)]
 #[deriving(Clone)]
 pub enum Constants {
     ZMQ_AFFINITY          = 4,
