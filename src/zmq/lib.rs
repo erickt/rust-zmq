@@ -663,7 +663,7 @@ fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
         zmq_getsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *c_int as *c_void,
             &size)
     };
 
@@ -678,7 +678,7 @@ fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
         zmq_getsockopt(
             sock,
             opt,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u32 as *c_void,
             &size)
     };
 
@@ -693,7 +693,7 @@ fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
         zmq_getsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *i64 as *c_void,
             &size)
     };
 
@@ -708,7 +708,7 @@ fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
         zmq_getsockopt(
             sock,
             opt,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u64 as *c_void,
             &size)
     };
 
@@ -743,7 +743,7 @@ fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *c_int as *c_void,
             mem::size_of::<c_int>() as size_t)
     };
 
@@ -755,7 +755,7 @@ fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *i64 as *c_void,
             mem::size_of::<i64>() as size_t)
     };
 
@@ -767,7 +767,7 @@ fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
         zmq_setsockopt(
             sock,
             opt as c_int,
-            ptr::to_unsafe_ptr(&value) as *c_void,
+            &value as *u64 as *c_void,
             mem::size_of::<u64>() as size_t)
     };
 
