@@ -4,7 +4,7 @@
 
 extern crate extra;
 
-use std::{cast, libc, mem, ptr, str, vec};
+use std::{libc, mem, ptr, str, vec};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
 
 /// The ZMQ container that manages all the sockets
@@ -338,7 +338,7 @@ impl Socket {
             // Copy the data into the message.
             zmq_msg_init_size(&msg, len as size_t);
 
-            ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
 
