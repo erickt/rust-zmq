@@ -1,6 +1,6 @@
 //! Hello World client
 
-extern mod zmq;
+extern crate zmq;
 
 fn main() {
     println("Connecting to hello world server...\n");
