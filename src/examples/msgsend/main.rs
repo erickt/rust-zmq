@@ -4,7 +4,6 @@
 //
 // I *think* it's the same, more or less.
 
-extern crate std;
 extern crate extra;
 extern crate native;
 extern crate zmq;
@@ -141,7 +140,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
 
     println!("Count is {}", result);
     println!("Test took {} seconds", elapsed);
-    let thruput = ((size / workers * workers) as f64) / (elapsed as f64);
+    let thruput = ((size / workers * workers) as f64) / elapsed;
     println!("Throughput={:f} per sec", thruput);
 }
 

@@ -14,11 +14,11 @@ fn main() {
 
     let mut msg = zmq::Message::new();
     loop {
-        responder.recv(&mut msg, 0);
+        responder.recv(&mut msg, 0).unwrap();
         msg.with_str(|s| {
             println!("Received {}", s);
         });
-        responder.send_str("World", 0);
+        responder.send_str("World", 0).unwrap();
         io::timer::sleep(1000);
     }
 }

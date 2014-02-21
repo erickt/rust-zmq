@@ -1,6 +1,10 @@
 //! Module: zmq
 
-#[crate_id="github.com/erickt/zmq#0.5-pre"];
+#[crate_id = "zmq#0.5-pre"];
+
+#[license = "MIT/ASL2"];
+#[crate_type = "dylib"];
+#[crate_type = "rlib"];
 
 extern crate extra;
 
@@ -67,6 +71,7 @@ pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
 #[deriving(Clone)]
+#[allow(non_camel_case_types)]
 pub enum Constants {
     ZMQ_AFFINITY          = 4,
     ZMQ_IDENTITY          = 5,
@@ -224,7 +229,7 @@ impl Error {
                 unsafe {
                     fail!("unknown error [{}]: {}",
                           x as int,
-                          str::raw::from_c_str(zmq_strerror(x as c_int))
+                          str::raw::from_c_str(zmq_strerror(x))
                     )
                 }
             }
@@ -269,7 +274,7 @@ impl Context {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock as Socket_, closed: false })
+        Ok(Socket { sock: sock, closed: false })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -334,13 +339,14 @@ impl Socket {
             let msg = [0, ..32];
 
             // Copy the data into the message.
-            zmq_msg_init_size(&msg, len as size_t);
+            let rc = zmq_msg_init_size(&msg, len as size_t);
+
+            if rc == -1i32 { return Err(errno_to_error()); }
 
             ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
-
-            zmq_msg_close(&msg);
+            let _ = zmq_msg_close(&msg);
 
             if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
         }
@@ -589,15 +595,19 @@ pub struct Message {
 
 impl Drop for Message {
     fn drop(&mut self) {
-        unsafe { zmq_msg_close(&self.msg); }
+        unsafe {
+            let _ = zmq_msg_close(&self.msg);
+        }
     }
 }
 
 impl Message {
     pub fn new() -> Message {
-        let message = Message { msg: [0, ..32] };
-        unsafe { zmq_msg_init(&message.msg) };
-        message
+        unsafe {
+            let message = Message { msg: [0, ..32] };
+            let _ = zmq_msg_init(&message.msg);
+            message
+        }
     }
 
     pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
@@ -637,7 +647,7 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
         let rc = zmq_poll(
             items.as_mut_ptr(),
             items.len() as c_int,
-            timeout as c_long);
+            timeout);
         if rc == -1i32 {
             Err(errno_to_error())
         } else {
@@ -662,7 +672,7 @@ fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
     let r = unsafe {
         zmq_getsockopt(
             sock,
-            opt as c_int,
+            opt,
             value as *c_void,
             &size)
     };
@@ -692,7 +702,7 @@ fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
     let r = unsafe {
         zmq_getsockopt(
             sock,
-            opt as c_int,
+            opt,
             value as *c_void,
             &size)
     };
@@ -724,7 +734,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     unsafe {
         let r = zmq_getsockopt(
             sock,
-            opt as c_int,
+            opt,
             value.as_ptr() as *c_void,
             &size);
 
@@ -742,7 +752,7 @@ fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
-            opt as c_int,
+            opt,
             value as *c_void,
             mem::size_of::<c_int>() as size_t)
     };
@@ -754,7 +764,7 @@ fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
-            opt as c_int,
+            opt,
             value as *c_void,
             mem::size_of::<i64>() as size_t)
     };
@@ -766,7 +776,7 @@ fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
     let r = unsafe {
         zmq_setsockopt(
             sock,
-            opt as c_int,
+            opt,
             value as *c_void,
             mem::size_of::<u64>() as size_t)
     };
@@ -778,7 +788,7 @@ fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error
     unsafe {
         let r = zmq_setsockopt(
             sock,
-            opt as c_int,
+            opt,
             value.as_ptr() as *c_void,
             value.len() as size_t
         );

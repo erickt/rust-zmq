@@ -30,5 +30,5 @@ fn main() {
         total_temp += temperature;
     }
 
-    println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100) as int);
+    println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100));
 }
