@@ -5,5 +5,5 @@ install:
   - sudo apt-get install rust-nightly libzmq3-dev
 script:
   - make all examples
-  - ./bin/msgsend
-  - ./bin/version
+  - ./build/msgsend
+  - ./build/version

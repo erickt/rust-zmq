@@ -4,10 +4,10 @@
 //
 // I *think* it's the same, more or less.
 
-extern mod std;
-extern mod extra;
-extern mod native;
-extern mod zmq;
+extern crate std;
+extern crate extra;
+extern crate native;
+extern crate zmq;
 
 use std::comm;
 use std::os;

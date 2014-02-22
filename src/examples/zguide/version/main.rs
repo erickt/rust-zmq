@@ -1,4 +1,4 @@
-extern mod zmq;
+extern crate zmq;
 
 fn main() {
     let (major, minor, patch) = zmq::version();

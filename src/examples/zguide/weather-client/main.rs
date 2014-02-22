@@ -4,14 +4,14 @@
  * Collects weather updates and find avg temp in zipcode
  */
 
-extern mod zmq;
+extern crate zmq;
 
 fn atoi(s: &str) -> int {
     from_str(s).unwrap()
 }
 
 fn main() {
-    println("Collecting updates from weather server...");
+    println!("Collecting updates from weather server...");
 
     let mut context = zmq::Context::new();
     let mut subscriber = context.socket(zmq::SUB).unwrap();
