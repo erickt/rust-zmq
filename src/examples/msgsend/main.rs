@@ -7,6 +7,7 @@
 extern crate extra;
 extern crate native;
 extern crate zmq;
+extern crate time;
 
 use std::comm;
 use std::os;
@@ -120,7 +121,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
 
-    let start = extra::time::precise_time_s();
+    let start = time::precise_time_s();
 
     start_ch.send(());
 
@@ -135,7 +136,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
         Err(e) => fail!(e.to_str()),
     };
 
-    let end = extra::time::precise_time_s();
+    let end = time::precise_time_s();
     let elapsed = end - start;
 
     println!("Count is {}", result);
