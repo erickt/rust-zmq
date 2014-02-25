@@ -6,6 +6,7 @@ extern crate extra;
 
 use std::{libc, mem, ptr, str, vec};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
+use std::fmt;
 
 /// The ZMQ container that manages all the sockets
 type Context_ = *c_void;
@@ -648,11 +649,12 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
     }
 }
 
-impl ToStr for Error {
+impl fmt::Show for Error {
     /// Return the error string for an error.
-    fn to_str(&self) -> ~str {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            str::raw::from_c_str(zmq_strerror(*self as c_int))
+            write!(f.buf, "{}",
+                   str::raw::from_c_str(zmq_strerror(*self as c_int)))
         }
     }
 }
