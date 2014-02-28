@@ -4,8 +4,8 @@
 //
 // I *think* it's the same, more or less.
 
-extern crate extra;
 extern crate native;
+extern crate time;
 extern crate zmq;
 extern crate time;
 
