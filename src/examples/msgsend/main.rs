@@ -7,7 +7,6 @@
 extern crate native;
 extern crate time;
 extern crate zmq;
-extern crate time;
 
 use std::comm;
 use std::os;
