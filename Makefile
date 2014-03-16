@@ -16,7 +16,7 @@ $(BUILD):
 		mkdir -p $(BUILD)
 
 lib: build
-		$(RUSTC) --crate-type dylib --out-dir $(BUILD) $(LIBZMQ_SRC) 
+		$(RUSTC) --out-dir $(BUILD) $(LIBZMQ_SRC) 
 
 msgsend: $(BUILD)
 		$(RUSTC) src/examples/msgsend/main.rs -o $(BUILD)/msgsend
