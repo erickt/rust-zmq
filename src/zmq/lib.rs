@@ -5,7 +5,7 @@
 #[feature(phase)];
 #[phase(syntax, link)] extern crate log;
 
-use std::{libc, mem, ptr, str, vec};
+use std::{libc, mem, ptr, str, slice};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
 use std::fmt;
 
@@ -608,7 +608,7 @@ impl Message {
         unsafe {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
-            vec::raw::buf_as_slice(data, len, f)
+            slice::raw::buf_as_slice(data, len, f)
         }
     }
 
@@ -725,7 +725,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
-    let mut value = vec::with_capacity(size as uint);
+    let mut value = slice::with_capacity(size as uint);
 
     unsafe {
         let r = zmq_getsockopt(
