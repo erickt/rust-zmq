@@ -3,8 +3,9 @@
 /// Publishes random weather updates
 
 extern crate zmq;
+extern crate rand;
 
-use std::rand::Rng;
+use rand::Rng;
 
 fn main() {
     let mut context = zmq::Context::new();
@@ -13,12 +14,12 @@ fn main() {
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
-    let mut rng = std::rand::weak_rng();
+    let mut rng = rand::weak_rng();
 
     loop {
-        let zipcode     = rng.gen_range::<int>(0, 100000);
-        let temperature = rng.gen_range::<int>(-80, 135);
-        let relhumidity = rng.gen_range::<int>(10, 60);
+        let zipcode     = rng.gen_range(0, 100000);
+        let temperature = rng.gen_range(-80, 135);
+        let relhumidity = rng.gen_range(10, 60);
 
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
