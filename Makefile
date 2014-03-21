@@ -18,16 +18,16 @@ $(BUILD):
 lib: build
 		$(RUSTC) --out-dir $(BUILD) $(LIBZMQ_SRC) 
 
-msgsend: $(BUILD)
+msgsend: $(BUILD) lib
 		$(RUSTC) src/examples/msgsend/main.rs -o $(BUILD)/msgsend
 
-helloworld: $(BUILD)
+helloworld: $(BUILD) lib
 		$(RUSTC) src/examples/zguide/helloworld-server/main.rs -o $(BUILD)/helloworld-server
 		$(RUSTC) src/examples/zguide/helloworld-client/main.rs -o $(BUILD)/helloworld-client
 
-weather: $(BUILD)
+weather: $(BUILD) lib
 		$(RUSTC) src/examples/zguide/weather-server/main.rs -o $(BUILD)/weather-server
 		$(RUSTC) src/examples/zguide/weather-client/main.rs -o $(BUILD)/weather-client
 
-version: $(BUILD)
+version: $(BUILD) lib
 		$(RUSTC) src/examples/zguide/version/main.rs -o $(BUILD)/version
