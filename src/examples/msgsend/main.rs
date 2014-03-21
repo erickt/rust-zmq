@@ -36,7 +36,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     }
 }
 
-fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
+fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
@@ -44,8 +44,8 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
     push_socket.bind("inproc://server-push").unwrap();
 
     // Spawn the server.
-    let (ready_po, ready_ch) = comm::Chan::new();
-    let (start_po, start_ch) = comm::Chan::new();
+    let (ready_tx, ready_rx) = comm::channel();
+    let (start_tx, start_rx) = comm::channel();
 
     // Mutable sockets cannot be implicitly captured.
     let pull_socket = pull_socket;
@@ -53,18 +53,18 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Chan<()> {
 
     native::task::spawn(proc() {
         // Let the main thread know we're ready.
-        ready_ch.send(());
+        ready_tx.send(());
 
         // Wait until we need to start.
-        start_po.recv();
+        start_rx.recv();
 
         server(pull_socket, push_socket, workers);
     });
 
     // Wait for the server to start.
-    ready_po.recv();
+    ready_rx.recv();
 
-    start_ch
+    start_tx
 }
 
 fn worker(mut push_socket: zmq::Socket, count: uint) {
@@ -76,7 +76,7 @@ fn worker(mut push_socket: zmq::Socket, count: uint) {
     push_socket.send_str("", 0).unwrap();
 }
 
-fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Port<()> {
+fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
@@ -86,20 +86,20 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Port<()> {
     let push_socket = push_socket;
 
     // Spawn the worker.
-    let (po, ch) = comm::Chan::new();
+    let (tx, rx) = comm::channel();
     native::task::spawn(proc() {
         // Let the main thread we're ready.
-        ch.send(());
+        tx.send(());
 
         worker(push_socket, count);
 
-        ch.send(());
+        tx.send(());
     });
 
     // Wait for the worker to start.
-    po.recv();
+    rx.recv();
 
-    po
+    rx
 }
 
 fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
