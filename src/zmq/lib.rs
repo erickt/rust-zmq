@@ -6,6 +6,10 @@
 #[crate_type = "dylib"];
 #[crate_type = "rlib"];
 
+#[feature(phase)];
+#[phase(syntax, link)]
+extern crate log;
+
 use std::{cast, c_str, fmt, libc, mem, ptr, str, vec};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
 
