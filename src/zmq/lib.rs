@@ -6,9 +6,10 @@
 #[crate_type = "dylib"];
 #[crate_type = "rlib"];
 
-extern crate extra;
+#[feature(phase)];
+#[phase(syntax, link)] extern crate log;
 
-use std::{cast, c_str, fmt, libc, mem, ptr, str, vec};
+use std::{cast, c_str, fmt, libc, mem, ptr, slice, str};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
 
 /// The ZMQ container that manages all the sockets
@@ -614,7 +615,7 @@ impl Message {
         unsafe {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
-            vec::raw::buf_as_slice(data, len, f)
+            slice::raw::buf_as_slice(data, len, f)
         }
     }
 
@@ -636,7 +637,7 @@ pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
 pub struct PollItem {
-    socket: Socket_,
+    priv socket: Socket_,
     fd: c_int,
     events: i16,
     revents: i16
@@ -730,7 +731,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
-    let mut value = vec::with_capacity(size as uint);
+    let mut value = slice::with_capacity(size as uint);
 
     unsafe {
         let r = zmq_getsockopt(
