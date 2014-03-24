@@ -9,9 +9,8 @@
 #[feature(phase)];
 #[phase(syntax, link)] extern crate log;
 
-use std::{cast, c_str, fmt, libc, mem, ptr, str};
+use std::{cast, c_str, fmt, libc, mem, ptr, slice, str};
 use std::libc::{c_int, c_long, c_void, size_t, c_char};
-use std::slice;
 
 /// The ZMQ container that manages all the sockets
 type Context_ = *c_void;
