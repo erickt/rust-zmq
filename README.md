@@ -1,5 +1,7 @@
 Rust Zeromq bindings.
 
+[![Build Status](https://travis-ci.org/erickt/rust-zmq.png?branch=master)](https://travis-ci.org/erickt/rust-zmq)
+
 To build, just run `rustc lib.rs`. rust-zmq is a pretty straight forward
 port of the C API into Rust:
 
