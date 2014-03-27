@@ -6,7 +6,8 @@
 #[crate_type = "dylib"];
 #[crate_type = "rlib"];
 
-#[feature(phase)];
+#[feature(phase, macro_rules)];
+
 #[phase(syntax, link)]
 extern crate log;
 
@@ -36,7 +37,7 @@ extern {
     fn zmq_socket(ctx: Context_, typ: c_int) -> Socket_;
     fn zmq_close(socket: Socket_) -> c_int;
 
-    fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: *size_t) -> c_int;
+    fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *mut c_void, size: *mut size_t) -> c_int;
     fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: size_t) -> c_int;
 
     fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
@@ -639,10 +640,10 @@ pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
 pub struct PollItem {
-    socket: Socket_,
-    fd: c_int,
-    events: i16,
-    revents: i16
+    priv socket: Socket_,
+    priv fd: c_int,
+    priv events: i16,
+    priv revents: i16
 }
 
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
@@ -669,78 +670,40 @@ impl fmt::Show for Error {
     }
 }
 
-fn getsockopt_int(sock: Socket_, opt: c_int) -> Result<int, Error> {
-    let value = 0u32 as c_int;
-    let size = mem::size_of::<c_int>() as size_t;
+macro_rules! getsockopt_num(
+    ($name:ident, $ty:ty) => (
+        fn $name(sock: Socket_, opt: c_int) -> Result<$ty, Error> {
+            unsafe {
+                let value = ptr::mut_null();
+                let mut size = mem::size_of::<$ty>() as size_t;
 
-    let r = unsafe {
-        zmq_getsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            &size)
-    };
+                if -1 == zmq_getsockopt(sock, opt, value, &mut size) {
+                    Err(errno_to_error())
+                } else {
+                    Ok(*(value as *$ty))
+                }
+            }
+        }
+    )
+)
 
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(value as int) }
-}
-
-fn getsockopt_u32(sock: Socket_, opt: c_int) -> Result<u32, Error> {
-    let value = 0u32;
-    let size = mem::size_of::<u32>() as size_t;
-
-    let r = unsafe {
-        zmq_getsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            &size)
-    };
-
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
-}
-
-fn getsockopt_i64(sock: Socket_, opt: c_int) -> Result<i64, Error> {
-    let value = 0i64;
-    let size = mem::size_of::<i64>() as size_t;
-
-    let r = unsafe {
-        zmq_getsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            &size)
-    };
-
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
-}
-
-fn getsockopt_u64(sock: Socket_, opt: c_int) -> Result<u64, Error> {
-    let value = 0u64;
-    let size = mem::size_of::<u64>() as size_t;
-
-    let r = unsafe {
-        zmq_getsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            &size)
-    };
-
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(value) }
-}
+getsockopt_num!(getsockopt_int, int)
+getsockopt_num!(getsockopt_u32, u32)
+getsockopt_num!(getsockopt_i64, i64)
+getsockopt_num!(getsockopt_u64, u64)
 
 fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<Vec<u8>, Error> {
-    // The only binary option in zeromq is ZMQ_IDENTITY, which can have
-    // a max size of 255 bytes.
-    let size = 255 as size_t;
-    let mut value = Vec::with_capacity(size as uint);
-
     unsafe {
+        // The only binary option in zeromq is ZMQ_IDENTITY, which can have
+        // a max size of 255 bytes.
+        let mut size = 255 as size_t;
+        let mut value = Vec::with_capacity(size as uint);
+
         let r = zmq_getsockopt(
             sock,
             opt,
-            value.as_ptr() as *c_void,
-            &size);
+            value.as_mut_ptr() as *mut c_void,
+            &mut size);
 
         if r == -1i32 {
             Err(errno_to_error())
@@ -751,42 +714,25 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<Vec<u8>, Error> {
     }
 }
 
-fn setsockopt_int(sock: Socket_, opt: c_int, value: int) -> Result<(), Error> {
-    let value = value as c_int;
-    let r = unsafe {
-        zmq_setsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            mem::size_of::<c_int>() as size_t)
-    };
+macro_rules! setsockopt_num(
+    ($name:ident, $ty:ty) => (
+        fn $name(sock: Socket_, opt: c_int, value: $ty) -> Result<(), Error> {
+            unsafe {
+                let size = mem::size_of::<$ty>() as size_t;
 
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-}
+                if -1 == zmq_setsockopt(sock, opt, (&value as *$ty) as *c_void, size) {
+                    Err(errno_to_error())
+                } else {
+                    Ok(())
+                }
+            }
+        }
+    )
+)
 
-fn setsockopt_i64(sock: Socket_, opt: c_int, value: i64) -> Result<(), Error> {
-    let r = unsafe {
-        zmq_setsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            mem::size_of::<i64>() as size_t)
-    };
-
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-}
-
-fn setsockopt_u64(sock: Socket_, opt: c_int, value: u64) -> Result<(), Error> {
-    let r = unsafe {
-        zmq_setsockopt(
-            sock,
-            opt,
-            value as *c_void,
-            mem::size_of::<u64>() as size_t)
-    };
-
-    if r == -1i32 { Err(errno_to_error()) } else { Ok(()) }
-}
+setsockopt_num!(setsockopt_int, int)
+setsockopt_num!(setsockopt_i64, i64)
+setsockopt_num!(setsockopt_u64, u64)
 
 fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error> {
     unsafe {
