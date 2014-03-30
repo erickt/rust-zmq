@@ -1,8 +1,8 @@
 //! Module: zmq
 
-#[crate_id="github.com/erickt/rust-zmq#0.5-pre"];
+#![crate_id="github.com/erickt/rust-zmq#0.5-pre"]
 
-#[feature(phase)];
+#![feature(phase)]
 #[phase(syntax, link)] extern crate log;
 
 use std::{libc, mem, ptr, str, slice};
