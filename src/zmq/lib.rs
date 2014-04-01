@@ -256,7 +256,7 @@ pub fn version() -> (int, int, int) {
 /// For this reason, one should use an Arc to share it, rather than any unsafe
 /// trickery you might think up that would call the destructor.
 pub struct Context {
-    priv ctx: Context_,
+    ctx: Context_,
 }
 
 impl Context {
@@ -298,8 +298,8 @@ impl Drop for Context {
 }
 
 pub struct Socket {
-    priv sock: Socket_,
-    priv closed: bool
+    sock: Socket_,
+    closed: bool
 }
 
 impl Drop for Socket {
@@ -588,7 +588,7 @@ impl Socket {
 }
 
 pub struct Message {
-    priv msg: Msg_
+    msg: Msg_
 }
 
 impl Drop for Message {
