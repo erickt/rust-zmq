@@ -1,12 +1,12 @@
 //! Module: zmq
 
-#[crate_id = "zmq#0.5-pre"];
+#![crate_id = "zmq#0.5-pre"]
 
-#[license = "MIT/ASL2"];
-#[crate_type = "dylib"];
-#[crate_type = "rlib"];
+#![license = "MIT/ASL2"]
+#![crate_type = "dylib"]
+#![crate_type = "rlib"]
 
-#[feature(phase, macro_rules)];
+#![feature(phase, macro_rules)]
 
 #[phase(syntax, link)]
 extern crate log;
@@ -261,7 +261,7 @@ pub fn version() -> (int, int, int) {
 /// For this reason, one should use an Arc to share it, rather than any unsafe
 /// trickery you might think up that would call the destructor.
 pub struct Context {
-    priv ctx: Context_,
+    ctx: Context_,
 }
 
 impl Context {
@@ -303,8 +303,8 @@ impl Drop for Context {
 }
 
 pub struct Socket {
-    priv sock: Socket_,
-    priv closed: bool
+    sock: Socket_,
+    closed: bool
 }
 
 impl Drop for Socket {
@@ -594,7 +594,7 @@ impl Socket {
 }
 
 pub struct Message {
-    priv msg: Msg_
+    msg: Msg_
 }
 
 impl Drop for Message {
@@ -640,10 +640,10 @@ pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
 pub struct PollItem {
-    priv socket: Socket_,
-    priv fd: c_int,
-    priv events: i16,
-    priv revents: i16
+    socket: Socket_,
+    fd: c_int,
+    events: i16,
+    revents: i16
 }
 
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
