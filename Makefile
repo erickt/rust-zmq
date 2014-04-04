@@ -2,7 +2,7 @@
 ARCH ?= `uname -s`-`uname -r`-`uname -m`
 SRC ?= src
 BUILD ?= build
-RUSTC ?= rustc -W unnecessary-typecast -W unused-result -W non-camel-case-types -W non-uppercase-statics -L $(BUILD)
+RUSTC ?= rustc -g -L $(BUILD)
 LIBZMQ_SRC ?= $(SRC)/zmq/lib.rs
 
 all: clean lib examples
