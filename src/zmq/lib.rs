@@ -510,8 +510,8 @@ impl Socket {
         getsockopt_i64(self.sock, ZMQ_FD.to_raw())
     }
 
-    pub fn get_events(&self) -> Result<u32, Error> {
-        getsockopt_u32(self.sock, ZMQ_EVENTS.to_raw())
+    pub fn get_events(&self) -> Result<int, Error> {
+        getsockopt_int(self.sock, ZMQ_EVENTS.to_raw())
     }
 
     pub fn set_maxmsgsize(&self, value: i64) -> Result<(), Error> {
