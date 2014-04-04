@@ -12,7 +12,7 @@
 extern crate log;
 
 use std::{cast, c_str, fmt, libc, mem, ptr, str};
-use std::libc::{c_int, c_long, c_void, size_t, c_char};
+use std::libc::{c_int, c_long, c_void, size_t, c_char, int64_t, uint64_t};
 use std::slice;
 
 /// The ZMQ container that manages all the sockets
@@ -56,7 +56,7 @@ extern {
 }
 
 /// Socket types
-#[deriving(Clone)]
+#[deriving(Clone, Show)]
 pub enum SocketType {
     PAIR   = 0,
     PUB    = 1,
@@ -419,7 +419,7 @@ impl Socket {
     }
 
     pub fn get_socket_type(&self) -> Result<SocketType, Error> {
-        getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map( |ty| {
+        getsockopt_int(self.sock, ZMQ_TYPE.to_raw()).map(|ty| {
             match ty {
                 0 => PAIR,
                 1 => PUB,
@@ -671,26 +671,26 @@ impl fmt::Show for Error {
 }
 
 macro_rules! getsockopt_num(
-    ($name:ident, $ty:ty) => (
+    ($name:ident, $c_ty:ty, $ty:ty) => (
         fn $name(sock: Socket_, opt: c_int) -> Result<$ty, Error> {
             unsafe {
-                let value = ptr::mut_null();
-                let mut size = mem::size_of::<$ty>() as size_t;
+                let mut value: $c_ty = 0;
+                let value_ptr = &mut value as *mut $c_ty;
+                let mut size = mem::size_of::<$c_ty>() as size_t;
 
-                if -1 == zmq_getsockopt(sock, opt, value, &mut size) {
+                if -1 == zmq_getsockopt(sock, opt, value_ptr as *mut c_void, &mut size) {
                     Err(errno_to_error())
                 } else {
-                    Ok(*(value as *$ty))
+                    Ok(value as $ty)
                 }
             }
         }
     )
 )
 
-getsockopt_num!(getsockopt_int, int)
-getsockopt_num!(getsockopt_u32, u32)
-getsockopt_num!(getsockopt_i64, i64)
-getsockopt_num!(getsockopt_u64, u64)
+getsockopt_num!(getsockopt_int, c_int, int)
+getsockopt_num!(getsockopt_i64, int64_t, i64)
+getsockopt_num!(getsockopt_u64, uint64_t, u64)
 
 fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<Vec<u8>, Error> {
     unsafe {
