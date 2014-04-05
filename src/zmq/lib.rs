@@ -643,7 +643,7 @@ pub struct PollItem {
     socket: Socket_,
     fd: c_int,
     events: i16,
-    revents: i16
+    pub revents: i16
 }
 
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
