@@ -10,9 +10,12 @@
 
 #[phase(syntax, link)]
 extern crate log;
+extern crate libc;
 
-use std::{cast, c_str, fmt, libc, mem, ptr, str};
-use std::libc::{c_int, c_long, c_void, size_t, c_char, int64_t, uint64_t};
+use std::{c_str, fmt, mem, ptr, str};
+use libc::types::os::arch::c95::{c_int, c_long, size_t, c_char};
+use libc::types::common::c99::{int64_t, uint64_t};
+use libc::types::common::c95::c_void;
 use std::slice;
 
 /// The ZMQ container that manages all the sockets
@@ -347,7 +350,7 @@ impl Socket {
 
             if rc == -1i32 { return Err(errno_to_error()); }
 
-            ptr::copy_memory(::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(std::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
             let _ = zmq_msg_close(&msg);
