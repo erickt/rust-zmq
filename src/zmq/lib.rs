@@ -728,7 +728,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
     // The only binary option in zeromq is ZMQ_IDENTITY, which can have
     // a max size of 255 bytes.
     let size = 255 as size_t;
-    let mut value = slice::with_capacity(size as uint);
+    let mut value = Vec::with_capacity(size as uint);
 
     unsafe {
         let r = zmq_getsockopt(
@@ -740,8 +740,8 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<~[u8], Error> {
         if r == -1i32 {
             Err(errno_to_error())
         } else {
-            value.set_len(size as uint);
-            Ok(value)
+            value.truncate(size as uint);
+            Ok(value.as_slice().to_owned())
         }
     }
 }
