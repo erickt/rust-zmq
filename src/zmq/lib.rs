@@ -429,7 +429,7 @@ impl Socket {
                 8 => PUSH,
                 9 => XPUB,
                 10 => XSUB,
-                _ => fail!(~"socket type is out of range!")
+                _ => fail!("socket type is out of range!")
             }
         })
     }
