@@ -12,10 +12,8 @@
 extern crate log;
 extern crate libc;
 
-use std::{c_str, fmt, mem, ptr, str};
-use libc::types::os::arch::c95::{c_int, c_long, size_t, c_char};
-use libc::types::common::c99::{int64_t, uint64_t};
-use libc::types::common::c95::c_void;
+use std::{cast, c_str, fmt, mem, ptr, str};
+use libc::{c_int, c_long, c_void, size_t, c_char, int64_t, uint64_t};
 use std::slice;
 
 /// The ZMQ container that manages all the sockets
@@ -160,25 +158,25 @@ impl Constants {
 
 #[deriving(Clone, Eq, TotalEq)]
 pub enum Error {
-    EACCES          = libc::EACCES,
-    EADDRINUSE      = libc::EADDRINUSE,
-    EAGAIN          = libc::EAGAIN,
-    EBUSY           = libc::EBUSY,
-    ECONNREFUSED    = libc::ECONNREFUSED,
-    EFAULT          = libc::EFAULT,
-    EHOSTUNREACH    = libc::EHOSTUNREACH,
-    EINPROGRESS     = libc::EINPROGRESS,
-    EINVAL          = libc::EINVAL,
-    EMFILE          = libc::EMFILE,
-    EMSGSIZE        = libc::EMSGSIZE,
-    ENAMETOOLONG    = libc::ENAMETOOLONG,
-    ENODEV          = libc::ENODEV,
-    ENOENT          = libc::ENOENT,
-    ENOMEM          = libc::ENOMEM,
-    ENOTCONN        = libc::ENOTCONN,
-    ENOTSOCK        = libc::ENOTSOCK,
-    EPROTO          = libc::EPROTO,
-    EPROTONOSUPPORT = libc::EPROTONOSUPPORT,
+    EACCES          = libc::consts::os::posix88::EACCES,
+    EADDRINUSE      = libc::consts::os::posix88::EADDRINUSE,
+    EAGAIN          = libc::consts::os::posix88::EAGAIN,
+    EBUSY           = libc::consts::os::posix88::EBUSY,
+    ECONNREFUSED    = libc::consts::os::posix88::ECONNREFUSED,
+    EFAULT          = libc::consts::os::posix88::EFAULT,
+    EHOSTUNREACH    = libc::consts::os::posix88::EHOSTUNREACH,
+    EINPROGRESS     = libc::consts::os::posix88::EINPROGRESS,
+    EINVAL          = libc::consts::os::posix88::EINVAL,
+    EMFILE          = libc::consts::os::posix88::EMFILE,
+    EMSGSIZE        = libc::consts::os::posix88::EMSGSIZE,
+    ENAMETOOLONG    = libc::consts::os::posix88::ENAMETOOLONG,
+    ENODEV          = libc::consts::os::posix88::ENODEV,
+    ENOENT          = libc::consts::os::posix88::ENOENT,
+    ENOMEM          = libc::consts::os::posix88::ENOMEM,
+    ENOTCONN        = libc::consts::os::posix88::ENOTCONN,
+    ENOTSOCK        = libc::consts::os::posix88::ENOTSOCK,
+    EPROTO          = libc::consts::os::posix88::EPROTO,
+    EPROTONOSUPPORT = libc::consts::os::posix88::EPROTONOSUPPORT,
     // magic number is EHAUSNUMERO + num
     ENOTSUP         = 156384713,
     ENOBUFS         = 156384715,
@@ -199,25 +197,25 @@ impl Error {
 
     pub fn from_raw(raw: i32) -> Error {
         match raw {
-            libc::EACCES          => EACCES,
-            libc::EADDRINUSE      => EADDRINUSE,
-            libc::EAGAIN          => EAGAIN,
-            libc::EBUSY           => EBUSY,
-            libc::ECONNREFUSED    => ECONNREFUSED,
-            libc::EFAULT          => EFAULT,
-            libc::EHOSTUNREACH    => EHOSTUNREACH,
-            libc::EINPROGRESS     => EINPROGRESS,
-            libc::EINVAL          => EINVAL,
-            libc::EMFILE          => EMFILE,
-            libc::EMSGSIZE        => EMSGSIZE,
-            libc::ENAMETOOLONG    => ENAMETOOLONG,
-            libc::ENODEV          => ENODEV,
-            libc::ENOENT          => ENOENT,
-            libc::ENOMEM          => ENOMEM,
-            libc::ENOTCONN        => ENOTCONN,
-            libc::ENOTSOCK        => ENOTSOCK,
-            libc::EPROTO          => EPROTO,
-            libc::EPROTONOSUPPORT => EPROTONOSUPPORT,
+            libc::consts::os::posix88::EACCES          => EACCES,
+            libc::consts::os::posix88::EADDRINUSE      => EADDRINUSE,
+            libc::consts::os::posix88::EAGAIN          => EAGAIN,
+            libc::consts::os::posix88::EBUSY           => EBUSY,
+            libc::consts::os::posix88::ECONNREFUSED    => ECONNREFUSED,
+            libc::consts::os::posix88::EFAULT          => EFAULT,
+            libc::consts::os::posix88::EHOSTUNREACH    => EHOSTUNREACH,
+            libc::consts::os::posix88::EINPROGRESS     => EINPROGRESS,
+            libc::consts::os::posix88::EINVAL          => EINVAL,
+            libc::consts::os::posix88::EMFILE          => EMFILE,
+            libc::consts::os::posix88::EMSGSIZE        => EMSGSIZE,
+            libc::consts::os::posix88::ENAMETOOLONG    => ENAMETOOLONG,
+            libc::consts::os::posix88::ENODEV          => ENODEV,
+            libc::consts::os::posix88::ENOENT          => ENOENT,
+            libc::consts::os::posix88::ENOMEM          => ENOMEM,
+            libc::consts::os::posix88::ENOTCONN        => ENOTCONN,
+            libc::consts::os::posix88::ENOTSOCK        => ENOTSOCK,
+            libc::consts::os::posix88::EPROTO          => EPROTO,
+            libc::consts::os::posix88::EPROTONOSUPPORT => EPROTONOSUPPORT,
             156384713             => ENOTSUP,
             156384714             => EPROTONOSUPPORT,
             156384715             => ENOBUFS,
@@ -350,7 +348,7 @@ impl Socket {
 
             if rc == -1i32 { return Err(errno_to_error()); }
 
-            ptr::copy_memory(std::cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
             let _ = zmq_msg_close(&msg);
@@ -435,7 +433,7 @@ impl Socket {
                 8 => PUSH,
                 9 => XPUB,
                 10 => XSUB,
-                _ => fail!(~"socket type is out of range!")
+                _ => fail!("socket type is out of range!")
             }
         })
     }

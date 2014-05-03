@@ -18,7 +18,7 @@ fn main() {
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
 
     let args = std::os::args();
-    let filter = if args.len() > 1 { args[1] } else { ~"10001" };
+    let filter = if args.len() > 1 { args[1] } else { "10001".to_owned() };
     assert!(subscriber.set_subscribe(filter.as_bytes()).is_ok());
 
     let mut total_temp = 0;

@@ -115,7 +115,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     //pull_socket.connect("tcp://127.0.0.1:3457").unwrap();
 
     // Spawn all the workers.
-    let mut worker_results = ~[];
+    let mut worker_results = Vec::new();
     for _ in range(0, workers) {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
@@ -148,9 +148,9 @@ fn main() {
     let args = os::args();
 
     let args = if os::getenv("RUST_BENCH").is_some() {
-        ~[~"", ~"1000000", ~"10000"]
+        ~["".to_owned(), "1000000".to_owned(), "10000".to_owned()]
     } else if args.len() <= 1u {
-        ~[~"", ~"10000", ~"4"]
+        ~["".to_owned(), "10000".to_owned(), "4".to_owned()]
     } else {
         args
     };
