@@ -658,7 +658,7 @@ impl fmt::Show for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            write!(f.buf, "{}",
+            write!(f, "{}",
                    str::raw::from_c_str(zmq_strerror(*self as c_int)))
         }
     }
