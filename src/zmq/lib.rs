@@ -386,7 +386,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_str(&mut self, flags: int) -> Result<~str, Error> {
+    pub fn recv_str(&mut self, flags: int) -> Result<StrBuf, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_str()),
             Err(e) => Err(e),
@@ -623,7 +623,7 @@ impl Message {
         self.with_bytes(|v| v.to_owned())
     }
 
-    pub fn to_str(&self) -> ~str {
+    pub fn to_str(&self) -> StrBuf {
         self.with_str(|s| s.to_owned())
     }
 }
