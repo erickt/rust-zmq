@@ -624,7 +624,7 @@ impl Message {
     }
 
     pub fn to_str(&self) -> String {
-        self.with_str(|s| s.to_owned())
+        self.with_str(|s| s.to_string())
     }
 }
 
