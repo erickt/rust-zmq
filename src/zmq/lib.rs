@@ -12,9 +12,10 @@
 extern crate log;
 extern crate libc;
 
-use std::{cast, c_str, fmt, mem, ptr, str};
 use libc::{c_int, c_long, c_void, size_t, c_char, int64_t, uint64_t};
-use std::slice;
+use libc::consts::os::posix88;
+use std::{mem, ptr, str, slice};
+use std::fmt;
 
 /// The ZMQ container that manages all the sockets
 type Context_ = *c_void;
@@ -57,6 +58,7 @@ extern {
 }
 
 /// Socket types
+#[allow(non_camel_case_types)]
 #[deriving(Clone, Show)]
 pub enum SocketType {
     PAIR   = 0,
@@ -75,6 +77,7 @@ pub enum SocketType {
 pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
+#[allow(non_camel_case_types)]
 #[deriving(Clone)]
 #[allow(non_camel_case_types)]
 pub enum Constants {
@@ -156,27 +159,27 @@ impl Constants {
     }
 }
 
-#[deriving(Clone, Eq, TotalEq)]
+#[deriving(Clone, Eq, PartialEq)]
 pub enum Error {
-    EACCES          = libc::consts::os::posix88::EACCES,
-    EADDRINUSE      = libc::consts::os::posix88::EADDRINUSE,
-    EAGAIN          = libc::consts::os::posix88::EAGAIN,
-    EBUSY           = libc::consts::os::posix88::EBUSY,
-    ECONNREFUSED    = libc::consts::os::posix88::ECONNREFUSED,
-    EFAULT          = libc::consts::os::posix88::EFAULT,
-    EHOSTUNREACH    = libc::consts::os::posix88::EHOSTUNREACH,
-    EINPROGRESS     = libc::consts::os::posix88::EINPROGRESS,
-    EINVAL          = libc::consts::os::posix88::EINVAL,
-    EMFILE          = libc::consts::os::posix88::EMFILE,
-    EMSGSIZE        = libc::consts::os::posix88::EMSGSIZE,
-    ENAMETOOLONG    = libc::consts::os::posix88::ENAMETOOLONG,
-    ENODEV          = libc::consts::os::posix88::ENODEV,
-    ENOENT          = libc::consts::os::posix88::ENOENT,
-    ENOMEM          = libc::consts::os::posix88::ENOMEM,
-    ENOTCONN        = libc::consts::os::posix88::ENOTCONN,
-    ENOTSOCK        = libc::consts::os::posix88::ENOTSOCK,
-    EPROTO          = libc::consts::os::posix88::EPROTO,
-    EPROTONOSUPPORT = libc::consts::os::posix88::EPROTONOSUPPORT,
+    EACCES          = posix88::EACCES,
+    EADDRINUSE      = posix88::EADDRINUSE,
+    EAGAIN          = posix88::EAGAIN,
+    EBUSY           = posix88::EBUSY,
+    ECONNREFUSED    = posix88::ECONNREFUSED,
+    EFAULT          = posix88::EFAULT,
+    EHOSTUNREACH    = posix88::EHOSTUNREACH,
+    EINPROGRESS     = posix88::EINPROGRESS,
+    EINVAL          = posix88::EINVAL,
+    EMFILE          = posix88::EMFILE,
+    EMSGSIZE        = posix88::EMSGSIZE,
+    ENAMETOOLONG    = posix88::ENAMETOOLONG,
+    ENODEV          = posix88::ENODEV,
+    ENOENT          = posix88::ENOENT,
+    ENOMEM          = posix88::ENOMEM,
+    ENOTCONN        = posix88::ENOTCONN,
+    ENOTSOCK        = posix88::ENOTSOCK,
+    EPROTO          = posix88::EPROTO,
+    EPROTONOSUPPORT = posix88::EPROTONOSUPPORT,
     // magic number is EHAUSNUMERO + num
     ENOTSUP         = 156384713,
     ENOBUFS         = 156384715,
@@ -197,25 +200,25 @@ impl Error {
 
     pub fn from_raw(raw: i32) -> Error {
         match raw {
-            libc::consts::os::posix88::EACCES          => EACCES,
-            libc::consts::os::posix88::EADDRINUSE      => EADDRINUSE,
-            libc::consts::os::posix88::EAGAIN          => EAGAIN,
-            libc::consts::os::posix88::EBUSY           => EBUSY,
-            libc::consts::os::posix88::ECONNREFUSED    => ECONNREFUSED,
-            libc::consts::os::posix88::EFAULT          => EFAULT,
-            libc::consts::os::posix88::EHOSTUNREACH    => EHOSTUNREACH,
-            libc::consts::os::posix88::EINPROGRESS     => EINPROGRESS,
-            libc::consts::os::posix88::EINVAL          => EINVAL,
-            libc::consts::os::posix88::EMFILE          => EMFILE,
-            libc::consts::os::posix88::EMSGSIZE        => EMSGSIZE,
-            libc::consts::os::posix88::ENAMETOOLONG    => ENAMETOOLONG,
-            libc::consts::os::posix88::ENODEV          => ENODEV,
-            libc::consts::os::posix88::ENOENT          => ENOENT,
-            libc::consts::os::posix88::ENOMEM          => ENOMEM,
-            libc::consts::os::posix88::ENOTCONN        => ENOTCONN,
-            libc::consts::os::posix88::ENOTSOCK        => ENOTSOCK,
-            libc::consts::os::posix88::EPROTO          => EPROTO,
-            libc::consts::os::posix88::EPROTONOSUPPORT => EPROTONOSUPPORT,
+            posix88::EACCES          => EACCES,
+            posix88::EADDRINUSE      => EADDRINUSE,
+            posix88::EAGAIN          => EAGAIN,
+            posix88::EBUSY           => EBUSY,
+            posix88::ECONNREFUSED    => ECONNREFUSED,
+            posix88::EFAULT          => EFAULT,
+            posix88::EHOSTUNREACH    => EHOSTUNREACH,
+            posix88::EINPROGRESS     => EINPROGRESS,
+            posix88::EINVAL          => EINVAL,
+            posix88::EMFILE          => EMFILE,
+            posix88::EMSGSIZE        => EMSGSIZE,
+            posix88::ENAMETOOLONG    => ENAMETOOLONG,
+            posix88::ENODEV          => ENODEV,
+            posix88::ENOENT          => ENOENT,
+            posix88::ENOMEM          => ENOMEM,
+            posix88::ENOTCONN        => ENOTCONN,
+            posix88::ENOTSOCK        => ENOTSOCK,
+            posix88::EPROTO          => EPROTO,
+            posix88::EPROTONOSUPPORT => EPROTONOSUPPORT,
             156384713             => ENOTSUP,
             156384714             => EPROTONOSUPPORT,
             156384715             => ENOBUFS,
@@ -348,7 +351,7 @@ impl Socket {
 
             if rc == -1i32 { return Err(errno_to_error()); }
 
-            ptr::copy_memory(cast::transmute(zmq_msg_data(&msg)), base_ptr, len);
+            ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
             let _ = zmq_msg_close(&msg);
@@ -390,7 +393,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_str(&mut self, flags: int) -> Result<~str, Error> {
+    pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_str()),
             Err(e) => Err(e),
@@ -631,8 +634,8 @@ impl Message {
         self.with_bytes(|v| v.to_owned())
     }
 
-    pub fn to_str(&self) -> ~str {
-        self.with_str(|s| s.to_owned())
+    pub fn to_str(&self) -> String {
+        self.with_str(|s| s.to_string())
     }
 }
 
@@ -640,6 +643,7 @@ pub static POLLIN : i16 = 1i16;
 pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
+#[allow(visible_private_types)]
 pub struct PollItem {
     socket: Socket_,
     fd: c_int,
@@ -662,11 +666,11 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<(), Error> {
 }
 
 impl fmt::Show for Error {
+    /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let err = zmq_strerror(*self as c_int);
-            let s = c_str::CString::new(err, false);
-            str::from_utf8_lossy(s.as_bytes()).fmt(f)
+            write!(f, "{}",
+                   str::raw::from_c_str(zmq_strerror(*self as c_int)))
         }
     }
 }
@@ -709,7 +713,7 @@ fn getsockopt_bytes(sock: Socket_, opt: c_int) -> Result<Vec<u8>, Error> {
         if r == -1i32 {
             Err(errno_to_error())
         } else {
-            value.set_len(size as uint);
+            value.truncate(size as uint);
             Ok(value)
         }
     }

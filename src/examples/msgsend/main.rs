@@ -30,7 +30,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
         }
     }
 
-    match push_socket.send_str(count.to_str(), 0) {
+    match push_socket.send_str(count.to_str().as_slice(), 0) {
         Ok(()) => { }
         Err(e) => fail!(e.to_str()),
     }
@@ -69,7 +69,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
 
 fn worker(mut push_socket: zmq::Socket, count: uint) {
     for _ in range(0, count) {
-        push_socket.send_str(100u.to_str(), 0).unwrap();
+        push_socket.send_str(100u.to_str().as_slice(), 0).unwrap();
     }
 
     // Let the server know we're done.
@@ -148,15 +148,15 @@ fn main() {
     let args = os::args();
 
     let args = if os::getenv("RUST_BENCH").is_some() {
-        ~["".to_owned(), "1000000".to_owned(), "10000".to_owned()]
+        vec!("".to_string(), "1000000".to_string(), "10000".to_string())
     } else if args.len() <= 1u {
-        ~["".to_owned(), "10000".to_owned(), "4".to_owned()]
+        vec!("".to_string(), "10000".to_string(), "4".to_string())
     } else {
         args
     };
 
-    let size = from_str::<uint>(args[1]).unwrap();
-    let workers = from_str::<uint>(args[2]).unwrap();
+    let size = from_str::<uint>(args.get(1).as_slice()).unwrap();
+    let workers = from_str::<uint>(args.get(2).as_slice()).unwrap();
 
     let mut ctx = zmq::Context::new();
 
