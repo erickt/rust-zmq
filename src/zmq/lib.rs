@@ -8,7 +8,7 @@
 
 #![feature(phase, macro_rules)]
 
-#[phase(syntax, link)]
+#[phase(plugin, link)]
 extern crate log;
 extern crate libc;
 
@@ -643,7 +643,7 @@ pub static POLLIN : i16 = 1i16;
 pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
-#[allow(visible_private_types)]
+#[allow(visible_private_types, dead_code)]
 pub struct PollItem {
     socket: Socket_,
     fd: c_int,
