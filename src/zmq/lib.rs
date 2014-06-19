@@ -386,7 +386,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_bytes(&mut self, flags: int) -> Result<~[u8], Error> {
+    pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
@@ -630,7 +630,7 @@ impl Message {
             self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
     }
 
-    pub fn to_bytes(&self) -> ~[u8] {
+    pub fn to_bytes(&self) -> Vec<u8> {
         self.with_bytes(|v| v.to_owned())
     }
 
