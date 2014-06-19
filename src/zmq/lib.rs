@@ -23,8 +23,10 @@ type Context_ = *c_void;
 /// A ZMQ socket
 type Socket_ = *c_void;
 
+static MsgSize_: uint = 48;
+
 /// A message
-type Msg_ = [c_char, ..32];
+type Msg_ = [c_char, ..MsgSize_];
 
 #[link(name = "zmq")]
 extern {
@@ -344,7 +346,7 @@ impl Socket {
         unsafe {
             let base_ptr = data.as_ptr();
             let len = data.len();
-            let msg = [0, ..32];
+            let msg = [0, ..MsgSize_];
 
             // Copy the data into the message.
             let rc = zmq_msg_init_size(&msg, len as size_t);
@@ -612,7 +614,7 @@ impl Drop for Message {
 impl Message {
     pub fn new() -> Message {
         unsafe {
-            let message = Message { msg: [0, ..32] };
+            let message = Message { msg: [0, ..MsgSize_] };
             let _ = zmq_msg_init(&message.msg);
             message
         }
