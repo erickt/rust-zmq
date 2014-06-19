@@ -8,7 +8,7 @@
 
 #![feature(phase, macro_rules)]
 
-#[phase(syntax, link)]
+#[phase(plugin, link)]
 extern crate log;
 extern crate libc;
 
@@ -23,8 +23,10 @@ type Context_ = *c_void;
 /// A ZMQ socket
 type Socket_ = *c_void;
 
+static MsgSize_: uint = 48;
+
 /// A message
-type Msg_ = [c_char, ..32];
+type Msg_ = [c_char, ..MsgSize_];
 
 #[link(name = "zmq")]
 extern {
@@ -344,7 +346,7 @@ impl Socket {
         unsafe {
             let base_ptr = data.as_ptr();
             let len = data.len();
-            let msg = [0, ..32];
+            let msg = [0, ..MsgSize_];
 
             // Copy the data into the message.
             let rc = zmq_msg_init_size(&msg, len as size_t);
@@ -386,7 +388,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_bytes(&mut self, flags: int) -> Result<~[u8], Error> {
+    pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
@@ -612,7 +614,7 @@ impl Drop for Message {
 impl Message {
     pub fn new() -> Message {
         unsafe {
-            let message = Message { msg: [0, ..32] };
+            let message = Message { msg: [0, ..MsgSize_] };
             let _ = zmq_msg_init(&message.msg);
             message
         }
@@ -630,7 +632,7 @@ impl Message {
             self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
     }
 
-    pub fn to_bytes(&self) -> ~[u8] {
+    pub fn to_bytes(&self) -> Vec<u8> {
         self.with_bytes(|v| v.to_owned())
     }
 
@@ -643,7 +645,7 @@ pub static POLLIN : i16 = 1i16;
 pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
-#[allow(visible_private_types)]
+#[allow(visible_private_types, dead_code)]
 pub struct PollItem {
     socket: Socket_,
     fd: c_int,
