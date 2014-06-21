@@ -16,7 +16,7 @@ fn main() {
 
     for x in range(0i, 10i) {
         println!("Sending Hello {}", x);
-        requester.send(b"Hello", 0).unwrap();
+        requester.send_bytes(b"Hello", 0).unwrap();
 
         requester.recv(&mut msg, 0).unwrap();
         msg.with_str(|s| {

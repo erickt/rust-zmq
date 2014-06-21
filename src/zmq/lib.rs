@@ -343,7 +343,14 @@ impl Socket {
     }
 
     /// Send a message
-    pub fn send(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
+    pub fn send(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
+        unsafe {
+            let rc = zmq_msg_send(&msg.msg, self.sock, flags as c_int);
+            if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+        }
+    }
+
+    pub fn send_bytes(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
         unsafe {
             let base_ptr = data.as_ptr();
             let len = data.len();
@@ -363,7 +370,7 @@ impl Socket {
     }
 
     pub fn send_str(&mut self, data: &str, flags: int) -> Result<(), Error> {
-        self.send(data.as_bytes(), flags)
+        self.send_bytes(data.as_bytes(), flags)
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
