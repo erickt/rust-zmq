@@ -357,7 +357,6 @@ impl Socket {
             ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
 
             let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
-            let _ = zmq_msg_close(&msg);
 
             if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
         }
