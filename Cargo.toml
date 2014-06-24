@@ -1,0 +1,32 @@
+[package]
+name = "zmq"
+version = "0.5.1"
+authors = [ "erick.tryzelaar@gmail.com" ]
+
+[[lib]]
+name = "zmq"
+path = "src/zmq/lib.rs"
+
+[[bin]]
+name = "msgsend"
+path = "src/examples/msgsend/main.rs"
+
+[[bin]]
+name = "helloworld-client"
+path = "src/examples/zguide/helloworld-client/main.rs"
+
+[[bin]]
+name = "helloworld-server"
+path = "src/examples/zguide/helloworld-server/main.rs"
+
+[[bin]]
+name = "version"
+path = "src/examples/zguide/version/main.rs"
+
+[[bin]]
+name = "weather-client"
+path = "src/examples/zguide/weather-client/main.rs"
+
+[[bin]]
+name = "weather-server"
+path = "src/examples/zguide/weather-server/main.rs"

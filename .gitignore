@@ -3,7 +3,4 @@
 *.dSYM
 *.o
 *.a
-.rust/
-bin/
-build/
-lib/
+/target/
