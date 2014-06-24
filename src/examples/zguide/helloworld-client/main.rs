@@ -1,5 +1,7 @@
 //! Hello World client
 
+#![crate_id = "helloworld-client"]
+
 extern crate zmq;
 
 fn main() {

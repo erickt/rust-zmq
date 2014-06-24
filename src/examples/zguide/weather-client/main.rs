@@ -1,3 +1,5 @@
+#![crate_id = "weather-client"]
+
 /*!
  * Weather update client
  * Connects SUB socket to tcp://localhost:5556

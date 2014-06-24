@@ -1,3 +1,5 @@
+#![crate_id = "version"]
+
 extern crate zmq;
 
 fn main() {

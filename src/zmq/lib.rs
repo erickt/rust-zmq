@@ -1,6 +1,6 @@
 //! Module: zmq
 
-#![crate_id = "zmq#0.5-pre"]
+#![crate_id = "zmq"]
 
 #![license = "MIT/ASL2"]
 #![crate_type = "dylib"]

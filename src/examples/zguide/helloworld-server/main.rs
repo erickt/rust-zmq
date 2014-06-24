@@ -1,3 +1,5 @@
+#![crate_id = "helloworld-server"]
+
 /// Hello World server in Rust
 /// Binds REP socket to tcp://*:5555
 /// Expects "Hello" from client, replies with "World"

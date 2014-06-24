@@ -33,12 +33,14 @@ port of the C API into Rust:
 Installation
 ------------
 
-Install for users of rust-zmq:
+rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
+their `Cargo.toml` file:
 
-    % rustpkg install github.com/erickt/rust-zmq
+    [dependencies.zmq]
+    git = "https://github.com/erickt/rust-zmq.git"
 
 Install for developers:
 
     % git clone https://github.com/erickt/rust-zmq
     % cd rust-zmq
-    % make
+    % cargo build

@@ -4,6 +4,8 @@
 //
 // I *think* it's the same, more or less.
 
+#![crate_id = "msgsend"]
+
 extern crate native;
 extern crate time;
 extern crate zmq;
