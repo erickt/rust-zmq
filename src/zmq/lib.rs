@@ -42,7 +42,7 @@ extern {
     fn zmq_close(socket: Socket_) -> c_int;
 
     fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *mut c_void, size: *mut size_t) -> c_int;
-    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *mut c_void, size: size_t) -> c_int;
+    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *const c_void, size: size_t) -> c_int;
 
     fn zmq_bind(socket: Socket_, endpoint: *const c_char) -> c_int;
     fn zmq_connect(socket: Socket_, endpoint: *const c_char) -> c_int;
@@ -727,7 +727,7 @@ macro_rules! setsockopt_num(
             unsafe {
                 let size = mem::size_of::<$ty>() as size_t;
 
-                if -1 == zmq_setsockopt(sock, opt, (&value as *const $ty) as *mut c_void, size) {
+                if -1 == zmq_setsockopt(sock, opt, (&value as *const $ty) as *const c_void, size) {
                     Err(errno_to_error())
                 } else {
                     Ok(())
@@ -746,7 +746,7 @@ fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error
         let r = zmq_setsockopt(
             sock,
             opt,
-            value.as_ptr() as *mut c_void,
+            value.as_ptr() as *const c_void,
             value.len() as size_t
         );
 
