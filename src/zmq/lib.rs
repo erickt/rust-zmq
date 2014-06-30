@@ -18,10 +18,10 @@ use std::{mem, ptr, str, slice};
 use std::fmt;
 
 /// The ZMQ container that manages all the sockets
-type Context_ = *const c_void;
+type Context_ = *mut c_void;
 
 /// A ZMQ socket
-type Socket_ = *const c_void;
+type Socket_ = *mut c_void;
 
 static MsgSize_: uint = 48;
 
@@ -30,7 +30,7 @@ type Msg_ = [c_char, ..MsgSize_];
 
 #[link(name = "zmq")]
 extern {
-    fn zmq_version(major: *const c_int, minor: *const c_int, patch: *const c_int);
+    fn zmq_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int);
 
     fn zmq_ctx_new() -> Context_;
     fn zmq_ctx_destroy(ctx: Context_) -> c_int;
@@ -249,12 +249,12 @@ impl Error {
 
 // Return the current zeromq version.
 pub fn version() -> (int, int, int) {
-    let major = 0;
-    let minor = 0;
-    let patch = 0;
+    let mut major = 0;
+    let mut minor = 0;
+    let mut patch = 0;
 
     unsafe {
-        zmq_version(&major, &minor, &patch);
+        zmq_version(&mut major, &mut minor, &mut patch);
     }
 
     (major as int, minor as int, patch as int)
