@@ -14,7 +14,7 @@ fn main() {
 
     let mut msg = zmq::Message::new();
 
-    for x in range(0, 10) {
+    for x in range(0i, 10i) {
         println!("Sending Hello {}", x);
         requester.send(b"Hello", 0).unwrap();
 
