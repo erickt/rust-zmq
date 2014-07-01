@@ -375,7 +375,7 @@ impl Socket {
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
+    pub fn recv_into(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
         let rc = unsafe {
             zmq_msg_recv(&msg.msg, self.sock, flags as c_int)
         };
@@ -387,23 +387,23 @@ impl Socket {
         }
     }
 
-    pub fn recv_msg(&mut self, flags: int) -> Result<Message, Error> {
+    pub fn recv(&mut self, flags: int) -> Result<Message, Error> {
         let mut msg = Message::new();
-        match self.recv(&mut msg, flags) {
+        match self.recv_into(&mut msg, flags) {
             Ok(()) => Ok(msg),
             Err(e) => Err(e),
         }
     }
 
     pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
-        match self.recv_msg(flags) {
+        match self.recv(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
         }
     }
 
     pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
-        match self.recv_msg(flags) {
+        match self.recv(flags) {
             Ok(msg) => Ok(msg.to_string()),
             Err(e) => Err(e),
         }

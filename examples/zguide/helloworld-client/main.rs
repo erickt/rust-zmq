@@ -18,7 +18,7 @@ fn main() {
         println!("Sending Hello {}", x);
         requester.send_bytes(b"Hello", 0).unwrap();
 
-        requester.recv(&mut msg, 0).unwrap();
+        requester.recv_into(&mut msg, 0).unwrap();
         msg.with_str(|s| {
             println!("Received World {}: {}", s, x);
         })

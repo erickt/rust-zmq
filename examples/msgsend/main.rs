@@ -20,7 +20,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     let mut msg = zmq::Message::new();
 
     while workers != 0 {
-        match pull_socket.recv(&mut msg, 0) {
+        match pull_socket.recv_into(&mut msg, 0) {
             Err(e) => panic!(e.to_string()),
             Ok(()) => {
                 msg.with_str(|s| {
@@ -127,7 +127,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     }
 
     // Receive the final count.
-    let result = match pull_socket.recv_msg(0) {
+    let result = match pull_socket.recv(0) {
         Ok(msg) => msg.with_str(|s| from_str::<uint>(s).unwrap()),
         Err(e) => panic!(e.to_string()),
     };
