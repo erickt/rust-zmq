@@ -351,21 +351,9 @@ impl Socket {
     }
 
     pub fn send_bytes(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
-        unsafe {
-            let base_ptr = data.as_ptr();
-            let len = data.len();
-            let msg = [0, ..MSG_SIZE];
-
-            // Copy the data into the message.
-            let rc = zmq_msg_init_size(&msg, len as size_t);
-
-            if rc == -1i32 { return Err(errno_to_error()); }
-
-            ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
-
-            let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
-
-            if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+        match Message::from_slice(data) {
+            Ok(message) => self.send(message, flags),
+            Err(err) => Err(err),
         }
     }
 
@@ -625,6 +613,20 @@ impl Message {
             let _ = zmq_msg_init(&message.msg);
             message
         }
+    }
+
+    pub fn from_slice(data: &[u8]) -> Result<Message, Error> {
+        let base_ptr = data.as_ptr();
+        let len = data.len();
+        let message = Message { msg: [0, ..MSG_SIZE] };
+
+        // Copy the data into the message.
+        unsafe {
+            let rc = zmq_msg_init_size(&message.msg, len as size_t);
+            if rc == -1i32 { return Err(errno_to_error()); }
+            ptr::copy_memory(zmq_msg_data(&message.msg) as *mut u8, base_ptr, len);
+        }
+        Ok(message)
     }
 
     pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
