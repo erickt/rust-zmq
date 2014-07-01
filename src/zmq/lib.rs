@@ -343,7 +343,7 @@ impl Socket {
     }
 
     /// Send a message
-    pub fn send(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
+    pub fn send(&mut self, msg: Message, flags: int) -> Result<(), Error> {
         unsafe {
             let rc = zmq_msg_send(&msg.msg, self.sock, flags as c_int);
             if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
