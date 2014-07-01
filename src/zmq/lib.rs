@@ -18,10 +18,10 @@ use std::{mem, ptr, str, slice};
 use std::fmt;
 
 /// The ZMQ container that manages all the sockets
-type Context_ = *c_void;
+type Context_ = *mut c_void;
 
 /// A ZMQ socket
-type Socket_ = *c_void;
+type Socket_ = *mut c_void;
 
 static MsgSize_: uint = 48;
 
@@ -30,26 +30,26 @@ type Msg_ = [c_char, ..MsgSize_];
 
 #[link(name = "zmq")]
 extern {
-    fn zmq_version(major: *c_int, minor: *c_int, patch: *c_int);
+    fn zmq_version(major: *mut c_int, minor: *mut c_int, patch: *mut c_int);
 
     fn zmq_ctx_new() -> Context_;
     fn zmq_ctx_destroy(ctx: Context_) -> c_int;
 
     fn zmq_errno() -> c_int;
-    fn zmq_strerror(errnum: c_int) -> *c_char;
+    fn zmq_strerror(errnum: c_int) -> *const c_char;
 
     fn zmq_socket(ctx: Context_, typ: c_int) -> Socket_;
     fn zmq_close(socket: Socket_) -> c_int;
 
     fn zmq_getsockopt(socket: Socket_, opt: c_int, optval: *mut c_void, size: *mut size_t) -> c_int;
-    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *c_void, size: size_t) -> c_int;
+    fn zmq_setsockopt(socket: Socket_, opt: c_int, optval: *const c_void, size: size_t) -> c_int;
 
-    fn zmq_bind(socket: Socket_, endpoint: *c_char) -> c_int;
-    fn zmq_connect(socket: Socket_, endpoint: *c_char) -> c_int;
+    fn zmq_bind(socket: Socket_, endpoint: *const c_char) -> c_int;
+    fn zmq_connect(socket: Socket_, endpoint: *const c_char) -> c_int;
 
     fn zmq_msg_init(msg: &Msg_) -> c_int;
     fn zmq_msg_init_size(msg: &Msg_, size: size_t) -> c_int;
-    fn zmq_msg_data(msg: &Msg_) -> *u8;
+    fn zmq_msg_data(msg: &Msg_) -> *const u8;
     fn zmq_msg_size(msg: &Msg_) -> size_t;
     fn zmq_msg_close(msg: &Msg_) -> c_int;
 
@@ -163,25 +163,25 @@ impl Constants {
 
 #[deriving(Clone, Eq, PartialEq)]
 pub enum Error {
-    EACCES          = posix88::EACCES,
-    EADDRINUSE      = posix88::EADDRINUSE,
-    EAGAIN          = posix88::EAGAIN,
-    EBUSY           = posix88::EBUSY,
-    ECONNREFUSED    = posix88::ECONNREFUSED,
-    EFAULT          = posix88::EFAULT,
-    EHOSTUNREACH    = posix88::EHOSTUNREACH,
-    EINPROGRESS     = posix88::EINPROGRESS,
-    EINVAL          = posix88::EINVAL,
-    EMFILE          = posix88::EMFILE,
-    EMSGSIZE        = posix88::EMSGSIZE,
-    ENAMETOOLONG    = posix88::ENAMETOOLONG,
-    ENODEV          = posix88::ENODEV,
-    ENOENT          = posix88::ENOENT,
-    ENOMEM          = posix88::ENOMEM,
-    ENOTCONN        = posix88::ENOTCONN,
-    ENOTSOCK        = posix88::ENOTSOCK,
-    EPROTO          = posix88::EPROTO,
-    EPROTONOSUPPORT = posix88::EPROTONOSUPPORT,
+    EACCES          = posix88::EACCES as int,
+    EADDRINUSE      = posix88::EADDRINUSE as int,
+    EAGAIN          = posix88::EAGAIN as int,
+    EBUSY           = posix88::EBUSY as int,
+    ECONNREFUSED    = posix88::ECONNREFUSED as int,
+    EFAULT          = posix88::EFAULT as int,
+    EHOSTUNREACH    = posix88::EHOSTUNREACH as int,
+    EINPROGRESS     = posix88::EINPROGRESS as int,
+    EINVAL          = posix88::EINVAL as int,
+    EMFILE          = posix88::EMFILE as int,
+    EMSGSIZE        = posix88::EMSGSIZE as int,
+    ENAMETOOLONG    = posix88::ENAMETOOLONG as int,
+    ENODEV          = posix88::ENODEV as int,
+    ENOENT          = posix88::ENOENT as int,
+    ENOMEM          = posix88::ENOMEM as int,
+    ENOTCONN        = posix88::ENOTCONN as int,
+    ENOTSOCK        = posix88::ENOTSOCK as int,
+    EPROTO          = posix88::EPROTO as int,
+    EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as int,
     // magic number is EHAUSNUMERO + num
     ENOTSUP         = 156384713,
     ENOBUFS         = 156384715,
@@ -249,12 +249,12 @@ impl Error {
 
 // Return the current zeromq version.
 pub fn version() -> (int, int, int) {
-    let major = 0;
-    let minor = 0;
-    let patch = 0;
+    let mut major = 0;
+    let mut minor = 0;
+    let mut patch = 0;
 
     unsafe {
-        zmq_version(&major, &minor, &patch);
+        zmq_version(&mut major, &mut minor, &mut patch);
     }
 
     (major as int, minor as int, patch as int)
@@ -727,7 +727,7 @@ macro_rules! setsockopt_num(
             unsafe {
                 let size = mem::size_of::<$ty>() as size_t;
 
-                if -1 == zmq_setsockopt(sock, opt, (&value as *$ty) as *c_void, size) {
+                if -1 == zmq_setsockopt(sock, opt, (&value as *const $ty) as *const c_void, size) {
                     Err(errno_to_error())
                 } else {
                     Ok(())
@@ -746,7 +746,7 @@ fn setsockopt_bytes(sock: Socket_, opt: c_int, value: &[u8]) -> Result<(), Error
         let r = zmq_setsockopt(
             sock,
             opt,
-            value.as_ptr() as *c_void,
+            value.as_ptr() as *const c_void,
             value.len() as size_t
         );
 
