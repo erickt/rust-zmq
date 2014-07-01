@@ -184,16 +184,16 @@ pub enum Error {
     EPROTO          = posix88::EPROTO as int,
     EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as int,
     // magic number is EHAUSNUMERO + num
-    ENOTSUP         = 156384713,
-    ENOBUFS         = 156384715,
-    ENETDOWN        = 156384716,
-    EADDRNOTAVAIL   = 156384718,
+    ENOTSUP         = 156384713 as int,
+    ENOBUFS         = 156384715 as int,
+    ENETDOWN        = 156384716 as int,
+    EADDRNOTAVAIL   = 156384718 as int,
 
     // native zmq error codes
-    EFSM            = 156384763,
-    ENOCOMPATPROTO  = 156384764,
-    ETERM           = 156384765,
-    EMTHREAD        = 156384766,
+    EFSM            = 156384763 as int,
+    ENOCOMPATPROTO  = 156384764 as int,
+    ETERM           = 156384765 as int,
+    EMTHREAD        = 156384766 as int,
 }
 
 impl Error {
