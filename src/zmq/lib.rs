@@ -317,7 +317,7 @@ impl Drop for Socket {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
-            Err(e) => fail!(e.to_str())
+            Err(e) => fail!(e.to_string())
         }
     }
 }
@@ -397,7 +397,7 @@ impl Socket {
 
     pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
         match self.recv_msg(flags) {
-            Ok(msg) => Ok(msg.to_str()),
+            Ok(msg) => Ok(msg.to_string()),
             Err(e) => Err(e),
         }
     }
@@ -636,7 +636,7 @@ impl Message {
         self.with_bytes(|v| v.to_owned())
     }
 
-    pub fn to_str(&self) -> String {
+    pub fn to_string(&self) -> String {
         self.with_str(|s| s.to_string())
     }
 }
