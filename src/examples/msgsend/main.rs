@@ -21,7 +21,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
 
     while workers != 0 {
         match pull_socket.recv(&mut msg, 0) {
-            Err(e) => fail!(e.to_str()),
+            Err(e) => fail!(e.to_string()),
             Ok(()) => {
                 msg.with_str(|s| {
                     if s == "" {
@@ -34,9 +34,9 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
         }
     }
 
-    match push_socket.send_str(count.to_str().as_slice(), 0) {
+    match push_socket.send_str(count.to_string().as_slice(), 0) {
         Ok(()) => { }
-        Err(e) => fail!(e.to_str()),
+        Err(e) => fail!(e.to_string()),
     }
 }
 
@@ -73,7 +73,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
 
 fn worker(mut push_socket: zmq::Socket, count: uint) {
     for _ in range(0, count) {
-        push_socket.send_str(100u.to_str().as_slice(), 0).unwrap();
+        push_socket.send_str(100u.to_string().as_slice(), 0).unwrap();
     }
 
     // Let the server know we're done.
@@ -136,7 +136,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     // Receive the final count.
     let result = match pull_socket.recv_msg(0) {
         Ok(msg) => msg.with_str(|s| from_str::<uint>(s).unwrap()),
-        Err(e) => fail!(e.to_str()),
+        Err(e) => fail!(e.to_string()),
     };
 
     let end = time::precise_time_s();
