@@ -1,14 +1,28 @@
-Rust Zeromq bindings.
+Rust ZeroMQ bindings.
 
 [![Build Status](https://travis-ci.org/erickt/rust-zmq.png?branch=master)](https://travis-ci.org/erickt/rust-zmq)
 
-To build, just run `rustc lib.rs`. rust-zmq is a pretty straight forward
-port of the C API into Rust:
+Installation
+------------
+
+rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
+their `Cargo.toml` file:
+
+    [dependencies.zmq]
+    git = "https://github.com/erickt/rust-zmq.git"
+
+Install for developers:
+
+    % git clone https://github.com/erickt/rust-zmq
+    % cd rust-zmq
+    % cargo build
+
+Usage
+-----
+
+`rust-zmq` is a pretty straight forward port of the C API into Rust:
 
 	extern crate zmq;
-	
-	#[link(name = "zmq")] // link against the C library
-	extern {}
 	
 	fn main() {
 		let mut ctx = zmq::Context::new();
@@ -29,18 +43,5 @@ port of the C API into Rust:
 		}
 	}
 
-
-Installation
-------------
-
-rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
-their `Cargo.toml` file:
-
-    [dependencies.zmq]
-    git = "https://github.com/erickt/rust-zmq.git"
-
-Install for developers:
-
-    % git clone https://github.com/erickt/rust-zmq
-    % cd rust-zmq
-    % cargo build
+You can find more usage examples in
+https://github.com/erickt/rust-zmq/tree/master/examples.

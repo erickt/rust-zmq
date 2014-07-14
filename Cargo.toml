@@ -7,26 +7,26 @@ authors = [ "erick.tryzelaar@gmail.com" ]
 name = "zmq"
 path = "src/zmq/lib.rs"
 
-[[bin]]
+[[example]]
 name = "msgsend"
-path = "src/examples/msgsend/main.rs"
+path = "examples/msgsend/main.rs"
 
-[[bin]]
+[[example]]
 name = "helloworld-client"
-path = "src/examples/zguide/helloworld-client/main.rs"
+path = "examples/zguide/helloworld-client/main.rs"
 
-[[bin]]
+[[example]]
 name = "helloworld-server"
-path = "src/examples/zguide/helloworld-server/main.rs"
+path = "examples/zguide/helloworld-server/main.rs"
 
-[[bin]]
+[[example]]
 name = "version"
-path = "src/examples/zguide/version/main.rs"
+path = "examples/zguide/version/main.rs"
 
-[[bin]]
+[[example]]
 name = "weather-client"
-path = "src/examples/zguide/weather-client/main.rs"
+path = "examples/zguide/weather-client/main.rs"
 
-[[bin]]
+[[example]]
 name = "weather-server"
-path = "src/examples/zguide/weather-server/main.rs"
+path = "examples/zguide/weather-server/main.rs"
