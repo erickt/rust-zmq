@@ -1,4 +1,4 @@
-#![crate_id = "weather-client"]
+#![crate_name = "weather-client"]
 
 /*!
  * Weather update client

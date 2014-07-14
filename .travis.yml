@@ -4,6 +4,7 @@ before_install:
 install:
   - sudo apt-get install rust-nightly libzmq3-dev
 script:
-  - make all examples
-  - ./build/msgsend
-  - ./build/version
+  - ./cargo-nightly/bin/cargo build --verbose
+  - ./cargo-nightly/bin/cargo test --verbose
+  - ./target/msgsend
+  - ./target/version

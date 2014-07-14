@@ -4,7 +4,7 @@
 //
 // I *think* it's the same, more or less.
 
-#![crate_id = "msgsend"]
+#![crate_name = "msgsend"]
 
 extern crate native;
 extern crate time;

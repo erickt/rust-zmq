@@ -1,4 +1,4 @@
-#![crate_id = "version"]
+#![crate_name = "version"]
 
 extern crate zmq;
 
