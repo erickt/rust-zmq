@@ -20,7 +20,7 @@ fn main() {
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
 
     let args = std::os::args();
-    let filter = if args.len() > 1 { args.get(1).clone() } else { "10001".to_string() };
+    let filter = if args.len() > 1 { args[1].clone() } else { "10001".to_string() };
     assert!(subscriber.set_subscribe(filter.as_bytes()).is_ok());
 
     let mut total_temp = 0;
@@ -28,8 +28,8 @@ fn main() {
     for _ in range(0i, 100i) {
         let string = subscriber.recv_str(0).unwrap();
         let chks: Vec<int> = string.as_slice().split(' ').map(|x| atoi(x)).collect();
-        let (_zipcode, temperature, _relhumidity) = (chks.get(0), chks.get(1), chks.get(2));
-        total_temp += *temperature;
+        let (_zipcode, temperature, _relhumidity) = (chks[0], chks[1], chks[2]);
+        total_temp += temperature;
     }
 
     println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100));

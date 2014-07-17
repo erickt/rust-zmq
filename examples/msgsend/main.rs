@@ -159,8 +159,8 @@ fn main() {
         args
     };
 
-    let size = from_str::<uint>(args.get(1).as_slice()).unwrap();
-    let workers = from_str::<uint>(args.get(2).as_slice()).unwrap();
+    let size: uint = from_str(args[1].as_slice()).unwrap();
+    let workers: uint = from_str(args[2].as_slice()).unwrap();
 
     let mut ctx = zmq::Context::new();
 
