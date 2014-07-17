@@ -643,7 +643,11 @@ impl Message {
     }
 
     pub fn with_str<T>(&self, f: |&str| -> T) -> T {
-            self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
+        self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
+    }
+
+    pub fn as_str<'a>(&'a self) -> Option<&'a str> {
+        str::from_utf8(self.as_bytes())
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
