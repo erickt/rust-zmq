@@ -10,6 +10,7 @@
 
 #[phase(plugin, link)]
 extern crate log;
+
 extern crate libc;
 
 use libc::{c_int, c_long, c_void, size_t, c_char, int64_t, uint64_t};
@@ -625,6 +626,19 @@ impl Message {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
             slice::raw::buf_as_slice(data, len, f)
+        }
+    }
+
+    pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
+        // This is safe because we're constraining the slice to the lifetime of
+        // this message.
+        unsafe {
+            let data = zmq_msg_data(&self.msg);
+            let len = zmq_msg_size(&self.msg) as uint;
+            ::std::mem::transmute(::std::raw::Slice {
+                data: data,
+                len: len,
+            })
         }
     }
 
