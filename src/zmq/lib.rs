@@ -651,7 +651,7 @@ impl Message {
     }
 
     pub fn to_bytes(&self) -> Vec<u8> {
-        self.with_bytes(|v| v.to_owned())
+        self.with_bytes(|v| v.to_vec())
     }
 
     pub fn to_string(&self) -> String {
