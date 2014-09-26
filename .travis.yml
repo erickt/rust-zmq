@@ -1,15 +1,8 @@
 # Use something that's not 'ruby' so we don't set up things like
 # RVM/bundler/ruby and whatnot. Right now 'rust' isn't a language on
 # travis and it treats unknown languages as ruby
-language: c
+language: rust
 
-before_install:
-  - sudo apt-get update
-install:
-  - curl -s http://www.rust-lang.org/rustup.sh | sudo sh
-  - curl -O http://static.rust-lang.org/cargo-dist/cargo-nightly-linux.tar.gz
-  - tar xf cargo-nightly-linux.tar.gz
-  - sudo apt-get install libzmq3-dev
 script:
   - ./cargo-nightly/bin/cargo build --verbose
   - ./cargo-nightly/bin/cargo test --verbose
