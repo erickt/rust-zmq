@@ -240,7 +240,7 @@ impl Error {
                 unsafe {
                     fail!("unknown error [{}]: {}",
                           x as int,
-                          str::raw::from_c_str(zmq_strerror(x))
+                          std::string::raw::from_buf(zmq_strerror(x) as *const u8)
                     )
                 }
             }
@@ -696,7 +696,7 @@ impl fmt::Show for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             write!(f, "{}",
-                   str::raw::from_c_str(zmq_strerror(*self as c_int)))
+                   std::string::raw::from_buf(zmq_strerror(*self as c_int) as *const u8))
         }
     }
 }
