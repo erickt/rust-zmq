@@ -29,17 +29,17 @@ Usage
 	
 		let mut socket = match ctx.socket(zmq::REQ) {
 		  Ok(socket) => { socket },
-		  Err(e) => { fail!(e.to_str()) }
+		  Err(e) => { fail!(e.to_string()) }
 		};
 	
 		match socket.connect("tcp://127.0.0.1:1234") {
 		  Ok(()) => (),
-		  Err(e) => fail!(e.to_str())
+		  Err(e) => fail!(e.to_string())
 		}
 	
 		match socket.send_str("hello world!", 0) {
 		  Ok(()) => (),
-		  Err(e) => fail!(e.to_str())
+		  Err(e) => fail!(e.to_string())
 		}
 	}
 
