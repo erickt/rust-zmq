@@ -157,7 +157,7 @@ impl Constants {
 
             156384712 => ZMQ_HAUSNUMERO,
 
-            x         => fail!("invalid constant {}", x as int),
+            x         => panic!("invalid constant {}", x as int),
         }
     }
 }
@@ -238,7 +238,7 @@ impl Error {
 
             x => {
                 unsafe {
-                    fail!("unknown error [{}]: {}",
+                    panic!("unknown error [{}]: {}",
                           x as int,
                           str::raw::from_c_str(zmq_strerror(x))
                     )
@@ -318,7 +318,7 @@ impl Drop for Socket {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
-            Err(e) => fail!(e.to_string())
+            Err(e) => panic!(e.to_string())
         }
     }
 }
@@ -439,7 +439,7 @@ impl Socket {
                 8 => PUSH,
                 9 => XPUB,
                 10 => XSUB,
-                _ => fail!("socket type is out of range!")
+                _ => panic!("socket type is out of range!")
             }
         })
     }
