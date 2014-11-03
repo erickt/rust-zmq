@@ -24,10 +24,10 @@ type Context_ = *mut c_void;
 /// A ZMQ socket
 type Socket_ = *mut c_void;
 
-static MsgSize_: uint = 48;
+const MSG_SIZE: uint = 48;
 
 /// A message
-type Msg_ = [c_char, ..MsgSize_];
+type Msg_ = [c_char, ..MSG_SIZE];
 
 #[link(name = "zmq")]
 extern {
@@ -240,7 +240,7 @@ impl Error {
                 unsafe {
                     panic!("unknown error [{}]: {}",
                           x as int,
-                          str::raw::from_c_str(zmq_strerror(x))
+                          std::string::raw::from_buf(zmq_strerror(x) as *const u8)
                     )
                 }
             }
@@ -347,7 +347,7 @@ impl Socket {
         unsafe {
             let base_ptr = data.as_ptr();
             let len = data.len();
-            let msg = [0, ..MsgSize_];
+            let msg = [0, ..MSG_SIZE];
 
             // Copy the data into the message.
             let rc = zmq_msg_init_size(&msg, len as size_t);
@@ -615,7 +615,7 @@ impl Drop for Message {
 impl Message {
     pub fn new() -> Message {
         unsafe {
-            let message = Message { msg: [0, ..MsgSize_] };
+            let message = Message { msg: [0, ..MSG_SIZE] };
             let _ = zmq_msg_init(&message.msg);
             message
         }
@@ -696,7 +696,7 @@ impl fmt::Show for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             write!(f, "{}",
-                   str::raw::from_c_str(zmq_strerror(*self as c_int)))
+                   std::string::raw::from_buf(zmq_strerror(*self as c_int) as *const u8))
         }
     }
 }
