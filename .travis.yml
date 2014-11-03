@@ -4,7 +4,8 @@
 language: rust
 
 script:
-  - ./cargo-nightly/bin/cargo build --verbose
-  - ./cargo-nightly/bin/cargo test --verbose
+  - cargo build --verbose
+  - cargo test --verbose
+  - cargo bench --verbose
   - ./target/test/msgsend
   - ./target/test/version
