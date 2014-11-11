@@ -1,5 +1,8 @@
 language: rust
 
+install:
+  - sudo apt-get install zmq
+
 script:
   - cargo build --verbose
   - cargo test --verbose
