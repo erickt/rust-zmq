@@ -1,6 +1,3 @@
-# Use something that's not 'ruby' so we don't set up things like
-# RVM/bundler/ruby and whatnot. Right now 'rust' isn't a language on
-# travis and it treats unknown languages as ruby
 language: rust
 
 script:
