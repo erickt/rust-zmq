@@ -1,7 +1,10 @@
 language: rust
 
+before_install:
+  - sudo apt-get update
+
 install:
-  - sudo apt-get install zmq
+  - sudo apt-get install libzmq3-dev
 
 script:
   - cargo build --verbose
