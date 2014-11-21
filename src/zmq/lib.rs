@@ -248,6 +248,15 @@ impl Error {
     }
 }
 
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        unsafe {
+            std::str::raw::c_str_to_static_slice(
+                zmq_strerror(*self as c_int) as *const i8)
+        }
+    }
+}
+
 // Return the current zeromq version.
 pub fn version() -> (int, int, int) {
     let mut major = 0;
