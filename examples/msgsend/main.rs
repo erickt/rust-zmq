@@ -145,7 +145,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     println!("Count is {}", result);
     println!("Test took {} seconds", elapsed);
     let thruput = ((size / workers * workers) as f64) / elapsed;
-    println!("Throughput={:f} per sec", thruput);
+    println!("Throughput={} per sec", thruput);
 }
 
 fn main() {

@@ -25,7 +25,7 @@ fn main() {
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
         // sprintf
-        let update = format!("{:05d} {:d} {:d}", zipcode, temperature, relhumidity);
+        let update = format!("{:05} {} {}", zipcode, temperature, relhumidity);
         publisher.send(update.as_bytes(), 0).unwrap();
     }
 
