@@ -14,11 +14,11 @@ fn main() {
 
     let mut msg = zmq::Message::new();
 
-    for x in range(0i, 10i) {
+    for x in range(0u, 10u) {
         println!("Sending Hello {}", x);
-        requester.send(b"Hello", 0).unwrap();
+        requester.send_bytes(b"Hello", 0).unwrap();
 
-        requester.recv(&mut msg, 0).unwrap();
+        requester.recv_into(&mut msg, 0).unwrap();
         msg.with_str(|s| {
             println!("Received World {}: {}", s, x);
         })

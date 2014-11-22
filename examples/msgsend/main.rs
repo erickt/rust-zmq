@@ -20,7 +20,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     let mut msg = zmq::Message::new();
 
     while workers != 0 {
-        match pull_socket.recv(&mut msg, 0) {
+        match pull_socket.recv_into(&mut msg, 0) {
             Err(e) => panic!(e.to_string()),
             Ok(()) => {
                 msg.with_str(|s| {
@@ -50,10 +50,6 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     // Spawn the server.
     let (ready_tx, ready_rx) = comm::channel();
     let (start_tx, start_rx) = comm::channel();
-
-    // Mutable sockets cannot be implicitly captured.
-    let pull_socket = pull_socket;
-    let push_socket = push_socket;
 
     TaskBuilder::new().native().spawn(proc() {
         // Let the main thread know we're ready.
@@ -85,9 +81,6 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
 
     push_socket.connect("inproc://server-pull").unwrap();
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
-
-    // Mutable sockets cannot be implicitly captured.
-    let push_socket = push_socket;
 
     // Spawn the worker.
     let (tx, rx) = comm::channel();
@@ -134,7 +127,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     }
 
     // Receive the final count.
-    let result = match pull_socket.recv_msg(0) {
+    let result = match pull_socket.recv(0) {
         Ok(msg) => msg.with_str(|s| from_str::<uint>(s).unwrap()),
         Err(e) => panic!(e.to_string()),
     };

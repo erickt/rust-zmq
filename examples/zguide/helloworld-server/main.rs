@@ -17,7 +17,7 @@ fn main() {
 
     let mut msg = zmq::Message::new();
     loop {
-        responder.recv(&mut msg, 0).unwrap();
+        responder.recv_into(&mut msg, 0).unwrap();
         msg.with_str(|s| {
             println!("Received {}", s);
         });

@@ -184,16 +184,16 @@ pub enum Error {
     EPROTO          = posix88::EPROTO as int,
     EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as int,
     // magic number is EHAUSNUMERO + num
-    ENOTSUP         = 156384713,
-    ENOBUFS         = 156384715,
-    ENETDOWN        = 156384716,
-    EADDRNOTAVAIL   = 156384718,
+    ENOTSUP         = 156384713 as int,
+    ENOBUFS         = 156384715 as int,
+    ENETDOWN        = 156384716 as int,
+    EADDRNOTAVAIL   = 156384718 as int,
 
     // native zmq error codes
-    EFSM            = 156384763,
-    ENOCOMPATPROTO  = 156384764,
-    ETERM           = 156384765,
-    EMTHREAD        = 156384766,
+    EFSM            = 156384763 as int,
+    ENOCOMPATPROTO  = 156384764 as int,
+    ETERM           = 156384765 as int,
+    EMTHREAD        = 156384766 as int,
 }
 
 impl Error {
@@ -343,33 +343,27 @@ impl Socket {
     }
 
     /// Send a message
-    pub fn send(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
+    pub fn send(&mut self, msg: Message, flags: int) -> Result<(), Error> {
         unsafe {
-            let base_ptr = data.as_ptr();
-            let len = data.len();
-            let msg = [0, ..MSG_SIZE];
-
-            // Copy the data into the message.
-            let rc = zmq_msg_init_size(&msg, len as size_t);
-
-            if rc == -1i32 { return Err(errno_to_error()); }
-
-            ptr::copy_memory(zmq_msg_data(&msg) as *mut u8, base_ptr, len);
-
-            let rc = zmq_msg_send(&msg, self.sock, flags as c_int);
-            let _ = zmq_msg_close(&msg);
-
+            let rc = zmq_msg_send(&msg.msg, self.sock, flags as c_int);
             if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
         }
     }
 
+    pub fn send_bytes(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
+        match Message::from_slice(data) {
+            Ok(message) => self.send(message, flags),
+            Err(err) => Err(err),
+        }
+    }
+
     pub fn send_str(&mut self, data: &str, flags: int) -> Result<(), Error> {
-        self.send(data.as_bytes(), flags)
+        self.send_bytes(data.as_bytes(), flags)
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
+    pub fn recv_into(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
         let rc = unsafe {
             zmq_msg_recv(&msg.msg, self.sock, flags as c_int)
         };
@@ -381,23 +375,23 @@ impl Socket {
         }
     }
 
-    pub fn recv_msg(&mut self, flags: int) -> Result<Message, Error> {
+    pub fn recv(&mut self, flags: int) -> Result<Message, Error> {
         let mut msg = Message::new();
-        match self.recv(&mut msg, flags) {
+        match self.recv_into(&mut msg, flags) {
             Ok(()) => Ok(msg),
             Err(e) => Err(e),
         }
     }
 
     pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
-        match self.recv_msg(flags) {
+        match self.recv(flags) {
             Ok(msg) => Ok(msg.to_bytes()),
             Err(e) => Err(e),
         }
     }
 
     pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
-        match self.recv_msg(flags) {
+        match self.recv(flags) {
             Ok(msg) => Ok(msg.to_string()),
             Err(e) => Err(e),
         }
@@ -619,6 +613,20 @@ impl Message {
             let _ = zmq_msg_init(&message.msg);
             message
         }
+    }
+
+    pub fn from_slice(data: &[u8]) -> Result<Message, Error> {
+        let base_ptr = data.as_ptr();
+        let len = data.len();
+        let message = Message { msg: [0, ..MSG_SIZE] };
+
+        // Copy the data into the message.
+        unsafe {
+            let rc = zmq_msg_init_size(&message.msg, len as size_t);
+            if rc == -1i32 { return Err(errno_to_error()); }
+            ptr::copy_memory(zmq_msg_data(&message.msg) as *mut u8, base_ptr, len);
+        }
+        Ok(message)
     }
 
     pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {

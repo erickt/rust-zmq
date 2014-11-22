@@ -25,7 +25,7 @@ fn main() {
 
     let mut total_temp = 0;
 
-    for _ in range(0i, 100i) {
+    for _ in range(0u, 100u) {
         let string = subscriber.recv_str(0).unwrap();
         let chks: Vec<int> = string.as_slice().split(' ').map(|x| atoi(x)).collect();
         let (_zipcode, temperature, _relhumidity) = (chks[0], chks[1], chks[2]);
