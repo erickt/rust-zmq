@@ -7,6 +7,9 @@ authors = [ "erick.tryzelaar@gmail.com" ]
 name = "zmq"
 path = "src/zmq/lib.rs"
 
+[dev-dependencies]
+time = "*"
+
 [[example]]
 name = "msgsend"
 path = "examples/msgsend/main.rs"
