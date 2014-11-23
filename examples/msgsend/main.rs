@@ -6,12 +6,10 @@
 
 #![crate_name = "msgsend"]
 
-extern crate native;
 extern crate time;
 extern crate zmq;
 
 use std::task::TaskBuilder;
-use native::NativeTaskBuilder;
 use std::comm;
 use std::os;
 
@@ -55,7 +53,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     let pull_socket = pull_socket;
     let push_socket = push_socket;
 
-    TaskBuilder::new().native().spawn(proc() {
+    TaskBuilder::new().spawn(proc() {
         // Let the main thread know we're ready.
         ready_tx.send(());
 
@@ -91,7 +89,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
 
     // Spawn the worker.
     let (tx, rx) = comm::channel();
-    TaskBuilder::new().native().spawn(proc() {
+    TaskBuilder::new().spawn(proc() {
         // Let the main thread we're ready.
         tx.send(());
 

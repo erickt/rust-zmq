@@ -30,3 +30,6 @@ path = "examples/zguide/weather-client/main.rs"
 [[example]]
 name = "weather-server"
 path = "examples/zguide/weather-server/main.rs"
+
+[dependencies.time]
+git = "https://github.com/rust-lang/time"
