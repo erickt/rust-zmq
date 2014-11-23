@@ -681,6 +681,15 @@ pub struct PollItem<'a> {
 }
 
 impl<'a> PollItem<'a> {
+    pub fn from_fd(fd: c_int) -> PollItem<'a> {
+        PollItem {
+            socket: ptr::null_mut(),
+            fd: fd,
+            events: 0,
+            revents: 0
+        }
+    }
+
     pub fn get_revents(&self) -> i16 {
         self.revents
     }
