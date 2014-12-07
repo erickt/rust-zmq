@@ -1,11 +1,5 @@
 //! Module: zmq
 
-#![crate_name = "zmq"]
-
-#![license = "MIT/ASL2"]
-#![crate_type = "dylib"]
-#![crate_type = "rlib"]
-
 #![feature(phase, macro_rules)]
 
 #[phase(plugin, link)]
@@ -239,8 +233,8 @@ impl Error {
             x => {
                 unsafe {
                     panic!("unknown error [{}]: {}",
-                          x as int,
-                          std::string::raw::from_buf(zmq_strerror(x) as *const u8)
+                        x as int,
+                        String::from_raw_buf(zmq_strerror(x) as *const u8)
                     )
                 }
             }
@@ -251,8 +245,7 @@ impl Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
-            std::str::raw::c_str_to_static_slice(
-                zmq_strerror(*self as c_int) as *const i8)
+            std::str::from_c_str(zmq_strerror(*self as c_int) as *const i8)
         }
     }
 }
@@ -631,11 +624,7 @@ impl Message {
     }
 
     pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
-        unsafe {
-            let data = zmq_msg_data(&self.msg);
-            let len = zmq_msg_size(&self.msg) as uint;
-            slice::raw::buf_as_slice(data, len, f)
-        }
+        f(self.as_bytes())
     }
 
     pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
@@ -644,10 +633,7 @@ impl Message {
         unsafe {
             let data = zmq_msg_data(&self.msg);
             let len = zmq_msg_size(&self.msg) as uint;
-            ::std::mem::transmute(::std::raw::Slice {
-                data: data,
-                len: len,
-            })
+            slice::from_raw_buf(mem::transmute(&data), len)
         }
     }
 
@@ -714,7 +700,7 @@ impl fmt::Show for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             write!(f, "{}",
-                   std::string::raw::from_buf(zmq_strerror(*self as c_int) as *const u8))
+                   String::from_raw_buf(zmq_strerror(*self as c_int) as *const u8))
         }
     }
 }
