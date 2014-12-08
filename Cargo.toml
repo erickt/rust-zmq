@@ -3,10 +3,6 @@ name = "zmq"
 version = "0.5.2"
 authors = [ "erick.tryzelaar@gmail.com" ]
 
-[lib]
-name = "zmq"
-path = "src/zmq/lib.rs"
-
 [[example]]
 name = "msgsend"
 path = "examples/msgsend/main.rs"
