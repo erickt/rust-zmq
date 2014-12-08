@@ -393,14 +393,15 @@ impl Socket {
 
     pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
         match self.recv_msg(flags) {
-            Ok(msg) => Ok(msg.to_bytes()),
+            Ok(msg) => Ok(msg.as_slice().to_vec()),
             Err(e) => Err(e),
         }
     }
 
+    #[deprecated = "use `String::from_utf8(recv_bytes().unwrap()).unwrap()` instead"]
     pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
-        match self.recv_msg(flags) {
-            Ok(msg) => Ok(msg.to_string()),
+        match self.recv_bytes(flags) {
+            Ok(msg) => Ok(String::from_utf8(msg).unwrap()),
             Err(e) => Err(e),
         }
     }
@@ -623,11 +624,41 @@ impl Message {
         }
     }
 
+    #[deprecated = "use `as_slice()` instead"]
     pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
-        f(self.as_bytes())
+        f(self.as_slice())
     }
 
+    #[deprecated = "renamed to `as_slice()`"]
     pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
+        self.as_slice()
+    }
+
+    #[allow(deprecated)]
+    #[deprecated = "use `str::from_utf8(message.as_slice().unwrap())` instead"]
+    pub fn with_str<T>(&self, f: |&str| -> T) -> T {
+        f(self.as_str().unwrap())
+    }
+
+    pub fn as_str<'a>(&'a self) -> Option<&'a str> {
+        str::from_utf8(self.as_slice())
+    }
+
+    #[allow(deprecated)]
+    #[deprecated = "use `message.to_vec()` instead"]
+    pub fn to_bytes(&self) -> Vec<u8> {
+        self.with_bytes(|v| v.to_vec())
+    }
+
+    #[allow(deprecated)]
+    #[deprecated = "use `String::from_utf8(message.as_slice())` instead"]
+    pub fn to_string(&self) -> String {
+        self.with_str(|s| s.to_string())
+    }
+}
+
+impl Deref<[u8]> for Message {
+    fn deref<'a>(&'a self) -> &'a [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
@@ -635,22 +666,6 @@ impl Message {
             let len = zmq_msg_size(&self.msg) as uint;
             slice::from_raw_buf(mem::transmute(&data), len)
         }
-    }
-
-    pub fn with_str<T>(&self, f: |&str| -> T) -> T {
-        self.with_bytes(|v| f(str::from_utf8(v).unwrap()))
-    }
-
-    pub fn as_str<'a>(&'a self) -> Option<&'a str> {
-        str::from_utf8(self.as_bytes())
-    }
-
-    pub fn to_bytes(&self) -> Vec<u8> {
-        self.with_bytes(|v| v.to_vec())
-    }
-
-    pub fn to_string(&self) -> String {
-        self.with_str(|s| s.to_string())
     }
 }
 
