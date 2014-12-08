@@ -1,0 +1,4 @@
+[package]
+name = "zmq-sys"
+version = "0.5.2"
+authors = [ "erick.tryzelaar@gmail.com" ]
