@@ -48,10 +48,6 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     let (ready_tx, ready_rx) = comm::channel();
     let (start_tx, start_rx) = comm::channel();
 
-    // Mutable sockets cannot be implicitly captured.
-    let pull_socket = pull_socket;
-    let push_socket = push_socket;
-
     TaskBuilder::new().spawn(proc() {
         // Let the main thread know we're ready.
         ready_tx.send(());
@@ -82,9 +78,6 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
 
     push_socket.connect("inproc://server-pull").unwrap();
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
-
-    // Mutable sockets cannot be implicitly captured.
-    let push_socket = push_socket;
 
     // Spawn the worker.
     let (tx, rx) = comm::channel();
