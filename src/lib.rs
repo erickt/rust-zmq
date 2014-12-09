@@ -68,8 +68,6 @@ pub enum Constants {
     ZMQ_MSG_MORE          = 1,
     ZMQ_MSG_SHARED        = 128,
     ZMQ_MSG_MASK          = 129,
-
-    ZMQ_HAUSNUMERO        = 156384712,
 }
 
 impl Constants {
@@ -110,12 +108,12 @@ impl Constants {
             128       => Constants::ZMQ_MSG_SHARED,
             129       => Constants::ZMQ_MSG_MASK,
 
-            156384712 => Constants::ZMQ_HAUSNUMERO,
-
             x         => panic!("invalid constant {}", x as int),
         }
     }
 }
+
+const ZMQ_HAUSNUMERO: int = 156384712;
 
 #[deriving(Clone, Eq, PartialEq)]
 pub enum Error {
@@ -138,17 +136,16 @@ pub enum Error {
     ENOTSOCK        = posix88::ENOTSOCK as int,
     EPROTO          = posix88::EPROTO as int,
     EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as int,
-    // magic number is EHAUSNUMERO + num
-    ENOTSUP         = 156384713,
-    ENOBUFS         = 156384715,
-    ENETDOWN        = 156384716,
-    EADDRNOTAVAIL   = 156384718,
+    ENOTSUP         = ZMQ_HAUSNUMERO + 1,
+    ENOBUFS         = ZMQ_HAUSNUMERO + 3,
+    ENETDOWN        = ZMQ_HAUSNUMERO + 4,
+    EADDRNOTAVAIL   = ZMQ_HAUSNUMERO + 6,
 
     // native zmq error codes
-    EFSM            = 156384763,
-    ENOCOMPATPROTO  = 156384764,
-    ETERM           = 156384765,
-    EMTHREAD        = 156384766,
+    EFSM            = ZMQ_HAUSNUMERO + 51,
+    ENOCOMPATPROTO  = ZMQ_HAUSNUMERO + 52,
+    ETERM           = ZMQ_HAUSNUMERO + 53,
+    EMTHREAD        = ZMQ_HAUSNUMERO + 54,
 }
 
 impl Error {
@@ -307,12 +304,13 @@ impl Socket {
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
-    /// Send a message
+    /// Send a `&[u8]` message.
     pub fn send(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
         let msg = try!(Message::from_slice(data));
         self.send_msg(msg, flags)
     }
 
+    /// Send a `Message` message.
     pub fn send_msg(&mut self, mut msg: Message, flags: int) -> Result<(), Error> {
         let rc = unsafe {
             zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int)
