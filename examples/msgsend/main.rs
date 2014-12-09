@@ -15,19 +15,18 @@ use std::os;
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
-    let mut msg = zmq::Message::new();
+    let mut msg = zmq::Message::new().unwrap();
 
     while workers != 0 {
         match pull_socket.recv(&mut msg, 0) {
             Err(e) => panic!(e.to_string()),
             Ok(()) => {
-                msg.with_str(|s| {
-                    if s == "" {
-                        workers -= 1;
-                    } else {
-                        count += from_str::<uint>(s).unwrap();
-                    }
-                })
+                let s = msg.as_str().unwrap();
+                if s.is_empty() {
+                    workers -= 1;
+                } else {
+                    count += from_str::<uint>(s).unwrap();
+                }
             }
         }
     }
@@ -133,7 +132,7 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
 
     // Receive the final count.
     let result = match pull_socket.recv_msg(0) {
-        Ok(msg) => msg.with_str(|s| from_str::<uint>(s).unwrap()),
+        Ok(msg) => from_str::<uint>(msg.as_str().unwrap()).unwrap(),
         Err(e) => panic!(e.to_string()),
     };
 

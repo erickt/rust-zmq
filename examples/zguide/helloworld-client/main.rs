@@ -12,15 +12,13 @@ fn main() {
 
     assert!(requester.connect("tcp://localhost:5555").is_ok());
 
-    let mut msg = zmq::Message::new();
+    let mut msg = zmq::Message::new().unwrap();
 
     for x in range(0i, 10i) {
         println!("Sending Hello {}", x);
         requester.send(b"Hello", 0).unwrap();
 
         requester.recv(&mut msg, 0).unwrap();
-        msg.with_str(|s| {
-            println!("Received World {}: {}", s, x);
-        })
+        println!("Received World {}: {}", msg.as_str().unwrap(), x);
     }
 }
