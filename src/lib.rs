@@ -32,6 +32,8 @@ pub enum SocketType {
     XSUB   = 10,
 }
 
+impl Copy for SocketType {}
+
 pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
@@ -69,6 +71,8 @@ pub enum Constants {
     ZMQ_MSG_SHARED        = 128,
     ZMQ_MSG_MASK          = 129,
 }
+
+impl Copy for Constants {}
 
 impl Constants {
     pub fn to_raw(&self) -> i32 {
@@ -147,6 +151,8 @@ pub enum Error {
     ETERM           = ZMQ_HAUSNUMERO + 53,
     EMTHREAD        = ZMQ_HAUSNUMERO + 54,
 }
+
+impl Copy for Error {}
 
 impl Error {
     pub fn to_raw(&self) -> i32 {
