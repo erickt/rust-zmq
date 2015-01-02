@@ -63,5 +63,5 @@ mod ffi {
         size_t,
     };
 
-    include!("ffi.rs")
+    include!("ffi.rs");
 }

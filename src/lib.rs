@@ -763,11 +763,11 @@ macro_rules! getsockopt_num(
             }
         }
     )
-)
+);
 
-getsockopt_num!(getsockopt_int, c_int, int)
-getsockopt_num!(getsockopt_i64, int64_t, i64)
-getsockopt_num!(getsockopt_u64, uint64_t, u64)
+getsockopt_num!(getsockopt_int, c_int, int);
+getsockopt_num!(getsockopt_i64, int64_t, i64);
+getsockopt_num!(getsockopt_u64, uint64_t, u64);
 
 fn getsockopt_bytes(sock: *mut libc::c_void, opt: c_int) -> Result<Vec<u8>, Error> {
     unsafe {
@@ -811,11 +811,11 @@ macro_rules! setsockopt_num(
             }
         }
     )
-)
+);
 
-setsockopt_num!(setsockopt_int, int)
-setsockopt_num!(setsockopt_i64, i64)
-setsockopt_num!(setsockopt_u64, u64)
+setsockopt_num!(setsockopt_int, int);
+setsockopt_num!(setsockopt_i64, i64);
+setsockopt_num!(setsockopt_u64, u64);
 
 fn setsockopt_bytes(sock: *mut libc::c_void, opt: c_int, value: &[u8]) -> Result<(), Error> {
     unsafe {

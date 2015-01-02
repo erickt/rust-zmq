@@ -30,6 +30,9 @@ path = "examples/zguide/weather-client/main.rs"
 name = "weather-server"
 path = "examples/zguide/weather-server/main.rs"
 
+[lib]
+name = "zmq-sys"
+path = "zmq-sys/src/lib.rs"
+
 [dependencies]
 time = "*"
-zmq-sys = "*"
