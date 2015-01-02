@@ -373,7 +373,7 @@ impl Socket {
     /// Read a `String` from the socket.
     pub fn recv_string(&mut self, flags: int) -> Result<Result<String, Vec<u8>>, Error> {
         match self.recv_bytes(flags) {
-            Ok(msg) => Ok(String::from_utf8(msg)),
+            Ok(msg) => Ok(Ok(String::from_utf8(msg).unwrap_or("".to_string()))),
             Err(e) => Err(e),
         }
     }
@@ -648,7 +648,7 @@ impl Message {
     }
 
     pub fn as_str<'a>(&'a self) -> Option<&'a str> {
-        str::from_utf8(self.as_slice())
+        str::from_utf8(self.as_slice()).ok()
     }
 
     #[allow(deprecated)]
