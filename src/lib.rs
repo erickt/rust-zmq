@@ -9,9 +9,11 @@ extern crate libc;
 extern crate "zmq-sys" as zmq_sys;
 
 use libc::{c_int, c_void, size_t, int64_t, uint64_t};
+use std::c_str::ToCStr;
 use libc::consts::os::posix88;
 use std::{mem, ptr, str, slice};
 use std::fmt;
+use std::ops::{Deref, DerefMut};
 
 pub use SocketType::*;
 
@@ -664,7 +666,7 @@ impl Message {
     }
 }
 
-impl Deref<[u8]> for Message {
+impl Deref for Message {
     fn deref<'a>(&'a self) -> &'a [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
@@ -677,7 +679,7 @@ impl Deref<[u8]> for Message {
     }
 }
 
-impl DerefMut<[u8]> for Message {
+impl DerefMut for Message {
     fn deref_mut<'a>(&'a mut self) -> &'a mut [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
