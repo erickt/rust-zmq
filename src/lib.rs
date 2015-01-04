@@ -17,7 +17,7 @@ pub use SocketType::*;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[deriving(Clone, Show)]
+#[derive(Clone, Show)]
 pub enum SocketType {
     PAIR   = 0,
     PUB    = 1,
@@ -38,7 +38,7 @@ pub static DONTWAIT : int = 1;
 pub static SNDMORE : int = 2;
 
 #[allow(non_camel_case_types)]
-#[deriving(Clone)]
+#[derive(Clone)]
 #[allow(non_camel_case_types)]
 pub enum Constants {
     ZMQ_AFFINITY          = 4,
@@ -119,7 +119,7 @@ impl Constants {
 
 const ZMQ_HAUSNUMERO: int = 156384712;
 
-#[deriving(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Error {
     EACCES          = posix88::EACCES as int,
     EADDRINUSE      = posix88::EADDRINUSE as int,
@@ -594,7 +594,7 @@ impl Message {
     /// Create an empty `Message`.
     pub fn new() -> Result<Message, Error> {
         unsafe {
-            let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0, ..MSG_SIZE] };
+            let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
             let rc = zmq_sys::zmq_msg_init(&mut msg);
 
             if rc == -1i32 { return Err(errno_to_error()); }
@@ -605,7 +605,7 @@ impl Message {
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: uint) -> Result<Message, Error> {
-        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0, ..MSG_SIZE] };
+        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
         let rc = zmq_sys::zmq_msg_init_size(&mut msg, len as size_t);
 
         if rc == -1i32 { return Err(errno_to_error()); }
