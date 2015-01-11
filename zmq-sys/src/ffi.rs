@@ -3,7 +3,7 @@
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_zmq_msg_t {
-    pub unnamed_field1: [::libc::c_uchar; 32u],
+    pub unnamed_field1: [::libc::c_uchar; 32us],
 }
 pub type zmq_msg_t = Struct_zmq_msg_t;
 pub type zmq_free_fn = ::libc::c_void;
