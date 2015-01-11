@@ -1,17 +1,18 @@
 //! Module: zmq
 
-#![feature(globs, macro_rules, phase)]
+#![feature(int_uint)]
+#![allow(unstable)]
 
-#[phase(plugin, link)]
+#[macro_use]
 extern crate log;
 
 extern crate libc;
 extern crate "zmq-sys" as zmq_sys;
 
 use libc::{c_int, c_void, size_t, int64_t, uint64_t};
-use std::c_str::ToCStr;
 use libc::consts::os::posix88;
 use std::{mem, ptr, str, slice};
+use std::ffi;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 
@@ -198,10 +199,10 @@ impl Error {
 
             x => {
                 unsafe {
-                    let s = zmq_sys::zmq_strerror(x) as *const u8;
+                    let s = zmq_sys::zmq_strerror(x) as *const i8;
                     panic!("unknown error [{}]: {}",
                         x as int,
-                        String::from_raw_buf(s)
+                        str::from_utf8(ffi::c_str_to_bytes(&s)).unwrap()
                     )
                 }
             }
@@ -213,7 +214,8 @@ impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
-            std::str::from_c_str(s)
+            let v: &'static [u8] = mem::transmute(ffi::c_str_to_bytes(&s));
+            str::from_utf8(v).unwrap()
         }
     }
 }
@@ -288,7 +290,7 @@ impl Drop for Socket {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
-            Err(e) => panic!(e.to_string())
+            Err(e) => panic!(e)
         }
     }
 }
@@ -296,19 +298,15 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
-        let rc = endpoint.with_c_str (|cstr| {
-            unsafe { zmq_sys::zmq_bind(self.sock, cstr) }
-        });
-
+        let rc = unsafe { zmq_sys::zmq_bind(self.sock,
+                          ffi::CString::from_slice(endpoint.as_bytes()).as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
-        let rc = endpoint.with_c_str (|cstr| {
-            unsafe { zmq_sys::zmq_connect(self.sock, cstr) }
-        });
-
+        let rc = unsafe { zmq_sys::zmq_connect(self.sock,
+                          ffi::CString::from_slice(endpoint.as_bytes()).as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
@@ -634,7 +632,7 @@ impl Message {
     }
 
     #[deprecated = "use `as_slice()` instead"]
-    pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
+    pub fn with_bytes<T, F: Fn(&[u8]) -> T>(&self, f: F) -> T {
         f(self.as_slice())
     }
 
@@ -645,7 +643,7 @@ impl Message {
 
     #[allow(deprecated)]
     #[deprecated = "use `str::from_utf8(message.as_slice().unwrap())` instead"]
-    pub fn with_str<T>(&self, f: |&str| -> T) -> T {
+    pub fn with_str<T, F: Fn(&str) -> T>(&self, f: F) -> T {
         f(self.as_str().unwrap())
     }
 
@@ -667,6 +665,8 @@ impl Message {
 }
 
 impl Deref for Message {
+    type Target = [u8];
+
     fn deref<'a>(&'a self) -> &'a [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
@@ -738,7 +738,7 @@ impl fmt::Show for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            write!(f, "{}", String::from_raw_buf(s as *const u8))
+            write!(f, "{}", str::from_utf8(ffi::c_str_to_bytes(&s)).unwrap())
         }
     }
 }
