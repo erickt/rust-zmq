@@ -9,7 +9,7 @@
 extern crate zmq;
 
 fn atoi(s: &str) -> int {
-    from_str(s).unwrap()
+    s.parse().unwrap()
 }
 
 fn main() {

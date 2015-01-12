@@ -9,9 +9,9 @@
 extern crate time;
 extern crate zmq;
 
-use std::task::TaskBuilder;
-use std::comm;
 use std::os;
+use std::thread::Thread;
+use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: uint) {
     let mut count = 0u;
@@ -21,11 +21,11 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
         match pull_socket.recv(&mut msg, 0) {
             Err(e) => panic!(e.to_string()),
             Ok(()) => {
-                let s = msg.as_str().unwrap();
+                let s = msg.as_str().ok().unwrap();
                 if s.is_empty() {
                     workers -= 1;
                 } else {
-                    count += from_str::<uint>(s).unwrap();
+                    count += s.parse().unwrap();
                 }
             }
         }
@@ -37,7 +37,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     }
 }
 
-fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
+fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> Sender<()> {
     let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
@@ -45,10 +45,10 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     push_socket.bind("inproc://server-push").unwrap();
 
     // Spawn the server.
-    let (ready_tx, ready_rx) = comm::channel();
-    let (start_tx, start_rx) = comm::channel();
+    let (ready_tx, ready_rx) = channel();
+    let (start_tx, start_rx) = channel();
 
-    TaskBuilder::new().spawn(proc() {
+    Thread::spawn(move|| {
         // Let the main thread know we're ready.
         ready_tx.send(());
 
@@ -73,15 +73,15 @@ fn worker(mut push_socket: zmq::Socket, count: uint) {
     push_socket.send_str("", 0).unwrap();
 }
 
-fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
+fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> Receiver<()> {
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
 
     // Spawn the worker.
-    let (tx, rx) = comm::channel();
-    TaskBuilder::new().spawn(proc() {
+    let (tx, rx) = channel();
+    Thread::spawn(move|| {
         // Let the main thread we're ready.
         tx.send(());
 
@@ -124,8 +124,11 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     }
 
     // Receive the final count.
-    let result = match pull_socket.recv_msg(0) {
-        Ok(msg) => from_str::<uint>(msg.as_str().unwrap()).unwrap(),
+    let result: i32 = match pull_socket.recv_msg(0) {
+        Ok(msg) => {
+            let msg_str: &str = msg.as_str().ok().unwrap();
+            msg_str.parse().unwrap()
+        },
         Err(e) => panic!(e.to_string()),
     };
 
@@ -149,8 +152,8 @@ fn main() {
         args
     };
 
-    let size: uint = from_str(args[1].as_slice()).unwrap();
-    let workers: uint = from_str(args[2].as_slice()).unwrap();
+    let size: uint = args[1].as_slice().parse().unwrap();
+    let workers: uint = args[2].as_slice().parse().unwrap();
 
     let mut ctx = zmq::Context::new();
 
