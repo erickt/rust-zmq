@@ -13,8 +13,8 @@ use std::os;
 use std::thread::Thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
-fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: uint) {
-    let mut count = 0u;
+fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: u64) {
+    let mut count = 0;
     let mut msg = zmq::Message::new().unwrap();
 
     while workers != 0 {
@@ -37,7 +37,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     }
 }
 
-fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> Sender<()> {
+fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
     let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
@@ -64,16 +64,16 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> Sender<()> {
     start_tx
 }
 
-fn worker(mut push_socket: zmq::Socket, count: uint) {
+fn worker(mut push_socket: zmq::Socket, count: u64) {
     for _ in range(0, count) {
-        push_socket.send_str(100u.to_string().as_slice(), 0).unwrap();
+        push_socket.send_str(100.to_string().as_slice(), 0).unwrap();
     }
 
     // Let the server know we're done.
     push_socket.send_str("", 0).unwrap();
 }
 
-fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> Receiver<()> {
+fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
@@ -96,7 +96,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> Receiver<()> {
     rx
 }
 
-fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
+fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     let start_ch = spawn_server(ctx, workers);
 
     // Create some command/control sockets.
@@ -146,14 +146,14 @@ fn main() {
 
     let args = if os::getenv("RUST_BENCH").is_some() {
         vec!("".to_string(), "1000000".to_string(), "10000".to_string())
-    } else if args.len() <= 1u {
+    } else if args.len() <= 1 {
         vec!("".to_string(), "10000".to_string(), "4".to_string())
     } else {
         args
     };
 
-    let size: uint = args[1].as_slice().parse().unwrap();
-    let workers: uint = args[2].as_slice().parse().unwrap();
+    let size = args[1].as_slice().parse().unwrap();
+    let workers = args[2].as_slice().parse().unwrap();
 
     let mut ctx = zmq::Context::new();
 
