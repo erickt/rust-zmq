@@ -1,4 +1,5 @@
 #![crate_name = "helloworld-server"]
+#![allow(unstable)]
 
 /// Hello World server in Rust
 /// Binds REP socket to tcp://*:5555

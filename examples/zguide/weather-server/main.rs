@@ -1,4 +1,5 @@
 #![crate_name = "weather-server"]
+#![allow(unstable)]
 
 /// Weather update server
 /// Binds PUB socket to tcp://*:5556 and ipc://weather.ipc

@@ -1,6 +1,7 @@
 //! Hello World client
 
 #![crate_name = "helloworld-client"]
+#![allow(unstable)]
 
 extern crate zmq;
 
