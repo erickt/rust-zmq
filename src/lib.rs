@@ -286,6 +286,8 @@ pub struct Socket {
     closed: bool
 }
 
+unsafe impl Send for Socket {}
+
 impl Drop for Socket {
     fn drop(&mut self) {
         match self.close_final() {
