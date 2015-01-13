@@ -50,16 +50,16 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> Sender<()> {
 
     Thread::spawn(move|| {
         // Let the main thread know we're ready.
-        ready_tx.send(());
+        ready_tx.send(()).unwrap();
 
         // Wait until we need to start.
-        start_rx.recv();
+        start_rx.recv().unwrap();
 
         server(pull_socket, push_socket, workers);
     });
 
     // Wait for the server to start.
-    ready_rx.recv();
+    ready_rx.recv().unwrap();
 
     start_tx
 }
@@ -83,15 +83,15 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> Receiver<()> {
     let (tx, rx) = channel();
     Thread::spawn(move|| {
         // Let the main thread we're ready.
-        tx.send(());
+        tx.send(()).unwrap();
 
         worker(push_socket, count);
 
-        tx.send(());
+        tx.send(()).unwrap();
     });
 
     // Wait for the worker to start.
-    rx.recv();
+    rx.recv().unwrap();
 
     rx
 }
@@ -116,11 +116,11 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
 
     let start = time::precise_time_s();
 
-    start_ch.send(());
+    start_ch.send(()).unwrap();
 
     // Block until all the workers finish.
     for po in worker_results.iter() {
-        po.recv();
+        po.recv().unwrap();
     }
 
     // Receive the final count.
