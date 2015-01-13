@@ -19,9 +19,9 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
 
     while workers != 0 {
         match pull_socket.recv(&mut msg, 0) {
-            Err(e) => panic!(e.to_string()),
+            Err(e) => panic!(e),
             Ok(()) => {
-                let s = msg.as_str().ok().unwrap();
+                let s = msg.as_str().unwrap();
                 if s.is_empty() {
                     workers -= 1;
                 } else {
@@ -33,7 +33,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
 
     match push_socket.send_str(count.to_string().as_slice(), 0) {
         Ok(()) => { }
-        Err(e) => panic!(e.to_string()),
+        Err(e) => panic!(e),
     }
 }
 
@@ -126,10 +126,10 @@ fn run(ctx: &mut zmq::Context, size: uint, workers: uint) {
     // Receive the final count.
     let result: i32 = match pull_socket.recv_msg(0) {
         Ok(msg) => {
-            let msg_str: &str = msg.as_str().ok().unwrap();
+            let msg_str: &str = msg.as_str().unwrap();
             msg_str.parse().unwrap()
         },
-        Err(e) => panic!(e.to_string()),
+        Err(e) => panic!(e),
     };
 
     let end = time::precise_time_s();
