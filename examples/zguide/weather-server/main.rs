@@ -1,4 +1,5 @@
 #![crate_name = "weather-server"]
+#![allow(unstable)]
 
 /// Weather update server
 /// Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
@@ -18,9 +19,9 @@ fn main() {
     let mut rng = std::rand::weak_rng();
 
     loop {
-        let zipcode     = rng.gen_range(0i, 100000i);
-        let temperature = rng.gen_range(-80i, 135i);
-        let relhumidity = rng.gen_range(10i, 60i);
+        let zipcode     = rng.gen_range(0, 100000);
+        let temperature = rng.gen_range(-80, 135);
+        let relhumidity = rng.gen_range(10, 60);
 
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
