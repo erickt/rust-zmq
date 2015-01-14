@@ -243,6 +243,9 @@ pub struct Context {
     ctx: *mut libc::c_void,
 }
 
+unsafe impl Send for Context {}
+unsafe impl Sync for Context {}
+
 impl Context {
     pub fn new() -> Context {
         Context {
