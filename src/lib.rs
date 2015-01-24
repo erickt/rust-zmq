@@ -220,6 +220,16 @@ impl std::error::Error for Error {
     }
 }
 
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
+            let v: &'static [u8] = mem::transmute(ffi::c_str_to_bytes(&s));
+            write!(f, "{}", str::from_utf8(v).unwrap())
+        }
+    }
+}
+
 // Return the current zeromq version.
 pub fn version() -> (int, int, int) {
     let mut major = 0;
@@ -278,7 +288,7 @@ impl Drop for Context {
     fn drop(&mut self) {
         debug!("context dropped");
         let mut e = self.destroy();
-        while e.is_err() && (e.unwrap_err() != Error::EFAULT) {
+        while e == Err(Error::EFAULT) {
             e = self.destroy();
         }
     }
@@ -738,7 +748,7 @@ pub fn poll<'a>(items: &mut [PollItem<'a>], timeout: i64) -> Result<int, Error> 
     }
 }
 
-impl fmt::Show for Error {
+impl fmt::Debug for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
