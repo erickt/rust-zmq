@@ -7,7 +7,7 @@
 
 extern crate zmq;
 
-use std::io;
+use std::old_io;
 use std::time::Duration;
 
 fn main() {
@@ -21,6 +21,6 @@ fn main() {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
         responder.send_str("World", 0).unwrap();
-        io::timer::sleep(Duration::seconds(1));
+        old_io::timer::sleep(Duration::seconds(1));
     }
 }
