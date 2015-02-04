@@ -19,7 +19,7 @@ pub use SocketType::*;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[derive(Clone, Show)]
+#[derive(Clone, Debug)]
 pub enum SocketType {
     PAIR   = 0,
     PUB    = 1,
