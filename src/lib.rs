@@ -1,7 +1,6 @@
 //! Module: zmq
 
-#![feature(int_uint)]
-#![allow(unstable)]
+#![feature(int_uint, core, std_misc, libc, rustc_private)]
 
 #[macro_use]
 extern crate log;
