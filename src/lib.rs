@@ -688,7 +688,7 @@ impl Deref for Message {
             let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as uint;
-            slice::from_raw_buf(mem::transmute(&data), len)
+            slice::from_raw_parts(mem::transmute(&data), len)
         }
     }
 }
@@ -700,7 +700,7 @@ impl DerefMut for Message {
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as uint;
-            slice::from_raw_mut_buf(mem::transmute(&data), len)
+            slice::from_raw_parts_mut(mem::transmute(&data), len)
         }
     }
 }
