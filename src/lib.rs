@@ -1,8 +1,9 @@
 //! Module: zmq
 
-#![feature(globs, macro_rules, phase)]
+#![feature(globs)]
 
-#[phase(plugin, link)]
+// #[phase(plugin, link)]
+#[macro_use]
 extern crate log;
 
 extern crate libc;
@@ -10,6 +11,7 @@ extern crate "zmq-sys" as zmq_sys;
 
 use libc::{c_int, c_void, size_t, int64_t, uint64_t};
 use libc::consts::os::posix88;
+use std::ops::{Deref, DerefMut};
 use std::{mem, ptr, str, slice};
 use std::fmt;
 
@@ -17,7 +19,7 @@ pub use SocketType::*;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[deriving(Clone, Show)]
+#[derive(Clone, Debug)]
 pub enum SocketType {
     PAIR   = 0,
     PUB    = 1,
@@ -32,11 +34,11 @@ pub enum SocketType {
     XSUB   = 10,
 }
 
-pub static DONTWAIT : int = 1;
-pub static SNDMORE : int = 2;
+pub static DONTWAIT : isize = 1;
+pub static SNDMORE : isize = 2;
 
 #[allow(non_camel_case_types)]
-#[deriving(Clone)]
+#[derive(Clone)]
 #[allow(non_camel_case_types)]
 pub enum Constants {
     ZMQ_AFFINITY          = 4,
@@ -108,34 +110,34 @@ impl Constants {
             128       => Constants::ZMQ_MSG_SHARED,
             129       => Constants::ZMQ_MSG_MASK,
 
-            x         => panic!("invalid constant {}", x as int),
+            x         => panic!("invalid constant {}", x as isize),
         }
     }
 }
 
-const ZMQ_HAUSNUMERO: int = 156384712;
+const ZMQ_HAUSNUMERO: isize = 156384712;
 
-#[deriving(Clone, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub enum Error {
-    EACCES          = posix88::EACCES as int,
-    EADDRINUSE      = posix88::EADDRINUSE as int,
-    EAGAIN          = posix88::EAGAIN as int,
-    EBUSY           = posix88::EBUSY as int,
-    ECONNREFUSED    = posix88::ECONNREFUSED as int,
-    EFAULT          = posix88::EFAULT as int,
-    EHOSTUNREACH    = posix88::EHOSTUNREACH as int,
-    EINPROGRESS     = posix88::EINPROGRESS as int,
-    EINVAL          = posix88::EINVAL as int,
-    EMFILE          = posix88::EMFILE as int,
-    EMSGSIZE        = posix88::EMSGSIZE as int,
-    ENAMETOOLONG    = posix88::ENAMETOOLONG as int,
-    ENODEV          = posix88::ENODEV as int,
-    ENOENT          = posix88::ENOENT as int,
-    ENOMEM          = posix88::ENOMEM as int,
-    ENOTCONN        = posix88::ENOTCONN as int,
-    ENOTSOCK        = posix88::ENOTSOCK as int,
-    EPROTO          = posix88::EPROTO as int,
-    EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as int,
+    EACCES          = posix88::EACCES as isize,
+    EADDRINUSE      = posix88::EADDRINUSE as isize,
+    EAGAIN          = posix88::EAGAIN as isize,
+    EBUSY           = posix88::EBUSY as isize,
+    ECONNREFUSED    = posix88::ECONNREFUSED as isize,
+    EFAULT          = posix88::EFAULT as isize,
+    EHOSTUNREACH    = posix88::EHOSTUNREACH as isize,
+    EINPROGRESS     = posix88::EINPROGRESS as isize,
+    EINVAL          = posix88::EINVAL as isize,
+    EMFILE          = posix88::EMFILE as isize,
+    EMSGSIZE        = posix88::EMSGSIZE as isize,
+    ENAMETOOLONG    = posix88::ENAMETOOLONG as isize,
+    ENODEV          = posix88::ENODEV as isize,
+    ENOENT          = posix88::ENOENT as isize,
+    ENOMEM          = posix88::ENOMEM as isize,
+    ENOTCONN        = posix88::ENOTCONN as isize,
+    ENOTSOCK        = posix88::ENOTSOCK as isize,
+    EPROTO          = posix88::EPROTO as isize,
+    EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as isize,
     ENOTSUP         = ZMQ_HAUSNUMERO + 1,
     ENOBUFS         = ZMQ_HAUSNUMERO + 3,
     ENETDOWN        = ZMQ_HAUSNUMERO + 4,
@@ -190,10 +192,10 @@ impl Error {
 
             x => {
                 unsafe {
-                    let s = zmq_sys::zmq_strerror(x) as *const u8;
+                    let s = zmq_sys::zmq_strerror(x) as *const i8;
                     panic!("unknown error [{}]: {}",
-                        x as int,
-                        String::from_raw_buf(s)
+                        x as isize,
+                        str::from_c_str(s)
                     )
                 }
             }
@@ -211,7 +213,7 @@ impl std::error::Error for Error {
 }
 
 // Return the current zeromq version.
-pub fn version() -> (int, int, int) {
+pub fn version() -> (isize, isize, isize) {
     let mut major = 0;
     let mut minor = 0;
     let mut patch = 0;
@@ -220,7 +222,7 @@ pub fn version() -> (int, int, int) {
         zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
-    (major as int, minor as int, patch as int)
+    (major as isize, minor as isize, patch as isize)
 }
 
 /// zmq context, used to create sockets. Is thread safe, and can be safely
@@ -305,13 +307,13 @@ impl Socket {
     }
 
     /// Send a `&[u8]` message.
-    pub fn send(&mut self, data: &[u8], flags: int) -> Result<(), Error> {
+    pub fn send(&mut self, data: &[u8], flags: isize) -> Result<(), Error> {
         let msg = try!(Message::from_slice(data));
         self.send_msg(msg, flags)
     }
 
     /// Send a `Message` message.
-    pub fn send_msg(&mut self, mut msg: Message, flags: int) -> Result<(), Error> {
+    pub fn send_msg(&mut self, mut msg: Message, flags: isize) -> Result<(), Error> {
         let rc = unsafe {
             zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int)
         };
@@ -323,13 +325,13 @@ impl Socket {
         }
     }
 
-    pub fn send_str(&mut self, data: &str, flags: int) -> Result<(), Error> {
+    pub fn send_str(&mut self, data: &str, flags: isize) -> Result<(), Error> {
         self.send(data.as_bytes(), flags)
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&mut self, msg: &mut Message, flags: int) -> Result<(), Error> {
+    pub fn recv(&mut self, msg: &mut Message, flags: isize) -> Result<(), Error> {
         let rc = unsafe {
             zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int)
         };
@@ -341,7 +343,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_msg(&mut self, flags: int) -> Result<Message, Error> {
+    pub fn recv_msg(&mut self, flags: isize) -> Result<Message, Error> {
         let mut msg = try!(Message::new());
         match self.recv(&mut msg, flags) {
             Ok(()) => Ok(msg),
@@ -349,7 +351,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
+    pub fn recv_bytes(&mut self, flags: isize) -> Result<Vec<u8>, Error> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.as_slice().to_vec()),
             Err(e) => Err(e),
@@ -357,7 +359,7 @@ impl Socket {
     }
 
     #[deprecated = "use `socket.recv_string()` instead"]
-    pub fn recv_str(&mut self, flags: int) -> Result<String, Error> {
+    pub fn recv_str(&mut self, flags: isize) -> Result<String, Error> {
         match self.recv_bytes(flags) {
             Ok(msg) => Ok(String::from_utf8(msg).unwrap()),
             Err(e) => Err(e),
@@ -365,7 +367,7 @@ impl Socket {
     }
 
     /// Read a `String` from the socket.
-    pub fn recv_string(&mut self, flags: int) -> Result<Result<String, Vec<u8>>, Error> {
+    pub fn recv_string(&mut self, flags: isize) -> Result<Result<String, Vec<u8>>, Error> {
         match self.recv_bytes(flags) {
             Ok(msg) => Ok(String::from_utf8(msg)),
             Err(e) => Err(e),
@@ -423,11 +425,11 @@ impl Socket {
     }
 
 
-    pub fn get_sndhwm(&self) -> Result<int, Error> {
+    pub fn get_sndhwm(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_SNDHWM.to_raw())
     }
 
-    pub fn get_rcvhwm(&self) -> Result<int, Error> {
+    pub fn get_rcvhwm(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_RCVHWM.to_raw())
     }
 
@@ -468,15 +470,15 @@ impl Socket {
         getsockopt_i64(self.sock, Constants::ZMQ_LINGER.to_raw())
     }
 
-    pub fn get_reconnect_ivl(&self) -> Result<int, Error> {
+    pub fn get_reconnect_ivl(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_RECONNECT_IVL.to_raw())
     }
 
-    pub fn get_reconnect_ivl_max(&self) -> Result<int, Error> {
+    pub fn get_reconnect_ivl_max(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_RECONNECT_IVL_MAX.to_raw())
     }
 
-    pub fn get_backlog(&self) -> Result<int, Error> {
+    pub fn get_backlog(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_BACKLOG.to_raw())
     }
 
@@ -484,7 +486,7 @@ impl Socket {
         getsockopt_i64(self.sock, Constants::ZMQ_FD.to_raw())
     }
 
-    pub fn get_events(&self) -> Result<int, Error> {
+    pub fn get_events(&self) -> Result<isize, Error> {
         getsockopt_int(self.sock, Constants::ZMQ_EVENTS.to_raw())
     }
 
@@ -492,11 +494,11 @@ impl Socket {
         setsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
-    pub fn set_sndhwm(&self, value: int) -> Result<(), Error> {
+    pub fn set_sndhwm(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(self.sock, Constants::ZMQ_SNDHWM.to_raw(), value)
     }
 
-    pub fn set_rcvhwm(&self, value: int) -> Result<(), Error> {
+    pub fn set_rcvhwm(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(self.sock, Constants::ZMQ_RCVHWM.to_raw(), value)
     }
 
@@ -542,20 +544,20 @@ impl Socket {
         setsockopt_u64(self.sock, Constants::ZMQ_RCVBUF.to_raw(), value)
     }
 
-    pub fn set_linger(&self, value: int) -> Result<(), Error> {
+    pub fn set_linger(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(self.sock, Constants::ZMQ_LINGER.to_raw(), value)
     }
 
-    pub fn set_reconnect_ivl(&self, value: int) -> Result<(), Error> {
+    pub fn set_reconnect_ivl(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(self.sock, Constants::ZMQ_RECONNECT_IVL.to_raw(), value)
     }
 
-    pub fn set_reconnect_ivl_max(&self, value: int) -> Result<(), Error> {
+    pub fn set_reconnect_ivl_max(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(
             self.sock, Constants::ZMQ_RECONNECT_IVL_MAX.to_raw(), value)
     }
 
-    pub fn set_backlog(&self, value: int) -> Result<(), Error> {
+    pub fn set_backlog(&self, value: isize) -> Result<(), Error> {
         setsockopt_int(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
     }
 
@@ -569,7 +571,7 @@ impl Socket {
     }
 }
 
-const MSG_SIZE: uint = 32;
+const MSG_SIZE: usize = 32;
 
 pub struct Message {
     msg: zmq_sys::zmq_msg_t,
@@ -588,7 +590,7 @@ impl Message {
     /// Create an empty `Message`.
     pub fn new() -> Result<Message, Error> {
         unsafe {
-            let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0, ..MSG_SIZE] };
+            let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
             let rc = zmq_sys::zmq_msg_init(&mut msg);
 
             if rc == -1i32 { return Err(errno_to_error()); }
@@ -598,8 +600,8 @@ impl Message {
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
-    pub unsafe fn with_capacity_unallocated(len: uint) -> Result<Message, Error> {
-        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0, ..MSG_SIZE] };
+    pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message, Error> {
+        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
         let rc = zmq_sys::zmq_msg_init_size(&mut msg, len as size_t);
 
         if rc == -1i32 { return Err(errno_to_error()); }
@@ -608,7 +610,7 @@ impl Message {
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
-    pub fn with_capacity(len: uint) -> Result<Message, Error> {
+    pub fn with_capacity(len: usize) -> Result<Message, Error> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(len));
             ptr::zero_memory(msg.as_mut_ptr(), len);
@@ -626,7 +628,7 @@ impl Message {
     }
 
     #[deprecated = "use `as_slice()` instead"]
-    pub fn with_bytes<T>(&self, f: |&[u8]| -> T) -> T {
+    pub fn with_bytes<T>(&self, f: Fn(&[u8]) -> T) -> T {
         f(self.as_slice())
     }
 
@@ -637,7 +639,7 @@ impl Message {
 
     #[allow(deprecated)]
     #[deprecated = "use `str::from_utf8(message.as_slice().unwrap())` instead"]
-    pub fn with_str<T>(&self, f: |&str| -> T) -> T {
+    pub fn with_str<T>(&self, f: Fn(&str) -> T) -> T {
         f(self.as_str().unwrap())
     }
 
@@ -658,26 +660,27 @@ impl Message {
     }
 }
 
-impl Deref<[u8]> for Message {
+impl Deref for Message {
+    type Target = [u8];
     fn deref<'a>(&'a self) -> &'a [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
             let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
-            let len = zmq_sys::zmq_msg_size(ptr) as uint;
+            let len = zmq_sys::zmq_msg_size(ptr) as usize;
             slice::from_raw_buf(mem::transmute(&data), len)
         }
     }
 }
 
-impl DerefMut<[u8]> for Message {
+impl DerefMut for Message {
     fn deref_mut<'a>(&'a mut self) -> &'a mut [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
-            let len = zmq_sys::zmq_msg_size(&mut self.msg) as uint;
+            let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
             slice::from_raw_mut_buf(mem::transmute(&data), len)
         }
     }
@@ -710,7 +713,7 @@ impl<'a> PollItem<'a> {
     }
 }
 
-pub fn poll<'a>(items: &mut [PollItem<'a>], timeout: i64) -> Result<int, Error> {
+pub fn poll<'a>(items: &mut [PollItem<'a>], timeout: i64) -> Result<isize, Error> {
     unsafe {
         let rc = zmq_sys::zmq_poll(
             items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
@@ -720,17 +723,17 @@ pub fn poll<'a>(items: &mut [PollItem<'a>], timeout: i64) -> Result<int, Error> 
         if rc == -1i32 {
             Err(errno_to_error())
         } else {
-            Ok(rc as int)
+            Ok(rc as isize)
         }
     }
 }
 
-impl fmt::Show for Error {
+impl fmt::Display for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            write!(f, "{}", String::from_raw_buf(s as *const u8))
+            write!(f, "{}", str::from_c_str(s as *const i8))
         }
     }
 }
@@ -757,18 +760,18 @@ macro_rules! getsockopt_num(
             }
         }
     )
-)
+);
 
-getsockopt_num!(getsockopt_int, c_int, int)
-getsockopt_num!(getsockopt_i64, int64_t, i64)
-getsockopt_num!(getsockopt_u64, uint64_t, u64)
+getsockopt_num!(getsockopt_int, c_int, isize);
+getsockopt_num!(getsockopt_i64, int64_t, i64);
+getsockopt_num!(getsockopt_u64, uint64_t, u64);
 
 fn getsockopt_bytes(sock: *mut libc::c_void, opt: c_int) -> Result<Vec<u8>, Error> {
     unsafe {
         // The only binary option in zeromq is ZMQ_IDENTITY, which can have
         // a max size of 255 bytes.
         let mut size = 255 as size_t;
-        let mut value = Vec::with_capacity(size as uint);
+        let mut value = Vec::with_capacity(size as usize);
 
         let r = zmq_sys::zmq_getsockopt(
             sock,
@@ -779,7 +782,7 @@ fn getsockopt_bytes(sock: *mut libc::c_void, opt: c_int) -> Result<Vec<u8>, Erro
         if r == -1i32 {
             Err(errno_to_error())
         } else {
-            value.truncate(size as uint);
+            value.truncate(size as usize);
             Ok(value)
         }
     }
@@ -805,11 +808,11 @@ macro_rules! setsockopt_num(
             }
         }
     )
-)
+);
 
-setsockopt_num!(setsockopt_int, int)
-setsockopt_num!(setsockopt_i64, i64)
-setsockopt_num!(setsockopt_u64, u64)
+setsockopt_num!(setsockopt_int, isize);
+setsockopt_num!(setsockopt_i64, i64);
+setsockopt_num!(setsockopt_u64, u64);
 
 fn setsockopt_bytes(sock: *mut libc::c_void, opt: c_int, value: &[u8]) -> Result<(), Error> {
     unsafe {
