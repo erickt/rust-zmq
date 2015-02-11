@@ -1,4 +1,5 @@
 #![crate_name = "weather-client"]
+#![feature(core, os)]
 
 /*!
  * Weather update client
@@ -8,15 +9,15 @@
 
 extern crate zmq;
 
-fn atoi(s: &str) -> int {
-    from_str(s).unwrap()
+fn atoi(s: &str) -> isize {
+    s.parse().unwrap()
 }
 
 fn main() {
     println!("Collecting updates from weather server...");
 
     let mut context = zmq::Context::new();
-    let mut subscriber = context.socket(zmq::SUB).unwrap();
+    let mut subscriber = context.socket(zmq::SUB).ok().unwrap();
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
 
     let args = std::os::args();
@@ -25,9 +26,9 @@ fn main() {
 
     let mut total_temp = 0;
 
-    for _ in range(0u, 100) {
-        let string = subscriber.recv_string(0).unwrap().unwrap();
-        let chks: Vec<int> = string.as_slice().split(' ').map(|x| atoi(x)).collect();
+    for _ in 0us..100 {
+        let string = subscriber.recv_string(0).ok().unwrap().unwrap();
+        let chks: Vec<isize> = string.as_slice().split(' ').map(|x| atoi(x)).collect();
         let (_zipcode, temperature, _relhumidity) = (chks[0], chks[1], chks[2]);
         total_temp += temperature;
     }
