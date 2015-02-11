@@ -11,9 +11,8 @@ extern crate "zmq-sys" as zmq_sys;
 use libc::{c_int, c_void, size_t, int64_t, uint64_t};
 use libc::consts::os::posix88;
 use std::ops::{Deref, DerefMut};
-use std::{mem, ptr, str, slice};
+use std::{mem, ptr, ffi, str, slice};
 use std::fmt;
-use std::ffi::CString;
 
 use std::string::FromUtf8Error;
 
@@ -210,7 +209,8 @@ impl std::error::Error for Error {
         unsafe {
             let s = zmq_sys::zmq_strerror(self.clone() as c_int) as *const i8;
             // NOTE: from_c_str is deprecated
-            std::str::from_c_str(s)
+            let v: &'static [u8] = mem::transmute(ffi::c_str_to_bytes(&s));
+            str::from_utf8(v).unwrap()
         }
     }
 }
@@ -237,6 +237,9 @@ pub fn version() -> (isize, isize, isize) {
 pub struct Context {
     ctx: *mut libc::c_void,
 }
+
+unsafe impl Send for Context { }
+unsafe impl Sync for Context { }
 
 impl Context {
     pub fn new() -> Context {
@@ -276,6 +279,8 @@ impl Drop for Context {
     }
 }
 
+unsafe impl Send for Socket { }
+
 pub struct Socket {
     sock: *mut libc::c_void,
     closed: bool
@@ -293,7 +298,7 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
-        let cstr = CString::from_slice(endpoint.as_bytes()).as_ptr();
+        let cstr = ffi::CString::from_slice(endpoint.as_bytes()).as_ptr();
         let rc = unsafe { zmq_sys::zmq_bind(self.sock, cstr) };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
@@ -301,7 +306,7 @@ impl Socket {
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
-        let cstr = CString::from_slice(endpoint.as_bytes()).as_ptr();
+        let cstr = ffi::CString::from_slice(endpoint.as_bytes()).as_ptr();
         let rc = unsafe { zmq_sys::zmq_connect(self.sock, cstr) };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
