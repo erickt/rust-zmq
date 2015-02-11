@@ -1,8 +1,7 @@
 //! Module: zmq
 
-#![feature(globs)]
+#![feature(unboxed_closures, libc, core, std_misc, rustc_private)]
 
-// #[phase(plugin, link)]
 #[macro_use]
 extern crate log;
 
@@ -14,6 +13,9 @@ use libc::consts::os::posix88;
 use std::ops::{Deref, DerefMut};
 use std::{mem, ptr, str, slice};
 use std::fmt;
+use std::ffi::CString;
+
+use std::string::FromUtf8Error;
 
 pub use SocketType::*;
 
@@ -74,7 +76,7 @@ pub enum Constants {
 
 impl Constants {
     pub fn to_raw(&self) -> i32 {
-        *self as i32
+        self.clone() as i32
     }
 
     pub fn from_raw(raw: i32) -> Constants {
@@ -152,7 +154,7 @@ pub enum Error {
 
 impl Error {
     pub fn to_raw(&self) -> i32 {
-        *self as i32
+        self.clone() as i32
     }
 
     pub fn from_raw(raw: i32) -> Error {
@@ -206,7 +208,8 @@ impl Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
+            let s = zmq_sys::zmq_strerror(self.clone() as c_int) as *const i8;
+            // NOTE: from_c_str is deprecated
             std::str::from_c_str(s)
         }
     }
@@ -290,18 +293,16 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
-        let rc = endpoint.with_c_str (|cstr| {
-            unsafe { zmq_sys::zmq_bind(self.sock, cstr) }
-        });
+        let cstr = CString::from_slice(endpoint.as_bytes()).as_ptr();
+        let rc = unsafe { zmq_sys::zmq_bind(self.sock, cstr) };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
-        let rc = endpoint.with_c_str (|cstr| {
-            unsafe { zmq_sys::zmq_connect(self.sock, cstr) }
-        });
+        let cstr = CString::from_slice(endpoint.as_bytes()).as_ptr();
+        let rc = unsafe { zmq_sys::zmq_connect(self.sock, cstr) };
 
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
@@ -367,7 +368,7 @@ impl Socket {
     }
 
     /// Read a `String` from the socket.
-    pub fn recv_string(&mut self, flags: isize) -> Result<Result<String, Vec<u8>>, Error> {
+    pub fn recv_string(&mut self, flags: isize) -> Result<Result<String, FromUtf8Error>, Error> {
         match self.recv_bytes(flags) {
             Ok(msg) => Ok(String::from_utf8(msg)),
             Err(e) => Err(e),
@@ -628,7 +629,7 @@ impl Message {
     }
 
     #[deprecated = "use `as_slice()` instead"]
-    pub fn with_bytes<T>(&self, f: Fn(&[u8]) -> T) -> T {
+    pub fn with_bytes<T, F: Fn(&[u8]) -> T>(&self, f: F) -> T {
         f(self.as_slice())
     }
 
@@ -639,11 +640,11 @@ impl Message {
 
     #[allow(deprecated)]
     #[deprecated = "use `str::from_utf8(message.as_slice().unwrap())` instead"]
-    pub fn with_str<T>(&self, f: Fn(&str) -> T) -> T {
+    pub fn with_str<T, F: Fn(&str) -> T>(&self, f: F) -> T {
         f(self.as_str().unwrap())
     }
 
-    pub fn as_str<'a>(&'a self) -> Option<&'a str> {
+    pub fn as_str<'a>(&'a self) -> Result<&'a str, str::Utf8Error> {
         str::from_utf8(self.as_slice())
     }
 
@@ -669,7 +670,7 @@ impl Deref for Message {
             let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            slice::from_raw_buf(mem::transmute(&data), len)
+            slice::from_raw_parts(mem::transmute(&data), len)
         }
     }
 }
@@ -681,7 +682,7 @@ impl DerefMut for Message {
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
-            slice::from_raw_mut_buf(mem::transmute(&data), len)
+            slice::from_raw_parts_mut(mem::transmute(&data), len)
         }
     }
 }
@@ -732,7 +733,7 @@ impl fmt::Display for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int);
+            let s = zmq_sys::zmq_strerror(self.clone() as c_int);
             write!(f, "{}", str::from_c_str(s as *const i8))
         }
     }

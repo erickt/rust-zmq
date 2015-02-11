@@ -48,7 +48,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: uint) -> comm::Sender<()> {
     let (ready_tx, ready_rx) = comm::channel();
     let (start_tx, start_rx) = comm::channel();
 
-    TaskBuilder::new().spawn(proc() {
+    TaskBuilder::new().spawn(|| {
         // Let the main thread know we're ready.
         ready_tx.send(());
 
@@ -81,7 +81,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: uint) -> comm::Receiver<()> {
 
     // Spawn the worker.
     let (tx, rx) = comm::channel();
-    TaskBuilder::new().spawn(proc() {
+    TaskBuilder::new().spawn(|| {
         // Let the main thread we're ready.
         tx.send(());
 
