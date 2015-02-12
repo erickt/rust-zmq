@@ -7,11 +7,13 @@
 
 
 extern crate zmq;
+extern crate env_logger;
 
 use std::old_io;
 use std::time::Duration;
 
 fn main() {
+    env_logger::init().unwrap();
     let mut context = zmq::Context::new();
     let mut responder = context.socket(zmq::REP).ok().unwrap();
 

@@ -650,7 +650,9 @@ impl Message {
     }
 
     pub fn as_str<'a>(&'a self) -> Result<&'a str, str::Utf8Error> {
-        str::from_utf8(self.as_slice())
+        let slice = self.as_slice();
+        debug!("{:?}", slice);
+        str::from_utf8(slice)
     }
 
     #[allow(deprecated)]
@@ -675,6 +677,7 @@ impl Deref for Message {
             let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
+            debug!("derefing {:?}", data);
             slice::from_raw_parts(mem::transmute(&data), len)
         }
     }

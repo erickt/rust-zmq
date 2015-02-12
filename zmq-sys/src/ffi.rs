@@ -35,7 +35,7 @@ impl ::std::default::Default for Struct_Unnamed2 {
     fn default() -> Struct_Unnamed2 { unsafe { ::std::mem::zeroed() } }
 }
 pub type zmq_pollitem_t = Struct_Unnamed2;
-#[link(name = "zmq", kind = "static")]
+#[link(name = "zmq")]
 extern "C" {
     pub fn zmq_version(major: *mut ::libc::c_int, minor: *mut ::libc::c_int,
                        patch: *mut ::libc::c_int) -> ();
