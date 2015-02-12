@@ -651,7 +651,6 @@ impl Message {
 
     pub fn as_str<'a>(&'a self) -> Result<&'a str, str::Utf8Error> {
         let slice = self.as_slice();
-        debug!("{:?}", slice);
         str::from_utf8(slice)
     }
 
@@ -677,8 +676,7 @@ impl Deref for Message {
             let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            debug!("derefing {:?}", data);
-            slice::from_raw_parts(mem::transmute(&data), len)
+            slice::from_raw_parts(mem::transmute(data), len)
         }
     }
 }
@@ -688,9 +686,10 @@ impl DerefMut for Message {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
-            let data = zmq_sys::zmq_msg_data(&mut self.msg);
-            let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
-            slice::from_raw_parts_mut(mem::transmute(&data), len)
+            let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
+            let data = zmq_sys::zmq_msg_data(ptr);
+            let len = zmq_sys::zmq_msg_size(ptr) as usize;
+            slice::from_raw_parts_mut(mem::transmute(data), len)
         }
     }
 }
