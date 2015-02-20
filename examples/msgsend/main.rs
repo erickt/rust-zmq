@@ -110,7 +110,7 @@ fn run(ctx: &mut zmq::Context, size: usize, workers: usize) {
 
     // Spawn all the workers.
     let mut worker_results = Vec::new();
-    for _ in range(0, workers) {
+    for _ in 0..workers {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
 

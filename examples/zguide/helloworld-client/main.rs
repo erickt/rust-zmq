@@ -1,7 +1,6 @@
 //! Hello World client
 
 #![crate_name = "helloworld-client"]
-#![feature(core)]
 
 extern crate zmq;
 

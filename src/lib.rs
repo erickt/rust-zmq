@@ -567,7 +567,7 @@ impl Socket {
         setsockopt_int(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
     }
 
-    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem<'a> {
+    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem {
         PollItem {
             socket: self.sock,
             fd: 0,
@@ -699,15 +699,15 @@ pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
 #[repr(C)]
-pub struct PollItem<'a> {
+pub struct PollItem {
     socket: *mut libc::c_void,
     fd: c_int,
     events: i16,
     revents: i16
 }
 
-impl<'a> PollItem<'a> {
-    pub fn from_fd(fd: c_int) -> PollItem<'a> {
+impl PollItem {
+    pub fn from_fd(fd: c_int) -> PollItem {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
@@ -721,7 +721,7 @@ impl<'a> PollItem<'a> {
     }
 }
 
-pub fn poll<'a>(items: &mut [PollItem<'a>], timeout: i64) -> Result<isize, Error> {
+pub fn poll<'a>(items: &mut [PollItem], timeout: i64) -> Result<isize, Error> {
     unsafe {
         let rc = zmq_sys::zmq_poll(
             items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
