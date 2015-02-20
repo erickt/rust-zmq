@@ -32,4 +32,7 @@ path = "examples/zguide/weather-server/main.rs"
 
 [dependencies]
 time = "*"
-zmq-sys = "*"
+rand = "*"
+
+[dependencies.zmq-sys]
+path="zmq-sys"

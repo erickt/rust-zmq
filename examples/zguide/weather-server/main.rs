@@ -5,28 +5,29 @@
 /// Publishes random weather updates
 
 extern crate zmq;
+extern crate rand;
 
-use std::rand::Rng;
+use rand::Rng;
 
 fn main() {
     let mut context = zmq::Context::new();
-    let mut publisher = context.socket(zmq::PUB).unwrap();
+    let mut publisher = context.socket(zmq::PUB).ok().unwrap();
 
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
-    let mut rng = std::rand::weak_rng();
+    let mut rng = rand::weak_rng();
 
     loop {
-        let zipcode     = rng.gen_range(0i, 100000i);
-        let temperature = rng.gen_range(-80i, 135i);
-        let relhumidity = rng.gen_range(10i, 60i);
+        let zipcode     = rng.gen_range(0is, 100000is);
+        let temperature = rng.gen_range(-80is, 135is);
+        let relhumidity = rng.gen_range(10is, 60is);
 
         // this is slower than C because the current format! implementation is
         // very, very slow. Several orders of magnitude slower than glibc's
         // sprintf
         let update = format!("{:05} {} {}", zipcode, temperature, relhumidity);
-        publisher.send(update.as_bytes(), 0).unwrap();
+        publisher.send(update.as_bytes(), 0).ok().unwrap();
     }
 
     // note: destructors mean no explicit cleanup necessary

@@ -1,3 +1,4 @@
+#![feature(libc)]
 extern crate libc;
 
 pub use ffi::{
@@ -63,5 +64,5 @@ mod ffi {
         size_t,
     };
 
-    include!("ffi.rs")
+    include!("ffi.rs");
 }
