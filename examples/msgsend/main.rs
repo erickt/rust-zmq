@@ -11,7 +11,7 @@ extern crate time;
 extern crate zmq;
 
 use std::os;
-use std::thread::Thread;
+use std::thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: u64) {
@@ -49,7 +49,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
     let (ready_tx, ready_rx) = channel();
     let (start_tx, start_rx) = channel();
 
-    Thread::spawn(move|| {
+    thread::spawn(move|| {
         // Let the main thread know we're ready.
         ready_tx.send(()).unwrap();
 
@@ -82,7 +82,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
 
     // Spawn the worker.
     let (tx, rx) = channel();
-    Thread::spawn(move|| {
+    thread::spawn(move|| {
         // Let the main thread we're ready.
         tx.send(()).unwrap();
 
