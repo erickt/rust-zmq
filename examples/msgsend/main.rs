@@ -65,7 +65,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
 }
 
 fn worker(mut push_socket: zmq::Socket, count: u64) {
-    for _ in range(0, count) {
+    for _ in 0 .. count {
         push_socket.send_str(100.to_string().as_slice(), 0).unwrap();
     }
 
@@ -110,7 +110,7 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
 
     // Spawn all the workers.
     let mut worker_results = Vec::new();
-    for _ in range(0, workers) {
+    for _ in 0 .. workers {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
 
