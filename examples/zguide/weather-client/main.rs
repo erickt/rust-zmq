@@ -1,6 +1,6 @@
 #![crate_name = "weather-client"]
 
-#![feature(core)]
+#![feature(core, env)]
 
 /*!
  * Weather update client
@@ -9,6 +9,8 @@
  */
 
 extern crate zmq;
+
+use std::env;
 
 fn atoi(s: &str) -> i64 {
     s.parse().unwrap()
@@ -21,7 +23,7 @@ fn main() {
     let mut subscriber = context.socket(zmq::SUB).unwrap();
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
 
-    let args = std::os::args();
+    let args: Vec<String> = env::args().collect();
     let filter = if args.len() > 1 { args[1].clone() } else { "10001".to_string() };
     assert!(subscriber.set_subscribe(filter.as_bytes()).is_ok());
 
