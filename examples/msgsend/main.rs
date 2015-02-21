@@ -5,7 +5,6 @@
 // I *think* it's the same, more or less.
 
 #![crate_name = "msgsend"]
-#![allow(unstable)]
 
 extern crate time;
 extern crate zmq;

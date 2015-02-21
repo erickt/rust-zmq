@@ -1,5 +1,4 @@
 #![crate_name = "version"]
-#![allow(unstable)]
 
 extern crate zmq;
 

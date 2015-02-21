@@ -1,5 +1,4 @@
 #![crate_name = "weather-client"]
-#![allow(unstable)]
 
 /*!
  * Weather update client
