@@ -6,12 +6,12 @@
 
 #![crate_name = "msgsend"]
 
-#![feature(core)]
+#![feature(core, env)]
 
 extern crate time;
 extern crate zmq;
 
-use std::os;
+use std::env;
 use std::thread;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
@@ -144,9 +144,9 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
 }
 
 fn main() {
-    let args = os::args();
+    let args: Vec<String> = env::args().collect();
 
-    let args = if os::getenv("RUST_BENCH").is_some() {
+    let args = if env::var("RUST_BENCH").is_ok() {
         vec!("".to_string(), "1000000".to_string(), "10000".to_string())
     } else if args.len() <= 1 {
         vec!("".to_string(), "10000".to_string(), "4".to_string())
