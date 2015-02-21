@@ -201,7 +201,7 @@ impl Error {
                     let s = zmq_sys::zmq_strerror(x) as *const i8;
                     panic!("unknown error [{}]: {}",
                         x as int,
-                        str::from_utf8(ffi::c_str_to_bytes(&s)).unwrap()
+                        str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
                     )
                 }
             }
@@ -213,7 +213,8 @@ impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
-            let v: &'static [u8] = mem::transmute(ffi::c_str_to_bytes(&s));
+            let v: &'static [u8] =
+                mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             str::from_utf8(v).unwrap()
         }
     }
@@ -223,7 +224,8 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
-            let v: &'static [u8] = mem::transmute(ffi::c_str_to_bytes(&s));
+            let v: &'static [u8] =
+                mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             write!(f, "{}", str::from_utf8(v).unwrap())
         }
     }
@@ -313,14 +315,14 @@ impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
-                          ffi::CString::from_slice(endpoint.as_bytes()).as_ptr()) };
+                          ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_connect(self.sock,
-                          ffi::CString::from_slice(endpoint.as_bytes()).as_ptr()) };
+                          ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
@@ -752,7 +754,8 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            write!(f, "{}", str::from_utf8(ffi::c_str_to_bytes(&s)).unwrap())
+            write!(f, "{}",
+                   str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap())
         }
     }
 }
