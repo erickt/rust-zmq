@@ -119,7 +119,7 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     start_ch.send(()).unwrap();
 
     // Block until all the workers finish.
-    for po in worker_results.iter() {
+    for po in worker_results {
         po.recv().unwrap();
     }
 
