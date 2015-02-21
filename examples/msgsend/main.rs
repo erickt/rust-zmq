@@ -6,6 +6,8 @@
 
 #![crate_name = "msgsend"]
 
+#![feature(core)]
+
 extern crate time;
 extern crate zmq;
 
