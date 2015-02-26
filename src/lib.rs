@@ -633,7 +633,7 @@ impl Message {
     pub fn with_capacity(len: uint) -> Result<Message, Error> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(len));
-            ptr::zero_memory(msg.as_mut_ptr(), len);
+            ptr::write_bytes(msg.as_mut_ptr(), 0, len);
             Ok(msg)
         }
     }
@@ -642,7 +642,7 @@ impl Message {
     pub fn from_slice(data: &[u8]) -> Result<Message, Error> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(data.len()));
-            ptr::copy_nonoverlapping_memory(msg.as_mut_ptr(), data.as_ptr(), data.len());
+            ptr::copy_nonoverlapping(msg.as_mut_ptr(), data.as_ptr(), data.len());
             Ok(msg)
         }
     }
