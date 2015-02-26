@@ -8,7 +8,7 @@ extern crate log;
 extern crate libc;
 extern crate "zmq-sys" as zmq_sys;
 
-use libc::{c_int, c_void, size_t, int64_t, uint64_t};
+use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
 use libc::consts::os::posix88;
 use std::{mem, ptr, str, slice};
 use std::ffi;
@@ -739,7 +739,7 @@ pub fn poll<'a>(items: &mut [PollItem], timeout: i64) -> Result<int, Error> {
         let rc = zmq_sys::zmq_poll(
             items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
             items.len() as c_int,
-            timeout);
+            timeout as c_long);
 
         if rc == -1i32 {
             Err(errno_to_error())
