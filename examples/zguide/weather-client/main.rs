@@ -1,6 +1,6 @@
 #![crate_name = "weather-client"]
 
-#![feature(core, env)]
+#![feature(core)]
 
 /*!
  * Weather update client
