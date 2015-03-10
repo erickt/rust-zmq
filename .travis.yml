@@ -12,5 +12,5 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo bench --verbose
-  - ./target/examples/msgsend
-  - ./target/examples/version
+  - ./target/debug/examples/msgsend
+  - ./target/debug/examples/version
