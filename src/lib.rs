@@ -750,6 +750,33 @@ pub fn poll<'a>(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
     }
 }
 
+pub fn proxy<'a>(frontend: &mut Socket,
+                 backend: &mut Socket) -> Result<(), Error> {
+    unsafe {
+        let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut());
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
+}
+
+pub fn proxy_with_capture<'a>(frontend: &mut Socket,
+                              backend: &mut Socket,
+                              capture: &mut Socket) -> Result<(), Error> {
+    unsafe {
+        let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock);
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
+}
+
 impl fmt::Debug for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
