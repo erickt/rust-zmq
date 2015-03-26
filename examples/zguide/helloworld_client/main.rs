@@ -1,6 +1,6 @@
 //! Hello World client
 
-#![crate_name = "helloworld-client"]
+#![crate_name = "helloworld_client"]
 
 extern crate zmq;
 

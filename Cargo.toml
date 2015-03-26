@@ -11,24 +11,24 @@ name = "msgsend"
 path = "examples/msgsend/main.rs"
 
 [[example]]
-name = "helloworld-client"
-path = "examples/zguide/helloworld-client/main.rs"
+name = "helloworld_client"
+path = "examples/zguide/helloworld_client/main.rs"
 
 [[example]]
-name = "helloworld-server"
-path = "examples/zguide/helloworld-server/main.rs"
+name = "helloworld_server"
+path = "examples/zguide/helloworld_server/main.rs"
 
 [[example]]
 name = "version"
 path = "examples/zguide/version/main.rs"
 
 [[example]]
-name = "weather-client"
-path = "examples/zguide/weather-client/main.rs"
+name = "weather_client"
+path = "examples/zguide/weather_client/main.rs"
 
 [[example]]
-name = "weather-server"
-path = "examples/zguide/weather-server/main.rs"
+name = "weather_server"
+path = "examples/zguide/weather_server/main.rs"
 
 [dependencies]
 time = "*"

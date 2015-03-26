@@ -1,4 +1,4 @@
-#![crate_name = "helloworld-server"]
+#![crate_name = "helloworld_server"]
 #![feature(std_misc, thread_sleep)]
 
 /// Hello World server in Rust

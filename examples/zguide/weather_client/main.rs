@@ -1,4 +1,4 @@
-#![crate_name = "weather-client"]
+#![crate_name = "weather_client"]
 
 #![feature(core)]
 

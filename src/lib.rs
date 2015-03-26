@@ -6,7 +6,7 @@
 extern crate log;
 
 extern crate libc;
-extern crate "zmq-sys" as zmq_sys;
+extern crate zmq_sys;
 
 use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
 use libc::consts::os::posix88;
