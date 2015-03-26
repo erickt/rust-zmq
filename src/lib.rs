@@ -198,7 +198,7 @@ impl Error {
 
             x => {
                 unsafe {
-                    let s = zmq_sys::zmq_strerror(x) as *const i8;
+                    let s = zmq_sys::zmq_strerror(x);
                     panic!("unknown error [{}]: {}",
                         x as int,
                         str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
@@ -212,7 +212,7 @@ impl Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
+            let s = zmq_sys::zmq_strerror(*self as c_int);
             let v: &'static [u8] =
                 mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             str::from_utf8(v).unwrap()
@@ -223,7 +223,7 @@ impl std::error::Error for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int) as *const i8;
+            let s = zmq_sys::zmq_strerror(*self as c_int);
             let v: &'static [u8] =
                 mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             write!(f, "{}", str::from_utf8(v).unwrap())
