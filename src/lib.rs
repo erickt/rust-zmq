@@ -763,6 +763,7 @@ impl fmt::Debug for Error {
 
 macro_rules! getsockopt_num(
     ($name:ident, $c_ty:ty, $ty:ty) => (
+        #[allow(trivial_casts)]    
         fn $name(sock: *mut libc::c_void, opt: c_int) -> Result<$ty, Error> {
             unsafe {
                 let mut value: $c_ty = 0;
@@ -813,6 +814,7 @@ fn getsockopt_bytes(sock: *mut libc::c_void, opt: c_int) -> Result<Vec<u8>, Erro
 
 macro_rules! setsockopt_num(
     ($name:ident, $ty:ty) => (
+        #[allow(trivial_casts)]
         fn $name(sock: *mut libc::c_void, opt: c_int, value: $ty) -> Result<(), Error> {
             unsafe {
                 let size = mem::size_of::<$ty>() as size_t;
