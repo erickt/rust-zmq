@@ -6,8 +6,6 @@
 
 #![crate_name = "msgsend"]
 
-#![feature(core)]
-
 extern crate time;
 extern crate zmq;
 
@@ -33,7 +31,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
         }
     }
 
-    match push_socket.send_str(count.to_string().as_slice(), 0) {
+    match push_socket.send_str(&count.to_string(), 0) {
         Ok(()) => { }
         Err(e) => panic!(e),
     }
@@ -68,7 +66,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
 
 fn worker(mut push_socket: zmq::Socket, count: u64) {
     for _ in 0 .. count {
-        push_socket.send_str(100.to_string().as_slice(), 0).unwrap();
+        push_socket.send_str(&100.to_string(), 0).unwrap();
     }
 
     // Let the server know we're done.
@@ -154,8 +152,8 @@ fn main() {
         args
     };
 
-    let size = args[1].as_slice().parse().unwrap();
-    let workers = args[2].as_slice().parse().unwrap();
+    let size = args[1].parse().unwrap();
+    let workers = args[2].parse().unwrap();
 
     let mut ctx = zmq::Context::new();
 

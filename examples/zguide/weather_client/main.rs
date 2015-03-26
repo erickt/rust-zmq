@@ -1,7 +1,5 @@
 #![crate_name = "weather_client"]
 
-#![feature(core)]
-
 /*!
  * Weather update client
  * Connects SUB socket to tcp://localhost:5556
@@ -31,7 +29,7 @@ fn main() {
 
     for _ in 0 .. 100 {
         let string = subscriber.recv_string(0).unwrap().unwrap();
-        let chks: Vec<i64> = string.as_slice().split(' ').map(|x| atoi(x)).collect();
+        let chks: Vec<i64> = string.split(' ').map(|x| atoi(x)).collect();
         let (_zipcode, temperature, _relhumidity) = (chks[0], chks[1], chks[2]);
         total_temp += temperature;
     }

@@ -1,6 +1,6 @@
 //! Module: zmq
 
-#![feature(int_uint, core, libc, rustc_private)]
+#![feature(int_uint, libc, rustc_private)]
 
 #[macro_use]
 extern crate log;
@@ -373,7 +373,7 @@ impl Socket {
 
     pub fn recv_bytes(&mut self, flags: int) -> Result<Vec<u8>, Error> {
         match self.recv_msg(flags) {
-            Ok(msg) => Ok(msg.as_slice().to_vec()),
+            Ok(msg) => Ok(msg.to_vec()),
             Err(e) => Err(e),
         }
     }
@@ -649,12 +649,12 @@ impl Message {
 
     #[deprecated = "use `as_slice()` instead"]
     pub fn with_bytes<T, F: Fn(&[u8]) -> T>(&self, f: F) -> T {
-        f(self.as_slice())
+        f(self)
     }
 
     #[deprecated = "renamed to `*message` or `message.as_slice()`"]
     pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
-        self.as_slice()
+        self
     }
 
     #[allow(deprecated)]
@@ -664,7 +664,7 @@ impl Message {
     }
 
     pub fn as_str<'a>(&'a self) -> Option<&'a str> {
-        str::from_utf8(self.as_slice()).ok()
+        str::from_utf8(self).ok()
     }
 
     #[allow(deprecated)]
