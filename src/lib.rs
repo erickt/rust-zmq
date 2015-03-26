@@ -1,6 +1,7 @@
 //! Module: zmq
 
 #![feature(int_uint, libc, rustc_private)]
+#![allow(trivial_numeric_casts)]
 
 #[macro_use]
 extern crate log;
