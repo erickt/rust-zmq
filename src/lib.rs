@@ -643,7 +643,7 @@ impl Message {
     pub fn from_slice(data: &[u8]) -> Result<Message, Error> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(data.len()));
-            ptr::copy_nonoverlapping(msg.as_mut_ptr(), data.as_ptr(), data.len());
+            ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
             Ok(msg)
         }
     }
