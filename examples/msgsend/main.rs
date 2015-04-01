@@ -25,7 +25,7 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
                 if s.is_empty() {
                     workers -= 1;
                 } else {
-                    count += s.parse().unwrap();
+                    count += s.parse::<u32>().unwrap();
                 }
             }
         }
