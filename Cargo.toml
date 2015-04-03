@@ -1,6 +1,6 @@
 [package]
 name = "zmq"
-version = "0.6.4"
+version = "0.6.5"
 authors = [ "erick.tryzelaar@gmail.com" ]
 license = "MIT/Apache-2.0"
 description = "High-level bindings to the zeromq library"
@@ -33,4 +33,4 @@ path = "examples/zguide/weather_server/main.rs"
 [dependencies]
 time = "*"
 rand = "*"
-zmq-sys = "0.6.2"
+zmq-sys = "0.6.5"
