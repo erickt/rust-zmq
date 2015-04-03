@@ -1,5 +1,4 @@
 #![crate_name = "helloworld_server"]
-#![feature(std_misc, thread_sleep)]
 
 /// Hello World server in Rust
 /// Binds REP socket to tcp://*:5555
@@ -8,7 +7,6 @@
 extern crate zmq;
 
 use std::thread;
-use std::time::Duration;
 
 fn main() {
     let mut context = zmq::Context::new();
@@ -21,6 +19,6 @@ fn main() {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
         responder.send_str("World", 0).unwrap();
-        thread::sleep(Duration::seconds(1));
+        thread::sleep_ms(1000);
     }
 }
