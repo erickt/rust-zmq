@@ -2,7 +2,6 @@ language: rust
 
 rust:
   - nightly
-  - 1.0.0-beta
 
 before_install:
   - sudo apt-get update
