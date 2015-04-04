@@ -32,6 +32,7 @@ path = "examples/zguide/weather_server/main.rs"
 
 [dependencies]
 libc = "*"
-time = "*"
+log = "*"
 rand = "*"
+time = "*"
 zmq-sys = "0.6.6"

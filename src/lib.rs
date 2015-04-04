@@ -1,6 +1,5 @@
 //! Module: zmq
 
-#![feature(rustc_private)]
 #![allow(trivial_numeric_casts)]
 
 #[macro_use]
