@@ -1,6 +1,4 @@
 
-#![feature(libc)]
-
 extern crate libc;
 
 pub use ffi::{
