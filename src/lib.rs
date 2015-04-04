@@ -1,6 +1,6 @@
 //! Module: zmq
 
-#![feature(libc, rustc_private)]
+#![feature(rustc_private)]
 #![allow(trivial_numeric_casts)]
 
 #[macro_use]
