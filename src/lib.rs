@@ -378,14 +378,6 @@ impl Socket {
         }
     }
 
-    #[deprecated = "use `socket.recv_string()` instead"]
-    pub fn recv_str(&mut self, flags: i32) -> Result<String, Error> {
-        match self.recv_bytes(flags) {
-            Ok(msg) => Ok(String::from_utf8(msg).unwrap()),
-            Err(e) => Err(e),
-        }
-    }
-
     /// Read a `String` from the socket.
     pub fn recv_string(&mut self, flags: i32) -> Result<Result<String, Vec<u8>>, Error> {
         match self.recv_bytes(flags) {
@@ -647,36 +639,8 @@ impl Message {
         }
     }
 
-    #[deprecated = "use `as_slice()` instead"]
-    pub fn with_bytes<T, F: Fn(&[u8]) -> T>(&self, f: F) -> T {
-        f(self)
-    }
-
-    #[deprecated = "renamed to `*message` or `message.as_slice()`"]
-    pub fn as_bytes<'a>(&'a self) -> &'a [u8] {
-        self
-    }
-
-    #[allow(deprecated)]
-    #[deprecated = "use `str::from_utf8(message.as_slice().unwrap())` instead"]
-    pub fn with_str<T, F: Fn(&str) -> T>(&self, f: F) -> T {
-        f(self.as_str().unwrap())
-    }
-
     pub fn as_str<'a>(&'a self) -> Option<&'a str> {
         str::from_utf8(self).ok()
-    }
-
-    #[allow(deprecated)]
-    #[deprecated = "use `message.to_vec()` instead"]
-    pub fn to_bytes(&self) -> Vec<u8> {
-        self.with_bytes(|v| v.to_vec())
-    }
-
-    #[allow(deprecated)]
-    #[deprecated = "use `String::from_utf8(message.as_slice())` instead"]
-    pub fn to_string(&self) -> String {
-        self.with_str(|s| s.to_string())
     }
 }
 
