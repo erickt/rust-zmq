@@ -129,6 +129,7 @@ pub enum Error {
     EBUSY           = posix88::EBUSY as isize,
     ECONNREFUSED    = posix88::ECONNREFUSED as isize,
     EFAULT          = posix88::EFAULT as isize,
+    EINTR           = posix88::EINTR as isize,
     EHOSTUNREACH    = posix88::EHOSTUNREACH as isize,
     EINPROGRESS     = posix88::EINPROGRESS as isize,
     EINVAL          = posix88::EINVAL as isize,
@@ -289,7 +290,7 @@ impl Drop for Context {
     fn drop(&mut self) {
         debug!("context dropped");
         let mut e = self.destroy();
-        while e == Err(Error::EFAULT) {
+        while e == Err(Error::EINTR) {
             e = self.destroy();
         }
     }
