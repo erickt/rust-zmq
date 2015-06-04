@@ -13,6 +13,7 @@ use libc::consts::os::posix88;
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
+use std::marker;
 use std::ops::{Deref, DerefMut};
 
 pub use SocketType::*;
@@ -248,9 +249,6 @@ pub fn version() -> (i32, i32, i32) {
 /// zmq context, used to create sockets. Is thread safe, and can be safely
 /// shared, but dropping it while sockets are still open will cause them to
 /// close (see zmq_ctx_destroy(3)).
-///
-/// For this reason, one should use an Arc to share it, rather than any unsafe
-/// trickery you might think up that would call the destructor.
 pub struct Context {
     ctx: *mut libc::c_void,
 }
@@ -265,14 +263,14 @@ impl Context {
         }
     }
 
-    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket<'a>(&'a self, socket_type: SocketType) -> Result<Socket<'a>, Error> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock, closed: false })
+        Ok(Socket { sock: sock, closed: false, ctx: marker::PhantomData })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -296,14 +294,18 @@ impl Drop for Context {
     }
 }
 
-pub struct Socket {
+pub struct Socket<'a> {
     sock: *mut libc::c_void,
-    closed: bool
+    closed: bool,
+
+    // our context needs to live at least as long as we do, but we don't
+    // actually need to carry a reference to it around with us.
+    ctx: marker::PhantomData<&'a Context>,
 }
 
-unsafe impl Send for Socket {}
+unsafe impl<'a> Send for Socket<'a> {}
 
-impl Drop for Socket {
+impl<'a> Drop for Socket<'a> {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
@@ -312,7 +314,7 @@ impl Drop for Socket {
     }
 }
 
-impl Socket {
+impl<'a> Socket<'a> {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
@@ -574,7 +576,7 @@ impl Socket {
         setsockopt_i32(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
     }
 
-    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem {
+    pub fn as_poll_item(&self, events: i16) -> PollItem {
         PollItem {
             socket: self.sock,
             fd: 0,
