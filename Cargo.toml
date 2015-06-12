@@ -30,6 +30,18 @@ path = "examples/zguide/weather_client/main.rs"
 name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
+[[example]]
+name = "taskvent"
+path = "examples/zguide/taskvent/main.rs"
+
+[[example]]
+name = "taskwork"
+path = "examples/zguide/taskwork/main.rs"
+
+[[example]]
+name = "tasksink"
+path = "examples/zguide/tasksink/main.rs"
+
 [dependencies]
 libc = "*"
 log = "*"
