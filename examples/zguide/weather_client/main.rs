@@ -17,7 +17,7 @@ fn atoi(s: &str) -> i64 {
 fn main() {
     println!("Collecting updates from weather server...");
 
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
     let mut subscriber = context.socket(zmq::SUB).unwrap();
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
 

@@ -11,6 +11,7 @@ extern crate zmq;
 
 use std::env;
 use std::thread;
+use std::sync::Arc;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: u64) {
@@ -37,18 +38,18 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     }
 }
 
-fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
-    let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
-
-    pull_socket.bind("inproc://server-pull").unwrap();
-    push_socket.bind("inproc://server-push").unwrap();
-
+fn spawn_server(ctx: Arc<zmq::Context>, workers: u64) -> Sender<()> {
     // Spawn the server.
     let (ready_tx, ready_rx) = channel();
     let (start_tx, start_rx) = channel();
 
     thread::spawn(move|| {
+        let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
+        let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+
+        pull_socket.bind("inproc://server-pull").unwrap();
+        push_socket.bind("inproc://server-push").unwrap();
+
         // Let the main thread know we're ready.
         ready_tx.send(()).unwrap();
 
@@ -73,15 +74,15 @@ fn worker(mut push_socket: zmq::Socket, count: u64) {
     push_socket.send_str("", 0).unwrap();
 }
 
-fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
-
-    push_socket.connect("inproc://server-pull").unwrap();
-    //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
-
+fn spawn_worker(ctx: Arc<zmq::Context>, count: u64) -> Receiver<()> {
     // Spawn the worker.
     let (tx, rx) = channel();
     thread::spawn(move|| {
+        let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+
+        push_socket.connect("inproc://server-pull").unwrap();
+        //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
+
         // Let the main thread we're ready.
         tx.send(()).unwrap();
 
@@ -96,8 +97,8 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
     rx
 }
 
-fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
-    let start_ch = spawn_server(ctx, workers);
+fn run(ctx: Arc<zmq::Context>, size: u64, workers: u64) {
+    let start_ch = spawn_server(ctx.clone(), workers);
 
     // Create some command/control sockets.
     let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
@@ -111,7 +112,7 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     // Spawn all the workers.
     let mut worker_results = Vec::new();
     for _ in 0 .. workers {
-        worker_results.push(spawn_worker(ctx, size / workers));
+        worker_results.push(spawn_worker(ctx.clone(), size / workers));
     }
 
     let start = time::precise_time_s();
@@ -155,7 +156,7 @@ fn main() {
     let size = args[1].parse().unwrap();
     let workers = args[2].parse().unwrap();
 
-    let mut ctx = zmq::Context::new();
+    let ctx = Arc::new(zmq::Context::new());
 
-    run(&mut ctx, size, workers);
+    run(ctx, size, workers);
 }
