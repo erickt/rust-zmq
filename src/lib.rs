@@ -586,7 +586,7 @@ impl Socket {
     }
 }
 
-const MSG_SIZE: usize = 32;
+const MSG_SIZE: usize = 64;
 
 pub struct Message {
     msg: zmq_sys::zmq_msg_t,
