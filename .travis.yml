@@ -14,5 +14,11 @@ script:
   - cargo build --verbose
   - cargo test --verbose
   - cargo bench --verbose
+  - cargo build --example msgsend
+  - cargo build --example helloworld_client
+  - cargo build --example helloworld_server
+  - cargo build --example version
+  - cargo build --example weather_client
+  - cargo build --example weather_server
   - ./target/debug/examples/msgsend
   - ./target/debug/examples/version
