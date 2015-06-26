@@ -23,5 +23,6 @@ script:
   - cargo build --example taskvent
   - cargo build --example taskwork
   - cargo build --example tasksink
+  - cargo build --example msreader
   - ./target/debug/examples/msgsend
   - ./target/debug/examples/version

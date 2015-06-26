@@ -1,5 +1,6 @@
 *.swp
 *~
+\#*\#
 *.dylib
 *.dSYM
 *.o
