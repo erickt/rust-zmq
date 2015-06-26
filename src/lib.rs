@@ -13,6 +13,7 @@ use libc::consts::os::posix88;
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
+use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 pub use SocketType::*;
@@ -574,12 +575,13 @@ impl Socket {
         setsockopt_i32(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
     }
 
-    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem {
+    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem<'a> {
         PollItem {
             socket: self.sock,
             fd: 0,
             events: events,
-            revents: 0
+            revents: 0,
+            marker: PhantomData
         }
     }
 }
@@ -677,20 +679,22 @@ pub static POLLOUT : i16 = 2i16;
 pub static POLLERR : i16 = 4i16;
 
 #[repr(C)]
-pub struct PollItem {
+pub struct PollItem<'a> {
     socket: *mut libc::c_void,
     fd: c_int,
     events: i16,
-    revents: i16
+    revents: i16,
+    marker: PhantomData<&'a Socket>
 }
 
-impl<'a> PollItem {
-    pub fn from_fd(fd: c_int) -> PollItem {
+impl<'a> PollItem<'a> {
+    pub fn from_fd(fd: c_int) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
             events: 0,
-            revents: 0
+            revents: 0,
+            marker: PhantomData
         }
     }
 
@@ -699,7 +703,7 @@ impl<'a> PollItem {
     }
 }
 
-pub fn poll<'a>(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
+pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
     unsafe {
         let rc = zmq_sys::zmq_poll(
             items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
@@ -714,8 +718,8 @@ pub fn poll<'a>(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
     }
 }
 
-pub fn proxy<'a>(frontend: &mut Socket,
-                 backend: &mut Socket) -> Result<(), Error> {
+pub fn proxy(frontend: &mut Socket,
+             backend: &mut Socket) -> Result<(), Error> {
     unsafe {
         let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut());
 
@@ -727,9 +731,9 @@ pub fn proxy<'a>(frontend: &mut Socket,
     }
 }
 
-pub fn proxy_with_capture<'a>(frontend: &mut Socket,
-                              backend: &mut Socket,
-                              capture: &mut Socket) -> Result<(), Error> {
+pub fn proxy_with_capture(frontend: &mut Socket,
+                          backend: &mut Socket,
+                          capture: &mut Socket) -> Result<(), Error> {
     unsafe {
         let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock);
 
