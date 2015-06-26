@@ -42,6 +42,10 @@ path = "examples/zguide/taskwork/main.rs"
 name = "tasksink"
 path = "examples/zguide/tasksink/main.rs"
 
+[[example]]
+name = "msreader"
+path = "examples/zguide/msreader/main.rs"
+
 [dependencies]
 libc = "*"
 log = "*"
