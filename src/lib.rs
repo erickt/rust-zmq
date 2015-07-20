@@ -9,7 +9,46 @@ extern crate libc;
 extern crate zmq_sys;
 
 use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
-use libc::consts::os::posix88;
+#[cfg(not(windows))] use libc::consts::os::posix88;
+#[cfg(windows)]
+mod posix88 {
+    // defined per MSVC include/errno.h, as 0mq appears to utilize
+    // strerror() for error string resolution.
+    // commented items are actually defined as shown in errno.h, but
+    // 0mq provides its own definitions (ZMQ_HAUSNUMERO + ..)
+    use libc::c_int;
+    pub const ENOENT : c_int          = 2;
+    pub const EINTR : c_int           = 4;
+    pub const EAGAIN : c_int          = 11;
+    pub const ENOMEM : c_int          = 12;
+    pub const EACCES : c_int          = 13;
+    pub const EFAULT : c_int          = 14;
+    pub const EBUSY : c_int           = 16;
+    pub const ENODEV : c_int          = 19;
+    pub const EINVAL : c_int          = 22;
+    pub const EMFILE : c_int          = 24;
+    pub const ENAMETOOLONG : c_int    = 38;
+    //pub const EADDRINUSE : c_int      = 100;
+    //pub const EADDRNOTAVAIL : c_int   = 101;
+    //pub const EAFNOSUPPORT : c_int    = 102;
+    //pub const ECONNABORTED : c_int    = 106;
+    //pub const ECONNREFUSED : c_int    = 107;
+    //pub const ECONNRESET : c_int      = 108;
+    //pub const EHOSTUNREACH : c_int    = 110;
+    //pub const EINPROGRESS : c_int     = 112;
+    //pub const EMSGSIZE : c_int        = 115;
+    //pub const ENETDOWN : c_int        = 116;
+    //pub const ENETRESET : c_int       = 117;
+    //pub const ENETUNREACH : c_int     = 118;
+    //pub const ENOBUFS : c_int         = 119;
+    //pub const ENOTCONN : c_int        = 126;
+    //pub const ENOTSOCK : c_int        = 128;
+    //pub const ENOTSUP : c_int         = 129;
+    pub const EPROTO : c_int          = 134;
+    //pub const EPROTONOSUPPORT : c_int = 135;
+    //pub const ETIMEDOUT : c_int       = 138;
+}
+
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
@@ -125,29 +164,59 @@ const ZMQ_HAUSNUMERO: isize = 156384712;
 #[derive(Clone, Eq, PartialEq)]
 pub enum Error {
     EACCES          = posix88::EACCES as isize,
+    #[cfg(not(windows))]
     EADDRINUSE      = posix88::EADDRINUSE as isize,
     EAGAIN          = posix88::EAGAIN as isize,
     EBUSY           = posix88::EBUSY as isize,
+    #[cfg(not(windows))]
     ECONNREFUSED    = posix88::ECONNREFUSED as isize,
     EFAULT          = posix88::EFAULT as isize,
     EINTR           = posix88::EINTR as isize,
+    #[cfg(not(windows))]
     EHOSTUNREACH    = posix88::EHOSTUNREACH as isize,
+    #[cfg(not(windows))]
     EINPROGRESS     = posix88::EINPROGRESS as isize,
     EINVAL          = posix88::EINVAL as isize,
     EMFILE          = posix88::EMFILE as isize,
+    #[cfg(not(windows))]
     EMSGSIZE        = posix88::EMSGSIZE as isize,
     ENAMETOOLONG    = posix88::ENAMETOOLONG as isize,
     ENODEV          = posix88::ENODEV as isize,
     ENOENT          = posix88::ENOENT as isize,
     ENOMEM          = posix88::ENOMEM as isize,
+    #[cfg(not(windows))]
     ENOTCONN        = posix88::ENOTCONN as isize,
+    #[cfg(not(windows))]
     ENOTSOCK        = posix88::ENOTSOCK as isize,
     EPROTO          = posix88::EPROTO as isize,
+    #[cfg(not(windows))]
     EPROTONOSUPPORT = posix88::EPROTONOSUPPORT as isize,
     ENOTSUP         = (ZMQ_HAUSNUMERO + 1) as isize,
+    #[cfg(windows)]
+    EPROTONOSUPPORT = (ZMQ_HAUSNUMERO + 2) as isize,
     ENOBUFS         = (ZMQ_HAUSNUMERO + 3) as isize,
     ENETDOWN        = (ZMQ_HAUSNUMERO + 4) as isize,
+    #[cfg(windows)]
+    EADDRINUSE      = (ZMQ_HAUSNUMERO + 5) as isize,
     EADDRNOTAVAIL   = (ZMQ_HAUSNUMERO + 6) as isize,
+    #[cfg(windows)]
+    ECONNREFUSED    = (ZMQ_HAUSNUMERO + 7) as isize,
+    #[cfg(windows)]
+    EINPROGRESS     = (ZMQ_HAUSNUMERO + 8) as isize,
+    #[cfg(windows)]
+    ENOTSOCK        = (ZMQ_HAUSNUMERO + 9) as isize,
+    #[cfg(windows)]
+    EMSGSIZE        = (ZMQ_HAUSNUMERO + 10) as isize,
+    EAFNOSUPPORT    = (ZMQ_HAUSNUMERO + 11) as isize,
+    ENETUNREACH     = (ZMQ_HAUSNUMERO + 12) as isize,
+    ECONNABORTED    = (ZMQ_HAUSNUMERO + 13) as isize,
+    ECONNRESET      = (ZMQ_HAUSNUMERO + 14) as isize,
+    #[cfg(windows)]
+    ENOTCONN        = (ZMQ_HAUSNUMERO + 15) as isize,
+    ETIMEDOUT       = (ZMQ_HAUSNUMERO + 16) as isize,
+    #[cfg(windows)]
+    EHOSTUNREACH    = (ZMQ_HAUSNUMERO + 17) as isize,
+    ENETRESET     = (ZMQ_HAUSNUMERO + 18) as isize,
 
     // native zmq error codes
     EFSM            = (ZMQ_HAUSNUMERO + 51) as isize,
@@ -166,23 +235,31 @@ impl Error {
     pub fn from_raw(raw: i32) -> Error {
         match raw {
             posix88::EACCES          => Error::EACCES,
+            #[cfg(not(windows))]
             posix88::EADDRINUSE      => Error::EADDRINUSE,
             posix88::EAGAIN          => Error::EAGAIN,
             posix88::EBUSY           => Error::EBUSY,
+            #[cfg(not(windows))]
             posix88::ECONNREFUSED    => Error::ECONNREFUSED,
             posix88::EFAULT          => Error::EFAULT,
+            #[cfg(not(windows))]
             posix88::EHOSTUNREACH    => Error::EHOSTUNREACH,
+            #[cfg(not(windows))]
             posix88::EINPROGRESS     => Error::EINPROGRESS,
             posix88::EINVAL          => Error::EINVAL,
             posix88::EMFILE          => Error::EMFILE,
+            #[cfg(not(windows))]
             posix88::EMSGSIZE        => Error::EMSGSIZE,
             posix88::ENAMETOOLONG    => Error::ENAMETOOLONG,
             posix88::ENODEV          => Error::ENODEV,
             posix88::ENOENT          => Error::ENOENT,
             posix88::ENOMEM          => Error::ENOMEM,
+            #[cfg(not(windows))]
             posix88::ENOTCONN        => Error::ENOTCONN,
+            #[cfg(not(windows))]
             posix88::ENOTSOCK        => Error::ENOTSOCK,
             posix88::EPROTO          => Error::EPROTO,
+            #[cfg(not(windows))]
             posix88::EPROTONOSUPPORT => Error::EPROTONOSUPPORT,
             156384713                => Error::ENOTSUP,
             156384714                => Error::EPROTONOSUPPORT,
@@ -193,6 +270,17 @@ impl Error {
             156384719                => Error::ECONNREFUSED,
             156384720                => Error::EINPROGRESS,
             156384721                => Error::ENOTSOCK,
+            156384722                => Error::EMSGSIZE,
+            156384723                => Error::EAFNOSUPPORT,
+            156384724                => Error::ENETUNREACH,
+            156384725                => Error::ECONNABORTED,
+            156384726                => Error::ECONNRESET,
+            156384727                => Error::ENOTCONN,
+            156384728                => Error::ETIMEDOUT,
+            156384729                => Error::EHOSTUNREACH,
+            156384730                => Error::ENETRESET,
+
+            // native zmq error codes
             156384763                => Error::EFSM,
             156384764                => Error::ENOCOMPATPROTO,
             156384765                => Error::ETERM,
