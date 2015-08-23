@@ -51,6 +51,10 @@ path = "examples/zguide/weather_server/main.rs"
 unstable = ["clippy"]
 unstable-testing = ["compiletest_rs", "unstable"]
 
+[[example]]
+name = "rtdealer"
+path = "examples/zguide/rtdealer/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
