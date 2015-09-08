@@ -10,7 +10,7 @@ extern crate zmq_sys;
 
 use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
 use libc::consts::os::posix88;
-use std::{mem, ptr, str, slice};
+use std::{convert, mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
@@ -310,6 +310,12 @@ impl Drop for Socket {
             Ok(()) => { debug!("socket dropped") },
             Err(e) => panic!(e)
         }
+    }
+}
+
+impl convert::From<*mut libc::c_void> for Socket {
+    fn from(raw: *mut libc::c_void) -> Socket {
+        Socket { sock: raw, closed: false }
     }
 }
 
