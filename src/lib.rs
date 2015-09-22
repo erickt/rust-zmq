@@ -575,7 +575,7 @@ impl Socket {
         setsockopt_i32(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
     }
 
-    pub fn as_poll_item<'a>(&self, events: i16) -> PollItem<'a> {
+    pub fn as_poll_item<'a>(&'a self, events: i16) -> PollItem<'a> {
         PollItem {
             socket: self.sock,
             fd: 0,

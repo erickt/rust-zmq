@@ -49,6 +49,9 @@ path = "examples/zguide/msreader/main.rs"
 [dependencies]
 libc = "*"
 log = "*"
+zmq-sys = { version = "*", path = "zmq-sys" }
+
+[dev-dependencies]
+compiletest_rs = "*"
 rand = "*"
 time = "*"
-zmq-sys = { version = "*", path = "zmq-sys" }
