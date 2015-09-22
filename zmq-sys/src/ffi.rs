@@ -30,9 +30,7 @@ pub struct Struct_Unnamed2 {
     pub revents: ::libc::c_short,
 }
 pub type zmq_pollitem_t = Struct_Unnamed2;
-#[link(name = "zmq")]
-extern "C" { }
-#[link(name = "zmq")]
+#[cfg_attr(not(windows), link(name = "zmq"))]
 extern "C" {
     pub fn zmq_version(major: *mut ::libc::c_int, minor: *mut ::libc::c_int,
                        patch: *mut ::libc::c_int);
