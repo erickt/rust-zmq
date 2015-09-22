@@ -46,12 +46,15 @@ path = "examples/zguide/tasksink/main.rs"
 name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
+[features]
+unstable = ["compiletest_rs"]
+
 [dependencies]
 libc = "*"
 log = "*"
 zmq-sys = { version = "*", path = "zmq-sys" }
+compiletest_rs = { version = "*", optional = true }
 
 [dev-dependencies]
-compiletest_rs = "*"
 rand = "*"
 time = "*"

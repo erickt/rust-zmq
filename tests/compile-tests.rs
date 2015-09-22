@@ -1,3 +1,5 @@
+#![cfg(feature = "unstable")]
+
 extern crate compiletest_rs as compiletest;
 
 use std::path::PathBuf;
