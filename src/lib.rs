@@ -273,7 +273,7 @@ impl Context {
             return Err(errno_to_error());
         }
 
-        Ok(Socket::new(sock, false))
+        Ok(Socket::from_raw(sock, false))
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -317,12 +317,18 @@ impl Drop for Socket {
 }
 
 impl Socket {
-    pub fn new(sock: *mut libc::c_void, persistent: bool) -> Socket {
+    /// Create a socket from a raw pointer.
+    pub fn from_raw(sock: *mut libc::c_void, persistent: bool) -> Socket {
         Socket {
             sock: sock,
             closed: false,
             persistent: persistent,
         }
+    }
+
+    /// Return the raw pointer.
+    pub fn to_raw(&mut self) -> *mut libc::c_void {
+        self.sock
     }
 
     /// Accept connections on a socket.
