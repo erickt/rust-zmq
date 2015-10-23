@@ -266,7 +266,7 @@ impl Context {
         }
     }
 
-    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {

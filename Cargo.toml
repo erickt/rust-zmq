@@ -46,6 +46,10 @@ path = "examples/zguide/tasksink/main.rs"
 name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
+[[example]]
+name = "arcex"
+path = "examples/arcex/main.rs"
+
 [features]
 unstable = ["compiletest_rs"]
 
