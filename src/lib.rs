@@ -266,14 +266,14 @@ impl Context {
         }
     }
 
-    pub fn socket(&self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket<'a>(&'a self, socket_type: SocketType) -> Result<Socket<'a>, Error> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock, closed: false })
+        Ok(Socket { sock: sock, closed: false, ctx: PhantomData  })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -297,14 +297,16 @@ impl Drop for Context {
     }
 }
 
-pub struct Socket {
+pub struct Socket<'b> {
     sock: *mut libc::c_void,
-    closed: bool
+    closed: bool,
+    // the context needs to be alive at least as long as the socket is
+    ctx: PhantomData<&'b Context>
 }
 
-unsafe impl Send for Socket {}
+unsafe impl<'b> Send for Socket<'b> {}
 
-impl Drop for Socket {
+impl<'b> Drop for Socket<'b> {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
@@ -313,7 +315,7 @@ impl Drop for Socket {
     }
 }
 
-impl Socket {
+impl<'b> Socket<'b> {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
@@ -684,7 +686,7 @@ pub struct PollItem<'a> {
     fd: c_int,
     events: i16,
     revents: i16,
-    marker: PhantomData<&'a Socket>
+    marker: PhantomData<&'a Socket<'a>>
 }
 
 impl<'a> PollItem<'a> {

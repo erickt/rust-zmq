@@ -32,7 +32,7 @@ fn worker(ctx: &zmq::Context) {
 	}
 }
 
-fn connect_socket<'a>(ctx: &'a zmq::Context, typ: zmq::SocketType, address: &str) -> Result<zmq::Socket, zmq::Error> {
+fn connect_socket<'a>(ctx: &'a zmq::Context, typ: zmq::SocketType, address: &str) -> Result<zmq::Socket<'a>, zmq::Error> {
 	ctx.socket(typ)
 		.and_then(|mut socket| match socket.connect(address) {
 			Ok(()) => Ok(socket),
