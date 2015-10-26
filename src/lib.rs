@@ -266,7 +266,7 @@ impl Context {
         }
     }
 
-    pub fn socket<'a>(&'a self, socket_type: SocketType) -> Result<Socket<'a>, Error> {
+    pub fn socket<'a, 'b>(&'b self, socket_type: SocketType) -> Result<Socket<'a>, Error> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {
