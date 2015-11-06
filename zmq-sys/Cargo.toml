@@ -7,4 +7,4 @@ description = "Low-level bindings to the zeromq library"
 repository = "https://github.com/erickt/rust-zmq"
 
 [dependencies]
-libc = "*"
+libc = "0.2.*"
