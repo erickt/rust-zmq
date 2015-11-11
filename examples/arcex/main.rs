@@ -14,12 +14,16 @@ fn main() {
 					Ok(()) => Ok(socket),
 					Err(e) => Err(e)
 				}).unwrap();
-	let w1_ctx = ctx.clone();
-	let worker1 = thread::spawn( move || { worker(&w1_ctx); });
+	let worker1 = fork(&ctx);
 	
 	push_socket.send("Message1".as_bytes(), 0).unwrap();
 
 	let res1 = worker1.join();
+}
+
+fn fork(ctx: &Arc<zmq::Context>) -> thread::JoinHandle<()> {
+	let w_ctx = ctx.clone();
+	thread::spawn( move || { worker(&w_ctx); })
 }
 
 fn worker(ctx: &zmq::Context) {
