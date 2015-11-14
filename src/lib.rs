@@ -272,7 +272,7 @@ impl Context {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock, closed: false })
+        Ok(Socket::from_raw(sock, false))
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -298,21 +298,38 @@ impl Drop for Context {
 
 pub struct Socket {
     sock: *mut libc::c_void,
-    closed: bool
+    closed: bool,
+    persistent: bool,
 }
 
 unsafe impl Send for Socket {}
 
 impl Drop for Socket {
     fn drop(&mut self) {
-        match self.close_final() {
-            Ok(()) => { debug!("socket dropped") },
-            Err(e) => panic!(e)
+        if !self.persistent {
+            match self.close_final() {
+                Ok(()) => { debug!("socket dropped") },
+                Err(e) => panic!(e)
+            }
         }
     }
 }
 
 impl Socket {
+    /// Create a socket from a raw pointer.
+    pub fn from_raw(sock: *mut libc::c_void, persistent: bool) -> Socket {
+        Socket {
+            sock: sock,
+            closed: false,
+            persistent: persistent,
+        }
+    }
+
+    /// Return the raw pointer.
+    pub fn to_raw(&mut self) -> *mut libc::c_void {
+        self.sock
+    }
+
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
