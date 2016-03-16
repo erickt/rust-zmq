@@ -7,6 +7,7 @@
 extern crate zmq;
 
 use std::thread;
+use std::time::Duration;
 
 fn main() {
     let mut context = zmq::Context::new();
@@ -19,6 +20,6 @@ fn main() {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
         responder.send_str("World", 0).unwrap();
-        thread::sleep_ms(1000);
+        thread::sleep(Duration::from_millis(1000));
     }
 }

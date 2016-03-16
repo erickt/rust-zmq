@@ -8,8 +8,9 @@
 
 extern crate zmq;
 
-use std::thread;
 use std::io::{self,Write};
+use std::thread;
+use std::time::Duration;
 
 fn main() {
     let mut context = zmq::Context::new();
@@ -34,7 +35,7 @@ fn main() {
         let _ = io::stdout().flush();
 
         // Do the work
-        thread::sleep_ms(work as u32);
+        thread::sleep(Duration::from_millis(work as u64));
 
         // Send results to sink
         sender.send(b"",0).unwrap();

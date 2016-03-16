@@ -5,11 +5,12 @@
 
 extern crate zmq;
 
+use std::time::Duration;
 use std::thread;
 
 fn main() {
     let mut context = zmq::Context::new();
-    
+
     // Connect to task ventilator
     let mut receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.connect("tcp://localhost:5557").is_ok());
@@ -35,7 +36,7 @@ fn main() {
                 }
             }
         }
-        
+
         loop {
             let resp = subscriber.recv(&mut msg, zmq::DONTWAIT);
             match resp {
@@ -45,8 +46,8 @@ fn main() {
                 }
             }
         }
-        
+
         // No activity, so sleep for 1 msec
-        thread::sleep_ms(1)
+        thread::sleep(Duration::from_millis(1))
     }
 }
