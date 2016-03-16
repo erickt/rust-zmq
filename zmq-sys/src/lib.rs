@@ -4,9 +4,7 @@ extern crate libc;
 pub use ffi::{
     zmq_msg_t,
     zmq_free_fn,
-    zmq_event_t,
     zmq_pollitem_t,
-
     zmq_version,
     zmq_errno,
     zmq_strerror,
@@ -31,6 +29,7 @@ pub use ffi::{
     zmq_msg_more,
     zmq_msg_get,
     zmq_msg_set,
+    zmq_msg_gets,
     zmq_socket,
     zmq_close,
     zmq_setsockopt,
@@ -50,17 +49,22 @@ pub use ffi::{
     zmq_poll,
     zmq_proxy,
     zmq_proxy_steerable,
+    zmq_has,
+    zmq_device,
     zmq_z85_encode,
     zmq_z85_decode,
-    zmq_device,
+    zmq_curve_keypair,
+    zmq_stopwatch_start,
+    zmq_stopwatch_stop,
+    zmq_sleep,
+    zmq_threadstart,
+    zmq_threadclose,
 };
 
 #[allow(non_camel_case_types)]
 mod ffi {
     use libc::{
         uint8_t,
-        uint16_t,
-        int32_t,
         size_t,
     };
 

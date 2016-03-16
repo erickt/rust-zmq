@@ -8,18 +8,22 @@ extern crate log;
 extern crate libc;
 extern crate zmq_sys;
 
-use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
+use libc::{c_int, c_long, size_t, int64_t, uint64_t};
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use std::os::raw::c_void;
+use std::result;
 
 pub use SocketType::*;
 
+pub type Result<T> = result::Result<T, Error>;
+
 /// Socket types
 #[allow(non_camel_case_types)]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum SocketType {
     PAIR   = 0,
     PUB    = 1,
@@ -41,37 +45,66 @@ pub static SNDMORE : i32 = 2;
 
 #[allow(non_camel_case_types)]
 #[derive(Clone)]
-#[allow(non_camel_case_types)]
 pub enum Constants {
-    ZMQ_AFFINITY          = 4,
-    ZMQ_IDENTITY          = 5,
-    ZMQ_SUBSCRIBE         = 6,
-    ZMQ_UNSUBSCRIBE       = 7,
-    ZMQ_RATE              = 8,
-    ZMQ_RECOVERY_IVL      = 9,
-    ZMQ_MCAST_LOOP        = 10,
-    ZMQ_SNDBUF            = 11,
-    ZMQ_RCVBUF            = 12,
-    ZMQ_RCVMORE           = 13,
-    ZMQ_FD                = 14,
-    ZMQ_EVENTS            = 15,
-    ZMQ_TYPE              = 16,
-    ZMQ_LINGER            = 17,
-    ZMQ_RECONNECT_IVL     = 18,
-    ZMQ_BACKLOG           = 19,
-    ZMQ_RECOVERY_IVL_MSEC = 20,
-    ZMQ_RECONNECT_IVL_MAX = 21,
-    ZMQ_MAXMSGSIZE        = 22,
-    ZMQ_SNDHWM            = 23,
-    ZMQ_RCVHWM            = 24,
+    ZMQ_AFFINITY                 = 4,
+    ZMQ_IDENTITY                 = 5,
+    ZMQ_SUBSCRIBE                = 6,
+    ZMQ_UNSUBSCRIBE              = 7,
+    ZMQ_RATE                     = 8,
+    ZMQ_RECOVERY_IVL             = 9,
+    ZMQ_SNDBUF                   = 11,
+    ZMQ_RCVBUF                   = 12,
+    ZMQ_RCVMORE                  = 13,
+    ZMQ_FD                       = 14,
+    ZMQ_EVENTS                   = 15,
+    ZMQ_TYPE                     = 16,
+    ZMQ_LINGER                   = 17,
+    ZMQ_RECONNECT_IVL            = 18,
+    ZMQ_BACKLOG                  = 19,
+    ZMQ_RECONNECT_IVL_MAX        = 21,
+    ZMQ_MAXMSGSIZE               = 22,
+    ZMQ_SNDHWM                   = 23,
+    ZMQ_RCVHWM                   = 24,
+    ZMQ_MULTICAST_HOPS           = 25,
+    ZMQ_RCVTIMEO                 = 27,
+    ZMQ_SNDTIMEO                 = 28,
+    ZMQ_LAST_ENDPOINT            = 32,
+    ZMQ_ROUTER_MANDATORY         = 33,
+    ZMQ_TCP_KEEPALIVE            = 34,
+    ZMQ_TCP_KEEPALIVE_CNT        = 35,
+    ZMQ_TCP_KEEPALIVE_IDLE       = 36,
+    ZMQ_TCP_KEEPALIVE_INTVL      = 37,
+    ZMQ_IMMEDIATE                = 39,
+    ZMQ_XPUB_VERBOSE             = 40,
+    ZMQ_ROUTER_RAW               = 41,
+    ZMQ_IPV6                     = 42,
+    ZMQ_MECHANISM                = 43,
+    ZMQ_PLAIN_SERVER             = 44,
+    ZMQ_PLAIN_USERNAME           = 45,
+    ZMQ_PLAIN_PASSWORD           = 46,
+    ZMQ_CURVE_SERVER             = 47,
+    ZMQ_CURVE_PUBLICKEY          = 48,
+    ZMQ_CURVE_SECRETKEY          = 49,
+    ZMQ_CURVE_SERVERKEY          = 50,
+    ZMQ_PROBE_ROUTER             = 51,
+    ZMQ_REQ_CORRELATE            = 52,
+    ZMQ_REQ_RELAXED              = 53,
+    ZMQ_CONFLATE                 = 54,
+    ZMQ_ZAP_DOMAIN               = 55,
+    ZMQ_ROUTER_HANDOVER          = 56,
+    ZMQ_TOS                      = 57,
+    ZMQ_CONNECT_RID              = 61,
+    ZMQ_GSSAPI_SERVER            = 62,
+    ZMQ_GSSAPI_PRINCIPAL         = 63,
+    ZMQ_GSSAPI_SERVICE_PRINCIPAL = 64,
+    ZMQ_GSSAPI_PLAINTEXT         = 65,
+    ZMQ_HANDSHAKE_IVL            = 66,
+    ZMQ_SOCKS_PROXY              = 68,
+    ZMQ_XPUB_NODROP              = 69,
 
-    ZMQ_MAX_VSM_SIZE      = 30,
-    ZMQ_DELIMITER         = 31,
-    ZMQ_VSM               = 32,
-
-    ZMQ_MSG_MORE          = 1,
-    ZMQ_MSG_SHARED        = 128,
-    ZMQ_MSG_MASK          = 129,
+    ZMQ_MSG_MORE                 = 1,
+    ZMQ_MSG_SHARED               = 128,
+    ZMQ_MSG_MASK                 = 129,
 }
 
 impl Copy for Constants {}
@@ -80,44 +113,19 @@ impl Constants {
     pub fn to_raw(&self) -> i32 {
         *self as i32
     }
-
-    pub fn from_raw(raw: i32) -> Constants {
-        // fails if `raw` is not a valid value
-        match raw {
-            4         => Constants::ZMQ_AFFINITY,
-            5         => Constants::ZMQ_IDENTITY,
-            6         => Constants::ZMQ_SUBSCRIBE,
-            7         => Constants::ZMQ_UNSUBSCRIBE,
-            8         => Constants::ZMQ_RATE,
-            9         => Constants::ZMQ_RECOVERY_IVL,
-            10        => Constants::ZMQ_MCAST_LOOP,
-            11        => Constants::ZMQ_SNDBUF,
-            12        => Constants::ZMQ_RCVBUF,
-            13        => Constants::ZMQ_RCVMORE,
-            14        => Constants::ZMQ_FD,
-            15        => Constants::ZMQ_EVENTS,
-            16        => Constants::ZMQ_TYPE,
-            17        => Constants::ZMQ_LINGER,
-            18        => Constants::ZMQ_RECONNECT_IVL,
-            19        => Constants::ZMQ_BACKLOG,
-            20        => Constants::ZMQ_RECOVERY_IVL_MSEC,
-            21        => Constants::ZMQ_RECONNECT_IVL_MAX,
-            22        => Constants::ZMQ_MAXMSGSIZE,
-            23        => Constants::ZMQ_SNDHWM,
-            24        => Constants::ZMQ_RCVHWM,
-
-            30        => Constants::ZMQ_MAX_VSM_SIZE,
-            31        => Constants::ZMQ_DELIMITER,
-            32        => Constants::ZMQ_VSM,
-
-            1         => Constants::ZMQ_MSG_MORE,
-            128       => Constants::ZMQ_MSG_SHARED,
-            129       => Constants::ZMQ_MSG_MASK,
-
-            x         => panic!("invalid constant {}", x),
-        }
-    }
 }
+
+/// Security Mechanism
+#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum Mechanism {
+    ZMQ_NULL   = 0,
+    ZMQ_PLAIN  = 1,
+    ZMQ_CURVE  = 2,
+    ZMQ_GSSAPI = 3,
+}
+
+impl Copy for Mechanism {}
 
 const ZMQ_HAUSNUMERO: isize = 156384712;
 
@@ -252,7 +260,7 @@ pub fn version() -> (i32, i32, i32) {
 /// For this reason, one should use an Arc to share it, rather than any unsafe
 /// trickery you might think up that would call the destructor.
 pub struct Context {
-    ctx: *mut libc::c_void,
+    ctx: *mut c_void,
 }
 
 unsafe impl Send for Context {}
@@ -265,7 +273,7 @@ impl Context {
         }
     }
 
-    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {
@@ -277,7 +285,7 @@ impl Context {
 
     /// Try to destroy the context. This is different than the destructor; the
     /// destructor will loop when zmq_ctx_destroy returns EINTR
-    pub fn destroy(&mut self) -> Result<(), Error> {
+    pub fn destroy(&mut self) -> Result<()> {
         if unsafe { zmq_sys::zmq_ctx_destroy(self.ctx) } == -1i32 {
             Err(errno_to_error())
         } else {
@@ -297,7 +305,7 @@ impl Drop for Context {
 }
 
 pub struct Socket {
-    sock: *mut libc::c_void,
+    sock: *mut c_void,
     closed: bool
 }
 
@@ -314,27 +322,27 @@ impl Drop for Socket {
 
 impl Socket {
     /// Accept connections on a socket.
-    pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
+    pub fn bind(&mut self, endpoint: &str) -> Result<()> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
                           ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
-    pub fn connect(&mut self, endpoint: &str) -> Result<(), Error> {
+    pub fn connect(&mut self, endpoint: &str) -> Result<()> {
         let rc = unsafe { zmq_sys::zmq_connect(self.sock,
                           ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Send a `&[u8]` message.
-    pub fn send(&mut self, data: &[u8], flags: i32) -> Result<(), Error> {
+    pub fn send(&mut self, data: &[u8], flags: i32) -> Result<()> {
         let msg = try!(Message::from_slice(data));
         self.send_msg(msg, flags)
     }
 
     /// Send a `Message` message.
-    pub fn send_msg(&mut self, mut msg: Message, flags: i32) -> Result<(), Error> {
+    pub fn send_msg(&mut self, mut msg: Message, flags: i32) -> Result<()> {
         let rc = unsafe {
             zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int)
         };
@@ -346,13 +354,13 @@ impl Socket {
         }
     }
 
-    pub fn send_str(&mut self, data: &str, flags: i32) -> Result<(), Error> {
+    pub fn send_str(&mut self, data: &str, flags: i32) -> Result<()> {
         self.send(data.as_bytes(), flags)
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<(), Error> {
+    pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<()> {
         let rc = unsafe {
             zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int)
         };
@@ -364,7 +372,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_msg(&mut self, flags: i32) -> Result<Message, Error> {
+    pub fn recv_msg(&mut self, flags: i32) -> Result<Message> {
         let mut msg = try!(Message::new());
         match self.recv(&mut msg, flags) {
             Ok(()) => Ok(msg),
@@ -372,7 +380,7 @@ impl Socket {
         }
     }
 
-    pub fn recv_bytes(&mut self, flags: i32) -> Result<Vec<u8>, Error> {
+    pub fn recv_bytes(&mut self, flags: i32) -> Result<Vec<u8>> {
         match self.recv_msg(flags) {
             Ok(msg) => Ok(msg.to_vec()),
             Err(e) => Err(e),
@@ -380,14 +388,14 @@ impl Socket {
     }
 
     /// Read a `String` from the socket.
-    pub fn recv_string(&mut self, flags: i32) -> Result<Result<String, Vec<u8>>, Error> {
+    pub fn recv_string(&mut self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
         match self.recv_bytes(flags) {
             Ok(msg) => Ok(Ok(String::from_utf8(msg).unwrap_or("".to_string()))),
             Err(e) => Err(e),
         }
     }
 
-    pub fn close(&mut self) -> Result<(), Error> {
+    pub fn close(&mut self) -> Result<()> {
         if !self.closed {
             self.closed = true;
 
@@ -399,7 +407,7 @@ impl Socket {
         Ok(())
     }
 
-    pub fn close_final(&mut self) -> Result<(), Error> {
+    pub fn close_final(&mut self) -> Result<()> {
         if !self.closed {
             if unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
                 return Err(errno_to_error());
@@ -409,7 +417,38 @@ impl Socket {
         Ok(())
     }
 
-    pub fn get_socket_type(&self) -> Result<SocketType, Error> {
+    pub fn is_ipv6(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_IPV6.to_raw())) == 1)
+    }
+
+    pub fn is_immediate(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_IMMEDIATE.to_raw())) == 1)
+    }
+
+    pub fn is_plain_server(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_PLAIN_SERVER.to_raw())) == 1)
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn is_curve_server(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_CURVE_SERVER.to_raw())) == 1)
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn is_gssapi_server(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_GSSAPI_SERVER.to_raw())) == 1)
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn is_gssapi_plaintext(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_GSSAPI_PLAINTEXT.to_raw())) == 1)
+    }
+
+    pub fn is_conflate(&self) -> Result<bool> {
+        Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_CONFLATE.to_raw())) == 1)
+    }
+
+    pub fn get_socket_type(&self) -> Result<SocketType> {
         getsockopt_i32(self.sock, Constants::ZMQ_TYPE.to_raw()).map(|ty| {
             match ty {
                 0 => SocketType::PAIR,
@@ -428,150 +467,352 @@ impl Socket {
         })
     }
 
-    pub fn get_rcvmore(&self) -> Result<bool, Error> {
+    pub fn get_rcvmore(&self) -> Result<bool> {
         getsockopt_i64(self.sock, Constants::ZMQ_RCVMORE.to_raw())
             .map(|o| o == 1i64 )
     }
 
-    pub fn get_maxmsgsize(&self) -> Result<i64, Error> {
+    pub fn get_maxmsgsize(&self) -> Result<i64> {
         getsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw())
     }
 
 
-    pub fn get_sndhwm(&self) -> Result<i32, Error> {
+    pub fn get_sndhwm(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_SNDHWM.to_raw())
     }
 
-    pub fn get_rcvhwm(&self) -> Result<i32, Error> {
+    pub fn get_rcvhwm(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_RCVHWM.to_raw())
     }
 
-    pub fn get_affinity(&self) -> Result<u64, Error> {
+    pub fn get_affinity(&self) -> Result<u64> {
         getsockopt_u64(self.sock, Constants::ZMQ_AFFINITY.to_raw())
     }
 
-    pub fn get_identity(&self) -> Result<Vec<u8>, Error> {
-        getsockopt_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw())
+    pub fn get_identity(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 255 = identity max length
+        getsockopt_string(self.sock, Constants::ZMQ_IDENTITY.to_raw(), 255, false)
     }
 
-    pub fn get_rate(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, Constants::ZMQ_RATE.to_raw())
+    pub fn get_rate(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_RATE.to_raw())
     }
 
-    pub fn get_recovery_ivl(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, Constants::ZMQ_RECOVERY_IVL.to_raw())
+    pub fn get_recovery_ivl(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_RECOVERY_IVL.to_raw())
     }
 
-    pub fn get_recovery_ivl_msec(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, Constants::ZMQ_RECOVERY_IVL_MSEC.to_raw())
+    pub fn get_sndbuf(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_SNDBUF.to_raw())
     }
 
-    pub fn get_mcast_loop(&self) -> Result<bool, Error> {
-        getsockopt_i64(self.sock, Constants::ZMQ_MCAST_LOOP.to_raw())
-            .map(|o| o == 1i64)
+    pub fn get_rcvbuf(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_RCVBUF.to_raw())
     }
 
-    pub fn get_sndbuf(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, Constants::ZMQ_SNDBUF.to_raw())
+    pub fn get_tos(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_TOS.to_raw())
     }
 
-    pub fn get_rcvbuf(&self) -> Result<u64, Error> {
-        getsockopt_u64(self.sock, Constants::ZMQ_RCVBUF.to_raw())
+    pub fn get_linger(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_LINGER.to_raw())
     }
 
-    pub fn get_linger(&self) -> Result<i64, Error> {
-        getsockopt_i64(self.sock, Constants::ZMQ_LINGER.to_raw())
-    }
-
-    pub fn get_reconnect_ivl(&self) -> Result<i32, Error> {
+    pub fn get_reconnect_ivl(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_RECONNECT_IVL.to_raw())
     }
 
-    pub fn get_reconnect_ivl_max(&self) -> Result<i32, Error> {
+    pub fn get_reconnect_ivl_max(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_RECONNECT_IVL_MAX.to_raw())
     }
 
-    pub fn get_backlog(&self) -> Result<i32, Error> {
+    pub fn get_backlog(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_BACKLOG.to_raw())
     }
 
-    pub fn get_fd(&self) -> Result<i64, Error> {
+    pub fn get_fd(&self) -> Result<i64> {
         getsockopt_i64(self.sock, Constants::ZMQ_FD.to_raw())
     }
 
-    pub fn get_events(&self) -> Result<i32, Error> {
+    pub fn get_events(&self) -> Result<i32> {
         getsockopt_i32(self.sock, Constants::ZMQ_EVENTS.to_raw())
     }
 
-    pub fn set_maxmsgsize(&self, value: i64) -> Result<(), Error> {
+    pub fn get_multicast_hops(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_MULTICAST_HOPS.to_raw())
+    }
+
+    pub fn get_rcvtimeo(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_RCVTIMEO.to_raw())
+    }
+
+    pub fn get_sndtimeo(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_SNDTIMEO.to_raw())
+    }
+
+    pub fn get_socks_proxy(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 255 = longest allowable domain name is 253 so this should
+        // be a reasonable size.
+        getsockopt_string(self.sock, Constants::ZMQ_SOCKS_PROXY.to_raw(), 255, true)
+    }
+
+    pub fn get_tcp_keepalive(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE.to_raw())
+    }
+
+    pub fn get_tcp_keepalive_cnt(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_CNT.to_raw())
+    }
+
+    pub fn get_tcp_keepalive_idle(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_IDLE.to_raw())
+    }
+
+    pub fn get_tcp_keepalive_intvl(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_INTVL.to_raw())
+    }
+
+    pub fn get_mechanism(&self) -> Result<Mechanism> {
+        getsockopt_i32(self.sock, Constants::ZMQ_MECHANISM.to_raw()).map(|mech| {
+            match mech {
+                0 => Mechanism::ZMQ_NULL,
+                1 => Mechanism::ZMQ_PLAIN,
+                2 => Mechanism::ZMQ_CURVE,
+                3 => Mechanism::ZMQ_GSSAPI,
+                _ => panic!("Mechanism is out of range!")
+            }
+        })
+    }
+
+    pub fn get_plain_username(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 255 = arbitrary size
+        getsockopt_string(self.sock, Constants::ZMQ_PLAIN_USERNAME.to_raw(), 255, true)
+    }
+
+    pub fn get_plain_password(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 256 = arbitrary size based on std crypto key size
+        getsockopt_string(self.sock, Constants::ZMQ_PLAIN_PASSWORD.to_raw(), 256, true)
+    }
+
+    pub fn get_zap_domain(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 255 = arbitrary size
+        getsockopt_string(self.sock, Constants::ZMQ_ZAP_DOMAIN.to_raw(), 255, true)
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn get_curve_publickey(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 41 = Z85 encoded keysize + 1 for null byte
+        getsockopt_string(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 41, true)
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn get_curve_secretkey(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 41 = Z85 encoded keysize + 1 for null byte
+        getsockopt_string(self.sock, Constants::ZMQ_CURVE_SECRETKEY.to_raw(), 41, true)
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn get_curve_serverkey(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 41 = Z85 encoded keysize + 1 for null byte
+        getsockopt_string(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 41, true)
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 260 = best guess of max length based on docs.
+        getsockopt_string(self.sock, Constants::ZMQ_GSSAPI_PRINCIPAL.to_raw(), 260, true)
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 260 = best guess of max length based on docs.
+        getsockopt_string(self.sock, Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL.to_raw(), 260, true)
+    }
+
+    pub fn get_handshake_ivl(&self) -> Result<i32> {
+        getsockopt_i32(self.sock, Constants::ZMQ_HANDSHAKE_IVL.to_raw())
+    }
+
+    pub fn set_maxmsgsize(&self, value: i64) -> Result<()> {
         setsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
-    pub fn set_sndhwm(&self, value: i32) -> Result<(), Error> {
+    pub fn set_sndhwm(&self, value: i32) -> Result<()> {
         setsockopt_i32(self.sock, Constants::ZMQ_SNDHWM.to_raw(), value)
     }
 
-    pub fn set_rcvhwm(&self, value: i32) -> Result<(), Error> {
+    pub fn set_rcvhwm(&self, value: i32) -> Result<()> {
         setsockopt_i32(self.sock, Constants::ZMQ_RCVHWM.to_raw(), value)
     }
 
-    pub fn set_affinity(&self, value: u64) -> Result<(), Error> {
+    pub fn set_affinity(&self, value: u64) -> Result<()> {
         setsockopt_u64(self.sock, Constants::ZMQ_AFFINITY.to_raw(), value)
     }
 
-    pub fn set_identity(&self, value: &[u8]) -> Result<(), Error> {
+    pub fn set_identity(&self, value: &[u8]) -> Result<()> {
         setsockopt_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), value)
     }
 
-    pub fn set_subscribe(&self, value: &[u8]) -> Result<(), Error> {
+    pub fn set_subscribe(&self, value: &[u8]) -> Result<()> {
         setsockopt_bytes(self.sock, Constants::ZMQ_SUBSCRIBE.to_raw(), value)
     }
 
-    pub fn set_unsubscribe(&self, value: &[u8]) -> Result<(), Error> {
+    pub fn set_unsubscribe(&self, value: &[u8]) -> Result<()> {
         setsockopt_bytes(self.sock, Constants::ZMQ_UNSUBSCRIBE.to_raw(), value)
     }
 
-    pub fn set_rate(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, Constants::ZMQ_RATE.to_raw(), value)
+    pub fn set_rate(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RATE.to_raw(), value)
     }
 
-    pub fn set_recovery_ivl(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(self.sock, Constants::ZMQ_RECOVERY_IVL.to_raw(), value)
+    pub fn set_recovery_ivl(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RECOVERY_IVL.to_raw(), value)
     }
 
-    pub fn set_recovery_ivl_msec(&self, value: i64) -> Result<(), Error> {
-        setsockopt_i64(
-            self.sock, Constants::ZMQ_RECOVERY_IVL_MSEC.to_raw(), value)
+    pub fn set_sndbuf(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_SNDBUF.to_raw(), value)
     }
 
-    pub fn set_mcast_loop(&self, value: bool) -> Result<(), Error> {
-        let value = if value { 1i64 } else { 0i64 };
-        setsockopt_i64(self.sock, Constants::ZMQ_MCAST_LOOP.to_raw(), value)
+    pub fn set_rcvbuf(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RCVBUF.to_raw(), value)
     }
 
-    pub fn set_sndbuf(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, Constants::ZMQ_SNDBUF.to_raw(), value)
+    pub fn set_tos(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_TOS.to_raw(), value)
     }
 
-    pub fn set_rcvbuf(&self, value: u64) -> Result<(), Error> {
-        setsockopt_u64(self.sock, Constants::ZMQ_RCVBUF.to_raw(), value)
-    }
-
-    pub fn set_linger(&self, value: i32) -> Result<(), Error> {
+    pub fn set_linger(&self, value: i32) -> Result<()> {
         setsockopt_i32(self.sock, Constants::ZMQ_LINGER.to_raw(), value)
     }
 
-    pub fn set_reconnect_ivl(&self, value: i32) -> Result<(), Error> {
+    pub fn set_reconnect_ivl(&self, value: i32) -> Result<()> {
         setsockopt_i32(self.sock, Constants::ZMQ_RECONNECT_IVL.to_raw(), value)
     }
 
-    pub fn set_reconnect_ivl_max(&self, value: i32) -> Result<(), Error> {
+    pub fn set_reconnect_ivl_max(&self, value: i32) -> Result<()> {
         setsockopt_i32(
             self.sock, Constants::ZMQ_RECONNECT_IVL_MAX.to_raw(), value)
     }
 
-    pub fn set_backlog(&self, value: i32) -> Result<(), Error> {
+    pub fn set_backlog(&self, value: i32) -> Result<()> {
         setsockopt_i32(self.sock, Constants::ZMQ_BACKLOG.to_raw(), value)
+    }
+
+    pub fn set_multicast_hops(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_MULTICAST_HOPS.to_raw(), value)
+    }
+
+    pub fn set_rcvtimeo(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RCVTIMEO.to_raw(), value)
+    }
+
+    pub fn set_sndtimeo(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_SNDTIMEO.to_raw(), value)
+    }
+
+    pub fn set_ipv6(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_IPV6.to_raw(), if value { 1 } else { 0 })
+    }
+
+    pub fn set_socks_proxy(&self, value: Option<&str>) -> Result<()> {
+        if let Some(proxy) = value {
+            setsockopt_bytes(self.sock, Constants::ZMQ_SOCKS_PROXY.to_raw(), proxy.as_bytes())
+        } else {
+            setsockopt_null(self.sock, Constants::ZMQ_SOCKS_PROXY.to_raw())
+        }
+    }
+
+    pub fn set_tcp_keepalive(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE.to_raw(), value)
+    }
+
+    pub fn set_tcp_keepalive_cnt(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_CNT.to_raw(), value)
+    }
+
+    pub fn set_tcp_keepalive_idle(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_IDLE.to_raw(), value)
+    }
+
+    pub fn set_tcp_keepalive_intvl(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_TCP_KEEPALIVE_INTVL.to_raw(), value)
+    }
+
+    pub fn set_immediate(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_IMMEDIATE.to_raw(), if value { 1 } else { 0 })
+    }
+
+    pub fn set_plain_server(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_PLAIN_SERVER.to_raw(), if value { 1 } else { 0 })
+    }
+
+    pub fn set_plain_username(&self, value: Option<&str>) -> Result<()> {
+        if let Some(user) = value {
+            setsockopt_bytes(self.sock, Constants::ZMQ_PLAIN_USERNAME.to_raw(), user.as_bytes())
+        } else {
+            setsockopt_null(self.sock, Constants::ZMQ_PLAIN_USERNAME.to_raw())
+        }
+    }
+
+    pub fn set_plain_password(&self, value: Option<&str>) -> Result<()> {
+        if let Some(user) = value {
+            setsockopt_bytes(self.sock, Constants::ZMQ_PLAIN_PASSWORD.to_raw(), user.as_bytes())
+        } else {
+            setsockopt_null(self.sock, Constants::ZMQ_PLAIN_PASSWORD.to_raw())
+        }
+    }
+
+    pub fn set_zap_domain(&self, value: &str) -> Result<()> {
+        let cval = ffi::CString::new(value).unwrap();
+        setsockopt_bytes(self.sock, Constants::ZMQ_ZAP_DOMAIN.to_raw(), cval.as_bytes())
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn set_curve_server(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_CURVE_SERVER.to_raw(), if value { 1 } else { 0 })
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn set_curve_publickey(&self, value: &str) -> Result<()> {
+        setsockopt_bytes(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), value.as_bytes())
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn set_curve_secretkey(&self, value: &str) -> Result<()> {
+        setsockopt_bytes(self.sock, Constants::ZMQ_CURVE_SECRETKEY.to_raw(), value.as_bytes())
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    pub fn set_curve_serverkey(&self, value: &str) -> Result<()> {
+        setsockopt_bytes(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), value.as_bytes())
+    }
+
+    pub fn set_conflate(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_CONFLATE.to_raw(), if value { 1 } else { 0 })
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn set_gssapi_server(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_GSSAPI_SERVER.to_raw(), if value { 1 } else { 0 })
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn set_gssapi_principal(&self, value: &str) -> Result<()> {
+        setsockopt_bytes(self.sock, Constants::ZMQ_GSSAPI_PRINCIPAL.to_raw(), value.as_bytes())
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn set_gssapi_service_principal(&self, value: &str) -> Result<()> {
+        setsockopt_bytes(self.sock, Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL.to_raw(), value.as_bytes())
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    pub fn set_gssapi_plaintext(&self, value: bool) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_GSSAPI_PLAINTEXT.to_raw(), if value { 1 } else { 0 })
+    }
+
+    pub fn set_handshake_ivl(&self, value: i32) -> Result<()> {
+        setsockopt_i32(self.sock, Constants::ZMQ_HANDSHAKE_IVL.to_raw(), value)
     }
 
     pub fn as_poll_item<'a>(&'a self, events: i16) -> PollItem<'a> {
@@ -602,7 +843,7 @@ impl Drop for Message {
 
 impl Message {
     /// Create an empty `Message`.
-    pub fn new() -> Result<Message, Error> {
+    pub fn new() -> Result<Message> {
         unsafe {
             let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
             let rc = zmq_sys::zmq_msg_init(&mut msg);
@@ -614,7 +855,7 @@ impl Message {
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
-    pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message, Error> {
+    pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
         let rc = zmq_sys::zmq_msg_init_size(&mut msg, len as size_t);
 
@@ -624,7 +865,7 @@ impl Message {
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
-    pub fn with_capacity(len: usize) -> Result<Message, Error> {
+    pub fn with_capacity(len: usize) -> Result<Message> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(len));
             ptr::write_bytes(msg.as_mut_ptr(), 0, len);
@@ -633,7 +874,7 @@ impl Message {
     }
 
     /// Create a `Message` from a `&[u8]`. This will copy `data` into the message.
-    pub fn from_slice(data: &[u8]) -> Result<Message, Error> {
+    pub fn from_slice(data: &[u8]) -> Result<Message> {
         unsafe {
             let mut msg = try!(Message::with_capacity_unallocated(data.len()));
             ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
@@ -643,6 +884,17 @@ impl Message {
 
     pub fn as_str<'a>(&'a self) -> Option<&'a str> {
         str::from_utf8(self).ok()
+    }
+
+    pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
+        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg,
+                          ffi::CString::new(property.as_bytes()).unwrap().as_ptr()) };
+
+        if value == ptr::null() {
+            None
+        } else {
+            Some(unsafe { str::from_utf8(ffi::CStr::from_ptr(value).to_bytes()).unwrap() })
+        }
     }
 }
 
@@ -679,7 +931,7 @@ pub static POLLERR : i16 = 4i16;
 
 #[repr(C)]
 pub struct PollItem<'a> {
-    socket: *mut libc::c_void,
+    socket: *mut c_void,
     fd: c_int,
     events: i16,
     revents: i16,
@@ -702,7 +954,7 @@ impl<'a> PollItem<'a> {
     }
 }
 
-pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
+pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32,> {
     unsafe {
         let rc = zmq_sys::zmq_poll(
             items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
@@ -718,7 +970,7 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32, Error> {
 }
 
 pub fn proxy(frontend: &mut Socket,
-             backend: &mut Socket) -> Result<(), Error> {
+             backend: &mut Socket) -> Result<()> {
     unsafe {
         let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut());
 
@@ -732,7 +984,7 @@ pub fn proxy(frontend: &mut Socket,
 
 pub fn proxy_with_capture(frontend: &mut Socket,
                           backend: &mut Socket,
-                          capture: &mut Socket) -> Result<(), Error> {
+                          capture: &mut Socket) -> Result<()> {
     unsafe {
         let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock);
 
@@ -741,6 +993,68 @@ pub fn proxy_with_capture(frontend: &mut Socket,
         } else {
             Ok(())
         }
+    }
+}
+
+pub fn has(capability: &str) -> bool {
+    unsafe {
+        zmq_sys::zmq_has(ffi::CString::new(capability.as_bytes()).unwrap().as_ptr()) == 1
+    }
+}
+
+#[cfg(ZMQ_HAS_CURVE = "1")]
+pub struct CurveKeypair {
+    pub public_key: String,
+    pub secret_key: String,
+}
+
+#[cfg(ZMQ_HAS_CURVE = "1")]
+impl CurveKeypair {
+    pub fn new() -> Result<CurveKeypair> {
+        // Curve keypairs are currently 40 bytes long.
+        let mut ffi_public_key = vec![0u8; 40];
+        let mut ffi_secret_key = vec![0u8; 40];
+
+        unsafe {
+            let rc = zmq_sys::zmq_curve_keypair(ffi_public_key.as_mut_ptr() as *mut libc::c_char, ffi_secret_key.as_mut_ptr() as *mut libc::c_char);
+
+            if rc == -1i32 {
+                Err(errno_to_error())
+            } else {
+                Ok(CurveKeypair {
+                    public_key: String::from_utf8(ffi_public_key).unwrap_or(String::new()),
+                    secret_key: String::from_utf8(ffi_secret_key).unwrap_or(String::new())
+                })
+            }
+        }
+    }
+}
+
+pub fn z85_encode(data: &[u8]) -> String {
+    if data.len() % 4 != 0 {
+        return String::new();
+    }
+
+    let len = data.len() * 5 / 4;
+    let mut dest = vec![0u8; len];
+
+    unsafe {
+        zmq_sys::zmq_z85_encode(dest.as_mut_ptr() as *mut libc::c_char, data.as_ptr(), data.len());
+        String::from_utf8(dest).unwrap_or(String::new())
+    }
+}
+
+pub fn z85_decode(data: &str) -> Vec<u8> {
+    if data.len() % 5 != 0 {
+        return Vec::new();
+    }
+
+    let len = data.len() * 4 / 5;
+    let mut dest = vec![0u8; len];
+
+    unsafe {
+        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), ffi::CString::new(data).unwrap().into_raw());
+        dest
     }
 }
 
@@ -757,8 +1071,8 @@ impl fmt::Debug for Error {
 
 macro_rules! getsockopt_num(
     ($name:ident, $c_ty:ty, $ty:ty) => (
-        #[allow(trivial_casts)]    
-        fn $name(sock: *mut libc::c_void, opt: c_int) -> Result<$ty, Error> {
+        #[allow(trivial_casts)]
+        fn $name(sock: *mut c_void, opt: c_int) -> Result<$ty> {
             unsafe {
                 let mut value: $c_ty = 0;
                 let value_ptr = &mut value as *mut $c_ty;
@@ -784,46 +1098,52 @@ getsockopt_num!(getsockopt_i32, c_int, i32);
 getsockopt_num!(getsockopt_i64, int64_t, i64);
 getsockopt_num!(getsockopt_u64, uint64_t, u64);
 
-fn getsockopt_bytes(sock: *mut libc::c_void, opt: c_int) -> Result<Vec<u8>, Error> {
-    unsafe {
-        // The only binary option in zeromq is ZMQ_IDENTITY, which can have
-        // a max size of 255 bytes.
-        let mut size = 255 as size_t;
-        let mut value = Vec::with_capacity(size as usize);
+fn getsockopt_string(sock: *mut c_void, opt: c_int, size: size_t, remove_nulbyte: bool) -> Result<result::Result<String, Vec<u8>>> {
+    let mut size = size;
+    let mut value = vec![0u8; size];
 
-        let r = zmq_sys::zmq_getsockopt(
+    let r = unsafe {
+        zmq_sys::zmq_getsockopt(
             sock,
             opt,
             value.as_mut_ptr() as *mut c_void,
-            &mut size);
+            &mut size)
+    };
 
-        if r == -1i32 {
-            Err(errno_to_error())
-        } else {
-            value.truncate(size as usize);
-            Ok(value)
+    if r == -1i32 {
+        Err(errno_to_error())
+    } else {
+        if remove_nulbyte {
+            size -= 1;
         }
+        value.truncate(size);
+
+        if let Ok(s) = str::from_utf8(&value) {
+            return Ok(Ok(s.to_string()));
+        }
+
+        Ok(Err(value))
     }
 }
 
 macro_rules! setsockopt_num(
     ($name:ident, $ty:ty) => (
         #[allow(trivial_casts)]
-        fn $name(sock: *mut libc::c_void, opt: c_int, value: $ty) -> Result<(), Error> {
-            unsafe {
-                let size = mem::size_of::<$ty>() as size_t;
+        fn $name(sock: *mut c_void, opt: c_int, value: $ty) -> Result<()> {
+            let size = mem::size_of::<$ty>() as size_t;
 
-                let rc = zmq_sys::zmq_setsockopt(
+            let rc = unsafe {
+                zmq_sys::zmq_setsockopt(
                     sock,
                     opt,
                     (&value as *const $ty) as *const c_void,
-                    size);
+                    size)
+            };
 
-                if rc == -1 {
-                    Err(errno_to_error())
-                } else {
-                    Ok(())
-                }
+            if rc == -1 {
+                Err(errno_to_error())
+            } else {
+                Ok(())
             }
         }
     )
@@ -833,23 +1153,450 @@ setsockopt_num!(setsockopt_i32, i32);
 setsockopt_num!(setsockopt_i64, i64);
 setsockopt_num!(setsockopt_u64, u64);
 
-fn setsockopt_bytes(sock: *mut libc::c_void, opt: c_int, value: &[u8]) -> Result<(), Error> {
-    unsafe {
-        let r = zmq_sys::zmq_setsockopt(
+fn setsockopt_bytes(sock: *mut c_void, opt: c_int, value: &[u8]) -> Result<()> {
+    let r = unsafe {
+        zmq_sys::zmq_setsockopt(
             sock,
             opt,
             value.as_ptr() as *const c_void,
             value.len() as size_t
-        );
+        )
+    };
 
-        if r == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+    if r == -1i32 {
+        Err(errno_to_error())
+    } else {
+        Ok(())
+    }
+}
+
+fn setsockopt_null(sock: *mut c_void, opt: c_int) -> Result<()> {
+    let r = unsafe {
+        zmq_sys::zmq_setsockopt(
+            sock,
+            opt,
+            ptr::null(),
+            0
+        )
+    };
+
+    if r == -1i32 {
+        Err(errno_to_error())
+    } else {
+        Ok(())
     }
 }
 
 fn errno_to_error() -> Error {
     Error::from_raw(unsafe { zmq_sys::zmq_errno() })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    #[test]
+    fn test_curve_keypair() {
+        let keypair = CurveKeypair::new().unwrap();
+        assert!(keypair.public_key.len() == 40);
+        assert!(keypair.secret_key.len() == 40);
+    }
+
+    #[test]
+    fn test_z85() {
+        let test_str = "/AB8cGJ*-$lEbr2=TW$Q?i7:)<?G/4zr-hjppA3d";
+        let decoded = z85_decode(test_str);
+        let encoded = z85_encode(&decoded);
+        assert_eq!(test_str, encoded);
+    }
+
+    #[test]
+    fn test_get_socket_type() {
+        let mut ctx = Context::new();
+
+        let mut socket_types = vec![
+            SocketType::PAIR,
+            SocketType::PUB,
+            SocketType::SUB,
+            SocketType::REQ,
+            SocketType::REP,
+            SocketType::DEALER,
+            SocketType::ROUTER,
+            SocketType::PULL,
+            SocketType::PUSH,
+            SocketType::XPUB,
+            SocketType::XSUB
+        ];
+        for sock_type in socket_types.drain(..) {
+            let sock = ctx.socket(sock_type).unwrap();
+            assert_eq!(sock.get_socket_type().unwrap(), sock_type);
+        }
+    }
+
+    #[test]
+    fn test_getset_maxmsgsize() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_maxmsgsize(512000).unwrap();
+        assert_eq!(sock.get_maxmsgsize().unwrap(), 512000);
+    }
+
+    #[test]
+    fn test_getset_sndhwm() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_sndhwm(500).unwrap();
+        assert_eq!(sock.get_sndhwm().unwrap(), 500);
+    }
+
+    #[test]
+    fn test_getset_rcvhwm() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_rcvhwm(500).unwrap();
+        assert_eq!(sock.get_rcvhwm().unwrap(), 500);
+    }
+
+    #[test]
+    fn test_getset_affinity() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_affinity(1024).unwrap();
+        assert_eq!(sock.get_affinity().unwrap(), 1024);
+    }
+
+    #[test]
+    fn test_getset_identity() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_identity("moo".as_bytes()).unwrap();
+        assert_eq!(sock.get_identity().unwrap().unwrap(), "moo");
+    }
+
+    #[test]
+    fn test_subscription() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(SUB).unwrap();
+        assert!(sock.set_subscribe("/channel".as_bytes()).is_ok());
+        assert!(sock.set_unsubscribe("/channel".as_bytes()).is_ok());
+    }
+
+    #[test]
+    fn test_getset_rate() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_rate(200).unwrap();
+        assert_eq!(sock.get_rate().unwrap(), 200);
+    }
+
+    #[test]
+    fn test_getset_recovery_ivl() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_recovery_ivl(100).unwrap();
+        assert_eq!(sock.get_recovery_ivl().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_sndbuf() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_sndbuf(100).unwrap();
+        assert_eq!(sock.get_sndbuf().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_rcvbuf() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_rcvbuf(100).unwrap();
+        assert_eq!(sock.get_rcvbuf().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_tos() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_tos(100).unwrap();
+        assert_eq!(sock.get_tos().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_linger() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_linger(100).unwrap();
+        assert_eq!(sock.get_linger().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_reconnect_ivl() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_reconnect_ivl(100).unwrap();
+        assert_eq!(sock.get_reconnect_ivl().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_reconnect_ivl_max() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_reconnect_ivl_max(100).unwrap();
+        assert_eq!(sock.get_reconnect_ivl_max().unwrap(), 100);
+    }
+
+    #[test]
+    fn test_getset_backlog() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_backlog(50).unwrap();
+        assert_eq!(sock.get_backlog().unwrap(), 50);
+    }
+
+    #[test]
+    fn test_getset_multicast_hops() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_multicast_hops(20).unwrap();
+        assert_eq!(sock.get_multicast_hops().unwrap(), 20);
+    }
+
+    #[test]
+    fn test_getset_rcvtimeo() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_rcvtimeo(5000).unwrap();
+        assert_eq!(sock.get_rcvtimeo().unwrap(), 5000);
+    }
+
+    #[test]
+    fn test_getset_sndtimeo() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_sndtimeo(5000).unwrap();
+        assert_eq!(sock.get_sndtimeo().unwrap(), 5000);
+    }
+
+    #[test]
+    fn test_getset_ipv6() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_ipv6(true).unwrap();
+        assert!(sock.is_ipv6().unwrap());
+
+        sock.set_ipv6(false).unwrap();
+        assert!(sock.is_ipv6().unwrap() == false);
+    }
+
+    #[test]
+    fn test_getset_socks_proxy() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_socks_proxy(Some("my_socks_server.com:10080")).unwrap();
+        assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "my_socks_server.com:10080");
+
+        sock.set_socks_proxy(None).unwrap();
+        assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "");
+    }
+
+    #[test]
+    fn test_getset_keepalive() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_tcp_keepalive(-1).unwrap();
+        assert_eq!(sock.get_tcp_keepalive().unwrap(), -1);
+
+        sock.set_tcp_keepalive(0).unwrap();
+        assert_eq!(sock.get_tcp_keepalive().unwrap(), 0);
+
+        sock.set_tcp_keepalive(1).unwrap();
+        assert_eq!(sock.get_tcp_keepalive().unwrap(), 1);
+    }
+
+    #[test]
+    fn test_getset_keepalive_cnt() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_tcp_keepalive_cnt(-1).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_cnt().unwrap(), -1);
+
+        sock.set_tcp_keepalive_cnt(500).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_cnt().unwrap(), 500);
+    }
+
+    #[test]
+    fn test_getset_keepalive_idle() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_tcp_keepalive_idle(-1).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_idle().unwrap(), -1);
+
+        sock.set_tcp_keepalive_idle(500).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_idle().unwrap(), 500);
+    }
+
+    #[test]
+    fn test_getset_tcp_keepalive_intvl() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_tcp_keepalive_intvl(-1).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_intvl().unwrap(), -1);
+
+        sock.set_tcp_keepalive_intvl(500).unwrap();
+        assert_eq!(sock.get_tcp_keepalive_intvl().unwrap(), 500);
+    }
+
+    #[test]
+    fn test_getset_immediate() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_immediate(true).unwrap();
+        assert!(sock.is_immediate().unwrap());
+
+        sock.set_immediate(false).unwrap();
+        assert!(sock.is_immediate().unwrap() == false);
+    }
+
+    #[test]
+    fn test_getset_plain_server() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_plain_server(true).unwrap();
+        assert!(sock.is_plain_server().unwrap());
+
+        sock.set_plain_server(false).unwrap();
+        assert!(sock.is_plain_server().unwrap() == false);
+    }
+
+    #[test]
+    fn test_getset_plain_username() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_plain_username(Some("billybob")).unwrap();
+        assert_eq!(sock.get_plain_username().unwrap().unwrap(), "billybob");
+        assert_eq!(sock.get_mechanism().unwrap(), Mechanism::ZMQ_PLAIN);
+
+        sock.set_plain_username(None).unwrap();
+        assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
+    }
+
+    #[test]
+    fn test_getset_plain_password() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+
+        sock.set_plain_password(Some("m00c0w")).unwrap();
+        assert_eq!(sock.get_plain_password().unwrap().unwrap(), "m00c0w");
+        assert_eq!(sock.get_mechanism().unwrap(), Mechanism::ZMQ_PLAIN);
+
+        sock.set_plain_password(None).unwrap();
+        assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
+    }
+
+    #[test]
+    fn test_getset_zap_domain() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_zap_domain("test_domain").unwrap();
+        assert_eq!(sock.get_zap_domain().unwrap().unwrap(), "test_domain");
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    #[test]
+    fn test_getset_curve_server() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_curve_server(true).unwrap();
+        assert_eq!(sock.is_curve_server().unwrap(), true);
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    #[test]
+    fn test_getset_curve_publickey() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_curve_publickey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
+        assert_eq!(sock.get_curve_publickey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    #[test]
+    fn test_getset_curve_secretkey() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_curve_secretkey("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
+        assert_eq!(sock.get_curve_secretkey().unwrap().unwrap(), "s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS");
+    }
+
+    #[cfg(ZMQ_HAS_CURVE = "1")]
+    #[test]
+    fn test_getset_curve_serverkey() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_curve_serverkey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
+        assert_eq!(sock.get_curve_serverkey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    }
+
+    #[test]
+    fn test_getset_conflate() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_conflate(true).unwrap();
+        assert_eq!(sock.is_conflate().unwrap(), true);
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    #[test]
+    fn test_getset_gssapi_server() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_gssapi_server(true).unwrap();
+        assert_eq!(sock.is_gssapi_server().unwrap(), true);
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    #[test]
+    fn test_getset_gssapi_principal() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_gssapi_principal("principal").unwrap();
+        assert_eq!(sock.get_gssapi_principal().unwrap().unwrap(), "principal");
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    #[test]
+    fn test_getset_gssapi_service_principal() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_gssapi_service_principal("principal").unwrap();
+        assert_eq!(sock.get_gssapi_service_principal().unwrap().unwrap(), "principal");
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    #[test]
+    fn test_getset_gssapi_plaintext() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_gssapi_plaintext(true).unwrap();
+        assert_eq!(sock.is_gssapi_plaintext().unwrap(), true);
+    }
+
+    #[cfg(ZMQ_HAS_GSSAPI = "1")]
+    #[test]
+    fn test_getset_handshake_ivl() {
+        let mut ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_handshake_ivl(50000).unwrap();
+        assert_eq!(sock.get_handshake_ivl().unwrap(), 50000);
+    }
 }

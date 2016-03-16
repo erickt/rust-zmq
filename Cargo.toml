@@ -5,6 +5,7 @@ authors = [ "erick.tryzelaar@gmail.com" ]
 license = "MIT/Apache-2.0"
 description = "High-level bindings to the zeromq library"
 repository = "https://github.com/erickt/rust-zmq"
+build = "build.rs"
 
 [[example]]
 name = "msgsend"
