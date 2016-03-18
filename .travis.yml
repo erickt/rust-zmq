@@ -27,6 +27,7 @@ before_script:
   pip install 'travis-cargo<0.2' --user &&
   export PATH=$HOME/.local/bin:$PATH &&
   export LIBRARY_PATH=$HOME/lib &&
+  export LD_LIBRARY_PATH=$HOME/lib &&
   export PKG_CONFIG_PATH=$HOME/lib/pkgconfig &&
   wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz &&
   wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz.sig &&
