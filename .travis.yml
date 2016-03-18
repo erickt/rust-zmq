@@ -10,11 +10,37 @@ addons:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
-    - libzmq3-dev
+    - make
+    - automake
+    - gcc
+    - build-essential
+    - g++
+    - cpp
+    - libc6-dev
+    - man-db
+    - autoconf
+    - pkg-config
+    - libtool
+    - git
 before_script:
 - |
   pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH
+  export PATH=$HOME/.local/bin:$PATH &&
+  export LIBRARY_PATH=$HOME/lib &&
+  export PKG_CONFIG_PATH=$HOME/lib/pkgconfig &&
+  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz &&
+  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz.sig &&
+  wget https://download.libsodium.org/jedi.gpg.asc &&
+  gpg --import jedi.gpg.asc &&
+  gpg --verify libsodium-1.0.8.tar.gz.sig libsodium-1.0.8.tar.gz &&
+  tar zxf libsodium-1.0.8.tar.gz &&
+  cd libsodium-1.0.8 &&
+  ./configure --prefix=$HOME && make && make install &&
+  cd .. &&
+  wget https://github.com/zeromq/zeromq4-1/archive/v4.1.4.tar.gz &&
+  tar zxf v4.1.4.tar.gz &&
+  cd zeromq4-1-4.1.4 &&
+  ./autogen.sh && ./configure --prefix=$HOME --with-libsodium && make && make install
 script:
 - travis-cargo build
 - travis-cargo test
