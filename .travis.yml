@@ -40,7 +40,8 @@ before_script:
   wget https://github.com/zeromq/zeromq4-1/archive/v4.1.4.tar.gz &&
   tar zxf v4.1.4.tar.gz &&
   cd zeromq4-1-4.1.4 &&
-  ./autogen.sh && ./configure --prefix=$HOME --with-libsodium && make && make install
+  ./autogen.sh && ./configure --prefix=$HOME --with-libsodium && make && make install &&
+  cd ..
 script:
 - travis-cargo build
 - travis-cargo test
