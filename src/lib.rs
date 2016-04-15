@@ -583,6 +583,10 @@ impl Socket {
             marker: PhantomData
         }
     }
+
+    pub fn poll(&self, events: i16, timeout_ms: i64) -> Result<i32, Error> {
+        poll(&mut [self.as_poll_item(events)], timeout_ms)
+    }
 }
 
 const MSG_SIZE: usize = 64;
@@ -757,7 +761,7 @@ impl fmt::Debug for Error {
 
 macro_rules! getsockopt_num(
     ($name:ident, $c_ty:ty, $ty:ty) => (
-        #[allow(trivial_casts)]    
+        #[allow(trivial_casts)]
         fn $name(sock: *mut libc::c_void, opt: c_int) -> Result<$ty, Error> {
             unsafe {
                 let mut value: $c_ty = 0;
