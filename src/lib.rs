@@ -350,6 +350,20 @@ impl Socket {
         self.send(data.as_bytes(), flags)
     }
 
+    pub fn send_multipart(&mut self, parts: &[&[u8]], flags: i32) -> Result<(), Error> {
+        if parts.len() == 0 {
+            return Ok(());
+        }
+        let (last_part, first_parts) = parts.split_last().unwrap();
+
+        for part in first_parts.iter() {
+            try!(self.send(part, flags | SNDMORE));
+        }
+        try!(self.send(last_part, flags));
+
+        Ok(())
+    }
+
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
     pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<(), Error> {
@@ -385,6 +399,20 @@ impl Socket {
             Ok(msg) => Ok(Ok(String::from_utf8(msg).unwrap_or("".to_string()))),
             Err(e) => Err(e),
         }
+    }
+
+    pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>, Error> {
+        let mut parts: Vec<Vec<u8>> = vec![];
+        loop {
+            let part = try!(self.recv_bytes(flags));
+            parts.push(part);
+
+            let more_parts = try!(self.get_rcvmore());
+            if !more_parts {
+                break;
+            }
+        }
+        Ok(parts)
     }
 
     pub fn close(&mut self) -> Result<(), Error> {
