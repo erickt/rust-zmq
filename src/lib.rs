@@ -378,6 +378,20 @@ impl Socket {
         }
     }
 
+    // Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
+    pub fn recv_into(&mut self, bytes: &mut [u8], flags: i32) -> Result<(), Error> {
+        let rc = unsafe {
+            let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
+            zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
+        };
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn recv_msg(&mut self, flags: i32) -> Result<Message, Error> {
         let mut msg = try!(Message::new());
         match self.recv(&mut msg, flags) {
