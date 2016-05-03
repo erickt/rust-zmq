@@ -64,6 +64,8 @@ pub enum Constants {
     ZMQ_MAXMSGSIZE        = 22,
     ZMQ_SNDHWM            = 23,
     ZMQ_RCVHWM            = 24,
+    ZMQ_RCVTIMEO          = 27,
+    ZMQ_SNDTIMEO          = 28,
 
     ZMQ_MAX_VSM_SIZE      = 30,
     ZMQ_DELIMITER         = 31,
@@ -106,6 +108,8 @@ impl Constants {
             22        => Constants::ZMQ_MAXMSGSIZE,
             23        => Constants::ZMQ_SNDHWM,
             24        => Constants::ZMQ_RCVHWM,
+            27        => Constants::ZMQ_RCVTIMEO,
+            28        => Constants::ZMQ_SNDTIMEO,
 
             30        => Constants::ZMQ_MAX_VSM_SIZE,
             31        => Constants::ZMQ_DELIMITER,
@@ -512,6 +516,14 @@ impl Socket {
     pub fn set_router_mandatory(&self, value: bool) -> Result<(), Error> {
         let value = if value { 1i32 } else { 0i32 };
         setsockopt_i32(self.sock, Constants::ZMQ_ROUTER_MANDATORY.to_raw(), value)
+    }
+
+    pub fn set_rcvtimeo(&self, value: i32) -> Result<(), Error> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RCVTIMEO.to_raw(), value)
+    }
+
+    pub fn set_sndtimeo(&self, value: i32) -> Result<(), Error> {
+        setsockopt_i32(self.sock, Constants::ZMQ_SNDTIMEO.to_raw(), value)
     }
 
     pub fn set_sndhwm(&self, value: i32) -> Result<(), Error> {
