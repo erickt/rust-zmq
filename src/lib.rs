@@ -68,6 +68,7 @@ pub enum Constants {
     ZMQ_MAX_VSM_SIZE      = 30,
     ZMQ_DELIMITER         = 31,
     ZMQ_VSM               = 32,
+    ZMQ_ROUTER_MANDATORY  = 33,
 
     ZMQ_MSG_MORE          = 1,
     ZMQ_MSG_SHARED        = 128,
@@ -109,6 +110,7 @@ impl Constants {
             30        => Constants::ZMQ_MAX_VSM_SIZE,
             31        => Constants::ZMQ_DELIMITER,
             32        => Constants::ZMQ_VSM,
+            33        => Constants::ZMQ_ROUTER_MANDATORY,
 
             1         => Constants::ZMQ_MSG_MORE,
             128       => Constants::ZMQ_MSG_SHARED,
@@ -507,6 +509,11 @@ impl Socket {
         setsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
+    pub fn set_router_mandatory(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_ROUTER_MANDATORY.to_raw(), value)
+    }
+
     pub fn set_sndhwm(&self, value: i32) -> Result<(), Error> {
         setsockopt_i32(self.sock, Constants::ZMQ_SNDHWM.to_raw(), value)
     }
@@ -757,7 +764,7 @@ impl fmt::Debug for Error {
 
 macro_rules! getsockopt_num(
     ($name:ident, $c_ty:ty, $ty:ty) => (
-        #[allow(trivial_casts)]    
+        #[allow(trivial_casts)]
         fn $name(sock: *mut libc::c_void, opt: c_int) -> Result<$ty, Error> {
             unsafe {
                 let mut value: $c_ty = 0;
