@@ -71,6 +71,7 @@ pub enum Constants {
     ZMQ_DELIMITER         = 31,
     ZMQ_VSM               = 32,
     ZMQ_ROUTER_MANDATORY  = 33,
+    ZMQ_PROBE_ROUTER      = 51,
 
     ZMQ_MSG_MORE          = 1,
     ZMQ_MSG_SHARED        = 128,
@@ -115,6 +116,7 @@ impl Constants {
             31        => Constants::ZMQ_DELIMITER,
             32        => Constants::ZMQ_VSM,
             33        => Constants::ZMQ_ROUTER_MANDATORY,
+            51        => Constants::ZMQ_PROBE_ROUTER,
 
             1         => Constants::ZMQ_MSG_MORE,
             128       => Constants::ZMQ_MSG_SHARED,
@@ -511,6 +513,11 @@ impl Socket {
 
     pub fn set_maxmsgsize(&self, value: i64) -> Result<(), Error> {
         setsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw(), value)
+    }
+
+    pub fn set_probe_router(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_PROBE_ROUTER.to_raw(), value)
     }
 
     pub fn set_router_mandatory(&self, value: bool) -> Result<(), Error> {
