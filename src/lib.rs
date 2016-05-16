@@ -71,6 +71,7 @@ pub enum Constants {
     ZMQ_DELIMITER         = 31,
     ZMQ_VSM               = 32,
     ZMQ_ROUTER_MANDATORY  = 33,
+    ZMQ_IMMEDIATE         = 39,
     ZMQ_PROBE_ROUTER      = 51,
 
     ZMQ_MSG_MORE          = 1,
@@ -116,6 +117,7 @@ impl Constants {
             31        => Constants::ZMQ_DELIMITER,
             32        => Constants::ZMQ_VSM,
             33        => Constants::ZMQ_ROUTER_MANDATORY,
+            39        => Constants::ZMQ_IMMEDIATE,
             51        => Constants::ZMQ_PROBE_ROUTER,
 
             1         => Constants::ZMQ_MSG_MORE,
@@ -547,6 +549,11 @@ impl Socket {
 
     pub fn set_identity(&self, value: &[u8]) -> Result<(), Error> {
         setsockopt_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), value)
+    }
+
+    pub fn set_immediate(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_IMMEDIATE.to_raw(), value)
     }
 
     pub fn set_subscribe(&self, value: &[u8]) -> Result<(), Error> {
