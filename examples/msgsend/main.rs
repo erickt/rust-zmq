@@ -6,11 +6,11 @@
 
 #![crate_name = "msgsend"]
 
-extern crate time;
 extern crate zmq;
 
 use std::env;
 use std::thread;
+use std::time::Instant;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: u64) {
@@ -114,7 +114,7 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
 
-    let start = time::precise_time_s();
+    let start = Instant::now();
 
     start_ch.send(()).unwrap();
 
@@ -132,11 +132,10 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
         Err(e) => panic!(e),
     };
 
-    let end = time::precise_time_s();
-    let elapsed = end - start;
+    let elapsed = start.elapsed();
 
     println!("Count is {}", result);
-    println!("Test took {} seconds", elapsed);
+    println!("Test took {} seconds", elapsed.as_secs());
     let thruput = ((size / workers * workers) as f64) / elapsed;
     println!("Throughput={} per sec", thruput);
 }
