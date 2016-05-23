@@ -54,7 +54,7 @@ path = "examples/arcex/main.rs"
 unstable = ["compiletest_rs"]
 
 [dependencies]
-libc = "*"
+libc = "0.2.*"
 log = "*"
 zmq-sys = { version = "*", path = "zmq-sys" }
 compiletest_rs = { version = "*", optional = true }

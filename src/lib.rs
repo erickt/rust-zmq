@@ -8,8 +8,8 @@ extern crate log;
 extern crate libc;
 extern crate zmq_sys;
 
-// use libc;
-use libc::{c_int, c_void, size_t, uint64_t, c_long, int64_t};
+use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
+
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
@@ -165,25 +165,25 @@ impl Error {
 
     pub fn from_raw(raw: i32) -> Error {
         match raw {
-            libc::EACCES          => Error::EACCES,
-            libc::EADDRINUSE      => Error::EADDRINUSE,
-            libc::EAGAIN          => Error::EAGAIN,
-            libc::EBUSY           => Error::EBUSY,
-            libc::ECONNREFUSED    => Error::ECONNREFUSED,
-            libc::EFAULT          => Error::EFAULT,
-            libc::EHOSTUNREACH    => Error::EHOSTUNREACH,
-            libc::EINPROGRESS     => Error::EINPROGRESS,
-            libc::EINVAL          => Error::EINVAL,
-            libc::EMFILE          => Error::EMFILE,
-            libc::EMSGSIZE        => Error::EMSGSIZE,
-            libc::ENAMETOOLONG    => Error::ENAMETOOLONG,
-            libc::ENODEV          => Error::ENODEV,
-            libc::ENOENT          => Error::ENOENT,
-            libc::ENOMEM          => Error::ENOMEM,
-            libc::ENOTCONN        => Error::ENOTCONN,
-            libc::ENOTSOCK        => Error::ENOTSOCK,
-            libc::EPROTO          => Error::EPROTO,
-            libc::EPROTONOSUPPORT => Error::EPROTONOSUPPORT,
+            libc::EACCES             => Error::EACCES,
+            libc::EADDRINUSE         => Error::EADDRINUSE,
+            libc::EAGAIN             => Error::EAGAIN,
+            libc::EBUSY              => Error::EBUSY,
+            libc::ECONNREFUSED       => Error::ECONNREFUSED,
+            libc::EFAULT             => Error::EFAULT,
+            libc::EHOSTUNREACH       => Error::EHOSTUNREACH,
+            libc::EINPROGRESS        => Error::EINPROGRESS,
+            libc::EINVAL             => Error::EINVAL,
+            libc::EMFILE             => Error::EMFILE,
+            libc::EMSGSIZE           => Error::EMSGSIZE,
+            libc::ENAMETOOLONG       => Error::ENAMETOOLONG,
+            libc::ENODEV             => Error::ENODEV,
+            libc::ENOENT             => Error::ENOENT,
+            libc::ENOMEM             => Error::ENOMEM,
+            libc::ENOTCONN           => Error::ENOTCONN,
+            libc::ENOTSOCK           => Error::ENOTSOCK,
+            libc::EPROTO             => Error::EPROTO,
+            libc::EPROTONOSUPPORT    => Error::EPROTONOSUPPORT,
             156384713                => Error::ENOTSUP,
             156384714                => Error::EPROTONOSUPPORT,
             156384715                => Error::ENOBUFS,
