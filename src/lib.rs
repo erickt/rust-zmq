@@ -285,6 +285,10 @@ impl Context {
             Ok(())
         }
     }
+    
+    pub unsafe fn get_ctx(&self) -> *mut libc::c_void {
+        self.ctx
+    }
 }
 
 impl Drop for Context {
@@ -302,6 +306,13 @@ pub struct Socket<'b> {
     closed: bool,
     // the context needs to be alive at least as long as the socket is
     ctx: PhantomData<&'b Context>
+}
+
+impl<'b> Socket<'b> {
+    pub unsafe fn get_sock(&self) -> *mut libc::c_void {
+        self.sock
+    }
+
 }
 
 unsafe impl<'b> Send for Socket<'b> {}
