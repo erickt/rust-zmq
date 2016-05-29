@@ -5,7 +5,7 @@
 ///  Collects results from workers via that socket
 
 extern crate zmq;
-extern crate time;
+use std::time::Instant;
 
 fn main() {
     //  Prepare our context and socket
