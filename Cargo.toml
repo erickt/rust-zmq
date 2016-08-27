@@ -57,4 +57,3 @@ compiletest_rs = { version = "*", optional = true }
 
 [dev-dependencies]
 rand = "*"
-time = "*"

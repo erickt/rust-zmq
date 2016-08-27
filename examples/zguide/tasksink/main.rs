@@ -5,9 +5,7 @@
 ///  Collects results from workers via that socket
 
 extern crate zmq;
-extern crate time;
-
-use time::PreciseTime;
+use std::time::Instant;
 
 fn main() {
     //  Prepare our context and socket
@@ -21,7 +19,7 @@ fn main() {
     receiver.recv(&mut msg, 0).unwrap();
 
     //  Start our clock now
-    let start = PreciseTime::now();
+    let start = Instant::now();
 
     for i in 1..101 {
         receiver.recv(&mut msg, 0).unwrap();
@@ -33,5 +31,5 @@ fn main() {
         }
     }
     
-    println!("\nTotal elapsed time: {} msec", start.to(PreciseTime::now()));
+    println!("\nTotal elapsed time: {:?}", start.elapsed());
 }
