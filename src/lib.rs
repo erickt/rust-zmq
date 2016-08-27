@@ -64,10 +64,15 @@ pub enum Constants {
     ZMQ_MAXMSGSIZE        = 22,
     ZMQ_SNDHWM            = 23,
     ZMQ_RCVHWM            = 24,
+    ZMQ_RCVTIMEO          = 27,
+    ZMQ_SNDTIMEO          = 28,
 
     ZMQ_MAX_VSM_SIZE      = 30,
     ZMQ_DELIMITER         = 31,
     ZMQ_VSM               = 32,
+    ZMQ_ROUTER_MANDATORY  = 33,
+    ZMQ_IMMEDIATE         = 39,
+    ZMQ_PROBE_ROUTER      = 51,
 
     ZMQ_MSG_MORE          = 1,
     ZMQ_MSG_SHARED        = 128,
@@ -105,10 +110,15 @@ impl Constants {
             22        => Constants::ZMQ_MAXMSGSIZE,
             23        => Constants::ZMQ_SNDHWM,
             24        => Constants::ZMQ_RCVHWM,
+            27        => Constants::ZMQ_RCVTIMEO,
+            28        => Constants::ZMQ_SNDTIMEO,
 
             30        => Constants::ZMQ_MAX_VSM_SIZE,
             31        => Constants::ZMQ_DELIMITER,
             32        => Constants::ZMQ_VSM,
+            33        => Constants::ZMQ_ROUTER_MANDATORY,
+            39        => Constants::ZMQ_IMMEDIATE,
+            51        => Constants::ZMQ_PROBE_ROUTER,
 
             1         => Constants::ZMQ_MSG_MORE,
             128       => Constants::ZMQ_MSG_SHARED,
@@ -507,6 +517,24 @@ impl Socket {
         setsockopt_i64(self.sock, Constants::ZMQ_MAXMSGSIZE.to_raw(), value)
     }
 
+    pub fn set_probe_router(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_PROBE_ROUTER.to_raw(), value)
+    }
+
+    pub fn set_router_mandatory(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_ROUTER_MANDATORY.to_raw(), value)
+    }
+
+    pub fn set_rcvtimeo(&self, value: i32) -> Result<(), Error> {
+        setsockopt_i32(self.sock, Constants::ZMQ_RCVTIMEO.to_raw(), value)
+    }
+
+    pub fn set_sndtimeo(&self, value: i32) -> Result<(), Error> {
+        setsockopt_i32(self.sock, Constants::ZMQ_SNDTIMEO.to_raw(), value)
+    }
+
     pub fn set_sndhwm(&self, value: i32) -> Result<(), Error> {
         setsockopt_i32(self.sock, Constants::ZMQ_SNDHWM.to_raw(), value)
     }
@@ -521,6 +549,11 @@ impl Socket {
 
     pub fn set_identity(&self, value: &[u8]) -> Result<(), Error> {
         setsockopt_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), value)
+    }
+
+    pub fn set_immediate(&self, value: bool) -> Result<(), Error> {
+        let value = if value { 1i32 } else { 0i32 };
+        setsockopt_i32(self.sock, Constants::ZMQ_IMMEDIATE.to_raw(), value)
     }
 
     pub fn set_subscribe(&self, value: &[u8]) -> Result<(), Error> {
@@ -757,7 +790,7 @@ impl fmt::Debug for Error {
 
 macro_rules! getsockopt_num(
     ($name:ident, $c_ty:ty, $ty:ty) => (
-        #[allow(trivial_casts)]    
+        #[allow(trivial_casts)]
         fn $name(sock: *mut libc::c_void, opt: c_int) -> Result<$ty, Error> {
             unsafe {
                 let mut value: $c_ty = 0;
