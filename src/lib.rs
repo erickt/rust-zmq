@@ -9,6 +9,7 @@ extern crate libc;
 extern crate zmq_sys;
 
 use libc::{c_int, c_long, c_void, size_t, int64_t, uint64_t};
+
 use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
@@ -275,14 +276,14 @@ impl Context {
         }
     }
 
-    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket, Error> {
+    pub fn socket<'a, 'b>(&'b self, socket_type: SocketType) -> Result<Socket<'a>, Error> {
         let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
 
         if sock.is_null() {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock, closed: false })
+        Ok(Socket { sock: sock, closed: false, ctx: PhantomData  })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -293,6 +294,10 @@ impl Context {
         } else {
             Ok(())
         }
+    }
+    
+    pub unsafe fn get_ctx(&self) -> *mut libc::c_void {
+        self.ctx
     }
 }
 
@@ -306,14 +311,23 @@ impl Drop for Context {
     }
 }
 
-pub struct Socket {
+pub struct Socket<'b> {
     sock: *mut libc::c_void,
-    closed: bool
+    closed: bool,
+    // the context needs to be alive at least as long as the socket is
+    ctx: PhantomData<&'b Context>
 }
 
-unsafe impl Send for Socket {}
+impl<'b> Socket<'b> {
+    pub unsafe fn get_sock(&self) -> *mut libc::c_void {
+        self.sock
+    }
 
-impl Drop for Socket {
+}
+
+unsafe impl<'b> Send for Socket<'b> {}
+
+impl<'b> Drop for Socket<'b> {
     fn drop(&mut self) {
         match self.close_final() {
             Ok(()) => { debug!("socket dropped") },
@@ -322,7 +336,7 @@ impl Drop for Socket {
     }
 }
 
-impl Socket {
+impl<'b> Socket<'b> {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<(), Error> {
         let rc = unsafe { zmq_sys::zmq_bind(self.sock,
@@ -762,7 +776,7 @@ pub struct PollItem<'a> {
     fd: c_int,
     events: i16,
     revents: i16,
-    marker: PhantomData<&'a Socket>
+    marker: PhantomData<&'a Socket<'a>>
 }
 
 impl<'a> PollItem<'a> {
