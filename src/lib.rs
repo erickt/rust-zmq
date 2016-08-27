@@ -360,11 +360,39 @@ impl Socket {
         self.send(data.as_bytes(), flags)
     }
 
+    pub fn send_multipart(&mut self, parts: &[&[u8]], flags: i32) -> Result<(), Error> {
+        if parts.len() == 0 {
+            return Ok(());
+        }
+        let (last_part, first_parts) = parts.split_last().unwrap();
+
+        for part in first_parts.iter() {
+            try!(self.send(part, flags | SNDMORE));
+        }
+        try!(self.send(last_part, flags));
+
+        Ok(())
+    }
+
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
     pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<(), Error> {
         let rc = unsafe {
             zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int)
+        };
+
+        if rc == -1i32 {
+            Err(errno_to_error())
+        } else {
+            Ok(())
+        }
+    }
+
+    // Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
+    pub fn recv_into(&mut self, bytes: &mut [u8], flags: i32) -> Result<(), Error> {
+        let rc = unsafe {
+            let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
+            zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
         };
 
         if rc == -1i32 {
@@ -395,6 +423,20 @@ impl Socket {
             Ok(msg) => Ok(Ok(String::from_utf8(msg).unwrap_or("".to_string()))),
             Err(e) => Err(e),
         }
+    }
+
+    pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>, Error> {
+        let mut parts: Vec<Vec<u8>> = vec![];
+        loop {
+            let part = try!(self.recv_bytes(flags));
+            parts.push(part);
+
+            let more_parts = try!(self.get_rcvmore());
+            if !more_parts {
+                break;
+            }
+        }
+        Ok(parts)
     }
 
     pub fn close(&mut self) -> Result<(), Error> {
@@ -615,6 +657,10 @@ impl Socket {
             revents: 0,
             marker: PhantomData
         }
+    }
+
+    pub fn poll(&self, events: i16, timeout_ms: i64) -> Result<i32, Error> {
+        poll(&mut [self.as_poll_item(events)], timeout_ms)
     }
 }
 
