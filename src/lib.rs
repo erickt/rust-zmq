@@ -552,11 +552,6 @@ impl Socket {
         Ok(parts)
     }
 
-    #[deprecated(note="`close` is handled implicitly by the Drop trait")]
-    pub fn close(self) -> Result<()> {
-        Ok(())
-    }
-
     pub fn is_ipv6(&self) -> Result<bool> {
         Ok(try!(getsockopt_i32(self.sock, Constants::ZMQ_IPV6.to_raw())) == 1)
     }
