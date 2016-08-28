@@ -352,7 +352,10 @@ impl Context {
             return Err(errno_to_error());
         }
 
-        Ok(Socket::from_raw(sock))
+        Ok(Socket {
+            sock: sock,
+            owned: true,
+        })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -414,7 +417,7 @@ impl Socket {
     /// Create a Socket from a raw socket pointer. The Socket assumes
     /// ownership of the pointer and will close the socket when it is
     /// dropped.
-    pub fn from_raw(sock: *mut c_void) -> Socket {
+    pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
             sock: sock,
             owned: true,
