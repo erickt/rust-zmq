@@ -552,11 +552,8 @@ impl Socket {
         Ok(parts)
     }
 
+    #[deprecated(note="`close` is handled implicitly by the Drop trait")]
     pub fn close(self) -> Result<()> {
-        if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
-            return Err(errno_to_error());
-        }
-
         Ok(())
     }
 
