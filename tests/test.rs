@@ -4,7 +4,7 @@ use zmq::*;
 #[cfg(ZMQ_HAS_CURVE = "1")]
 #[test]
 fn test_curve_keypair() {
-    let keypair = CurveKeypair::new().unwrap();
+    let keypair = CurveKeyPair::new().unwrap();
     assert!(keypair.public_key.len() == 40);
     assert!(keypair.secret_key.len() == 40);
 }
@@ -12,8 +12,8 @@ fn test_curve_keypair() {
 #[test]
 fn test_z85() {
     let test_str = "/AB8cGJ*-$lEbr2=TW$Q?i7:)<?G/4zr-hjppA3d";
-    let decoded = z85_decode(test_str);
-    let encoded = z85_encode(&decoded);
+    let decoded = z85_decode(test_str).unwrap();
+    let encoded = z85_encode(&decoded).unwrap();
     assert_eq!(test_str, encoded);
 }
 

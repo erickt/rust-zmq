@@ -1,6 +1,9 @@
 //! Module: zmq
 
+#![cfg_attr(feature = "unstable", feature(plugin))]
+#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(trivial_numeric_casts)]
+#![cfg_attr(feature = "clippy", allow(needless_lifetimes))]
 
 #[macro_use]
 extern crate log;
@@ -9,13 +12,14 @@ extern crate libc;
 extern crate zmq_sys;
 
 use libc::{c_int, c_long, size_t, int64_t, uint64_t};
-use std::{mem, ptr, str, slice};
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
 use std::result;
+use std::string::FromUtf8Error;
+use std::{mem, ptr, str, slice};
 
 pub use SocketType::*;
 
@@ -238,6 +242,7 @@ impl Error {
     }
 
     pub fn from_raw(raw: i32) -> Error {
+        #![cfg_attr(feature = "clippy", allow(match_same_arms))]
         match raw {
             libc::EACCES             => Error::EACCES,
             libc::EADDRINUSE         => Error::EADDRINUSE,
@@ -322,7 +327,7 @@ pub fn version() -> (i32, i32, i32) {
 
 /// zmq context, used to create sockets. Is thread safe, and can be safely
 /// shared, but dropping it while sockets are still open will cause them to
-/// close (see zmq_ctx_destroy(3)).
+/// close (see `zmq_ctx_destroy`(3)).
 ///
 /// For this reason, one should use an Arc to share it, rather than any unsafe
 /// trickery you might think up that would call the destructor.
@@ -361,6 +366,12 @@ impl Context {
     }
 }
 
+impl Default for Context {
+    fn default() -> Self {
+        Context::new()
+    }
+}
+
 impl Drop for Context {
     fn drop(&mut self) {
         debug!("context dropped");
@@ -390,15 +401,23 @@ impl Drop for Socket {
 impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<()> {
-        let rc = unsafe { zmq_sys::zmq_bind(self.sock,
-                          ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
+        let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
+
+        let rc = unsafe {
+            zmq_sys::zmq_bind(self.sock, c_str.as_ptr())
+        };
+
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<()> {
-        let rc = unsafe { zmq_sys::zmq_connect(self.sock,
-                          ffi::CString::new(endpoint.as_bytes()).unwrap().as_ptr()) };
+        let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
+
+        let rc = unsafe {
+            zmq_sys::zmq_connect(self.sock, c_str.as_ptr())
+        };
+
         if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
     }
 
@@ -517,10 +536,8 @@ impl Socket {
     }
 
     pub fn close_final(&mut self) -> Result<()> {
-        if !self.closed {
-            if unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
-                return Err(errno_to_error());
-            }
+        if !self.closed && unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
+            return Err(errno_to_error());
         }
 
         Ok(())
@@ -1010,8 +1027,11 @@ impl Message {
     }
 
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
-        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg,
-                          ffi::CString::new(property.as_bytes()).unwrap().as_ptr()) };
+        let c_str = ffi::CString::new(property.as_bytes()).unwrap();
+
+        let value = unsafe {
+            zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr())
+        };
 
         if value == ptr::null() {
             None
@@ -1120,65 +1140,103 @@ pub fn proxy_with_capture(frontend: &mut Socket,
 }
 
 pub fn has(capability: &str) -> bool {
+    let c_str = ffi::CString::new(capability.as_bytes()).unwrap();
+
     unsafe {
-        zmq_sys::zmq_has(ffi::CString::new(capability.as_bytes()).unwrap().as_ptr()) == 1
+        zmq_sys::zmq_has(c_str.as_ptr()) == 1
     }
 }
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-pub struct CurveKeypair {
+pub struct CurveKeyPair {
     pub public_key: String,
     pub secret_key: String,
 }
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-impl CurveKeypair {
-    pub fn new() -> Result<CurveKeypair> {
+impl CurveKeyPair {
+    pub fn new() -> Result<CurveKeyPair> {
         // Curve keypairs are currently 40 bytes long.
         let mut ffi_public_key = vec![0u8; 40];
         let mut ffi_secret_key = vec![0u8; 40];
 
         unsafe {
-            let rc = zmq_sys::zmq_curve_keypair(ffi_public_key.as_mut_ptr() as *mut libc::c_char, ffi_secret_key.as_mut_ptr() as *mut libc::c_char);
+            let rc = zmq_sys::zmq_curve_keypair(
+                ffi_public_key.as_mut_ptr() as *mut libc::c_char,
+                ffi_secret_key.as_mut_ptr() as *mut libc::c_char);
+
+            let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
+            let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
 
             if rc == -1i32 {
                 Err(errno_to_error())
             } else {
-                Ok(CurveKeypair {
-                    public_key: String::from_utf8(ffi_public_key).unwrap_or(String::new()),
-                    secret_key: String::from_utf8(ffi_secret_key).unwrap_or(String::new())
+                Ok(CurveKeyPair {
+                    public_key: public_key,
+                    secret_key: secret_key,
                 })
             }
         }
     }
 }
 
-pub fn z85_encode(data: &[u8]) -> String {
+#[derive(Debug)]
+pub enum EncodeError {
+    BadLength,
+    FromUtf8Error(FromUtf8Error),
+}
+
+impl From<FromUtf8Error> for EncodeError {
+    fn from(err: FromUtf8Error) -> Self {
+        EncodeError::FromUtf8Error(err)
+    }
+}
+
+pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     if data.len() % 4 != 0 {
-        return String::new();
+        return Err(EncodeError::BadLength);
     }
 
     let len = data.len() * 5 / 4;
     let mut dest = vec![0u8; len];
 
     unsafe {
-        zmq_sys::zmq_z85_encode(dest.as_mut_ptr() as *mut libc::c_char, data.as_ptr(), data.len());
-        String::from_utf8(dest).unwrap_or(String::new())
+        zmq_sys::zmq_z85_encode(
+            dest.as_mut_ptr() as *mut libc::c_char,
+            data.as_ptr(),
+            data.len());
+    }
+
+    String::from_utf8(dest).map_err(EncodeError::FromUtf8Error)
+}
+
+#[derive(Debug)]
+pub enum DecodeError {
+    BadLength,
+    NulError(ffi::NulError),
+}
+
+impl From<ffi::NulError> for DecodeError {
+    fn from(err: ffi::NulError) -> Self {
+        DecodeError::NulError(err)
     }
 }
 
-pub fn z85_decode(data: &str) -> Vec<u8> {
+pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     if data.len() % 5 != 0 {
-        return Vec::new();
+        return Err(DecodeError::BadLength);
     }
 
     let len = data.len() * 4 / 5;
     let mut dest = vec![0u8; len];
 
+    let c_str = try!(ffi::CString::new(data));
+
     unsafe {
-        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), ffi::CString::new(data).unwrap().into_raw());
-        dest
+        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());
     }
+
+    Ok(dest)
 }
 
 impl fmt::Debug for Error {
