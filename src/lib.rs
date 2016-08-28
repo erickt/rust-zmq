@@ -1192,6 +1192,15 @@ impl From<FromUtf8Error> for EncodeError {
     }
 }
 
+impl fmt::Display for EncodeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            EncodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 4."),
+            EncodeError::FromUtf8Error(ref e) => write!(f, "UTF8 conversion error: {}", e),
+        }
+    }
+}
+
 pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     if data.len() % 4 != 0 {
         return Err(EncodeError::BadLength);
@@ -1219,6 +1228,15 @@ pub enum DecodeError {
 impl From<ffi::NulError> for DecodeError {
     fn from(err: ffi::NulError) -> Self {
         DecodeError::NulError(err)
+    }
+}
+
+impl fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            DecodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 5."),
+            DecodeError::NulError(ref e) => write!(f, "Nul byte error: {}", e),
+        }
     }
 }
 
