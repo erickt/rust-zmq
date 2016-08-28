@@ -406,7 +406,7 @@ impl Socket {
     ///
     /// Failure to close the raw socket manually or call `from_raw`
     /// will lead to a memory leak.
-    pub fn to_raw(mut self) -> *mut c_void {
+    pub fn into_raw(mut self) -> *mut c_void {
         self.owned = false;
         self.sock
     }
