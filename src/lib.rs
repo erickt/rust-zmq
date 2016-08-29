@@ -424,10 +424,11 @@ impl Socket {
         }
     }
 
-    /// Borrow the raw socket pointer without disabling destructor.
-    /// If the Socket goes out of scope, this will lead to a dangling
-    /// pointer, so use with care!
-    pub fn borrow_raw(&self) -> *mut c_void {
+    /// Returns the inner pointer to this Socket.
+    /// **WARNING**
+    /// It is your responsibility to make sure that the underlying
+    /// memory is not freed too early.
+    pub fn as_mut_ptr(&self) -> *mut c_void {
         self.sock
     }
 
