@@ -1033,7 +1033,7 @@ impl Message {
             zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr())
         };
 
-        if value == ptr::null() {
+        if value.is_null() {
             None
         } else {
             Some(unsafe { str::from_utf8(ffi::CStr::from_ptr(value).to_bytes()).unwrap() })
