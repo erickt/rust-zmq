@@ -428,7 +428,7 @@ impl Socket {
     /// **WARNING**
     /// It is your responsibility to make sure that the underlying
     /// memory is not freed too early.
-    pub fn as_mut_ptr(&self) -> *mut c_void {
+    pub fn as_mut_ptr(&mut self) -> *mut c_void {
         self.sock
     }
 
