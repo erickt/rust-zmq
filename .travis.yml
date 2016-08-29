@@ -50,16 +50,16 @@ script:
 - travis-cargo --only nightly test -- --features unstable-testing
 - travis-cargo --skip nightly bench
 - travis-cargo --only nightly bench -- --features unstable-testing
-- travis-cargo build -- --example msgsend
 - travis-cargo build -- --example helloworld_client
 - travis-cargo build -- --example helloworld_server
+- travis-cargo build -- --example msgsend
+- travis-cargo build -- --example msreader
+- travis-cargo build -- --example tasksink
+- travis-cargo build -- --example taskvent
+- travis-cargo build -- --example taskwork
 - travis-cargo build -- --example version
 - travis-cargo build -- --example weather_client
 - travis-cargo build -- --example weather_server
-- travis-cargo build -- --example taskvent
-- travis-cargo build -- --example taskwork
-- travis-cargo build -- --example tasksink
-- travis-cargo build -- --example msreader
 - travis-cargo --only stable doc
 after_success:
 - travis-cargo --only stable doc-upload

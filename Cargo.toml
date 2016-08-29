@@ -8,16 +8,32 @@ repository = "https://github.com/erickt/rust-zmq"
 build = "build.rs"
 
 [[example]]
-name = "msgsend"
-path = "examples/msgsend/main.rs"
-
-[[example]]
 name = "helloworld_client"
 path = "examples/zguide/helloworld_client/main.rs"
 
 [[example]]
 name = "helloworld_server"
 path = "examples/zguide/helloworld_server/main.rs"
+
+[[example]]
+name = "msreader"
+path = "examples/zguide/msreader/main.rs"
+
+[[example]]
+name = "msgsend"
+path = "examples/msgsend/main.rs"
+
+[[example]]
+name = "tasksink"
+path = "examples/zguide/tasksink/main.rs"
+
+[[example]]
+name = "taskvent"
+path = "examples/zguide/taskvent/main.rs"
+
+[[example]]
+name = "taskwork"
+path = "examples/zguide/taskwork/main.rs"
 
 [[example]]
 name = "version"
@@ -31,30 +47,14 @@ path = "examples/zguide/weather_client/main.rs"
 name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
-[[example]]
-name = "taskvent"
-path = "examples/zguide/taskvent/main.rs"
-
-[[example]]
-name = "taskwork"
-path = "examples/zguide/taskwork/main.rs"
-
-[[example]]
-name = "tasksink"
-path = "examples/zguide/tasksink/main.rs"
-
-[[example]]
-name = "msreader"
-path = "examples/zguide/msreader/main.rs"
-
 [features]
 unstable = ["clippy"]
 unstable-testing = ["compiletest_rs", "unstable"]
 
 [dependencies]
-libc = "0.2.*"
-log = "*"
-zmq-sys = { version = "*", path = "zmq-sys" }
+libc = "0.2.15"
+log = "0.3.6"
+zmq-sys = { version = "0.8.0", path = "zmq-sys" }
 compiletest_rs = { version = "0.*", optional = true }
 clippy = { version = "0.*", optional = true }
 

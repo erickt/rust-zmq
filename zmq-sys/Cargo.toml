@@ -9,7 +9,7 @@ build = "build.rs"
 links = "libzmq"
 
 [dependencies]
-libc = "0.2.*"
+libc = "0.2.15"
 
 [build-dependencies]
 pkg-config = "0.3"
