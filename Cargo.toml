@@ -68,5 +68,4 @@ clippy = { version = "0.*", optional = true }
 
 [dev-dependencies]
 rand = "*"
-time = "*"
 tempfile = "*"
