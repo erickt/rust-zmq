@@ -352,7 +352,10 @@ impl Context {
             return Err(errno_to_error());
         }
 
-        Ok(Socket { sock: sock, closed: false })
+        Ok(Socket {
+            sock: sock,
+            owned: true,
+        })
     }
 
     /// Try to destroy the context. This is different than the destructor; the
@@ -384,21 +387,51 @@ impl Drop for Context {
 
 pub struct Socket {
     sock: *mut c_void,
-    closed: bool
+    owned: bool,
 }
 
 unsafe impl Send for Socket {}
 
 impl Drop for Socket {
     fn drop(&mut self) {
-        match self.close_final() {
-            Ok(()) => { debug!("socket dropped") },
-            Err(e) => panic!(e)
+        if self.owned {
+            if unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
+                panic!(errno_to_error());
+            } else {
+                debug!("socket dropped");
+            }
         }
     }
 }
 
 impl Socket {
+    /// Consume the Socket and return the raw socket pointer.
+    ///
+    /// Failure to close the raw socket manually or call `from_raw`
+    /// will lead to a memory leak.
+    pub fn into_raw(mut self) -> *mut c_void {
+        self.owned = false;
+        self.sock
+    }
+
+    /// Create a Socket from a raw socket pointer. The Socket assumes
+    /// ownership of the pointer and will close the socket when it is
+    /// dropped.
+    pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
+        Socket {
+            sock: sock,
+            owned: true,
+        }
+    }
+
+    /// Returns the inner pointer to this Socket.
+    /// **WARNING**
+    /// It is your responsibility to make sure that the underlying
+    /// memory is not freed too early.
+    pub fn as_mut_ptr(&mut self) -> *mut c_void {
+        self.sock
+    }
+
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
@@ -521,26 +554,6 @@ impl Socket {
             }
         }
         Ok(parts)
-    }
-
-    pub fn close(&mut self) -> Result<()> {
-        if !self.closed {
-            self.closed = true;
-
-            if unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
-                return Err(errno_to_error());
-            }
-        }
-
-        Ok(())
-    }
-
-    pub fn close_final(&mut self) -> Result<()> {
-        if !self.closed && unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
-            return Err(errno_to_error());
-        }
-
-        Ok(())
     }
 
     pub fn is_ipv6(&self) -> Result<bool> {
