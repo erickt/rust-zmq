@@ -51,6 +51,7 @@ path = "examples/zguide/weather_server/main.rs"
 [features]
 unstable = ["clippy"]
 unstable-testing = ["compiletest_rs", "unstable"]
+cross = ["zmq-has/cross"]
 ipc = ["zmq-has/ipc"]
 pgm = ["zmq-has/pgm"]
 tipc = ["zmq-has/tipc"]

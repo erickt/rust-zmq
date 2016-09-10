@@ -9,6 +9,7 @@ build = "build.rs"
 
 [features]
 default = []
+cross = []
 ipc = []
 pgm = []
 tipc = []
@@ -22,4 +23,3 @@ libc = "0.2.15"
 
 [build-dependencies]
 pkg-config = "0.3"
-gcc = "0.3"

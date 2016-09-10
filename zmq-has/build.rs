@@ -1,12 +1,9 @@
 extern crate pkg_config;
-extern crate gcc;
 
 use std::env;
 
 fn main() {
-    let target = env::var("TARGET").unwrap();
-    let host = env::var("HOST").unwrap();
-    if target != host {
+    if cfg!(feature = "cross") {
         println!("cargo:warning=You are cross compiling rust-zmq.\
          Can't compile zmq_has, you need to specify features explicitly!. ");
         println!("cargo:rustc-cfg=cross");
