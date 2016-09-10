@@ -5,5 +5,7 @@
 *.dSYM
 *.o
 *.a
-/target/
+target/
 Cargo.lock
+.idea
+*.iml
