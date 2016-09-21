@@ -12,7 +12,7 @@ fn main() {
         println!("cargo:rustc-link-search=native={}/lib", prefix);
         println!("cargo:include={}/include", prefix);
         println!("cargo:warning=You are specifying zmq prefix.\
-         rust-zmq will only compile with libzmq versions 4.x. ");
+         rust-zmq will only compile with libzmq versions 4.x. prefix is {}", prefix );
     } else {
         match pkg_config::find_library("libzmq") {
             Ok(pkg) => {
