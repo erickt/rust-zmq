@@ -1,0 +1,25 @@
+[package]
+name = "zmq-has"
+version = "0.8.0"
+authors = [ "cpp.create@gmail.com" ]
+license = "MIT/Apache-2.0"
+description = "Optional glue between rust and zmq"
+repository = "https://github.com/erickt/rust-zmq"
+build = "build.rs"
+
+[features]
+default = []
+cross = []
+ipc = []
+pgm = []
+tipc = []
+norm = []
+curve = []
+gssapi = []
+
+
+[dependencies]
+libc = "0.2.15"
+
+[build-dependencies]
+pkg-config = "0.3"

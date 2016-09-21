@@ -1,15 +1,8 @@
-use std::ffi::CString;
-use std::os::raw::{c_char, c_int};
+extern crate zmq_has;
+use zmq_has::zmq_capabilities;
 
 fn main() {
-	for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
-		if unsafe { zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
-			println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has.to_uppercase());
-		}
+	for has in zmq_capabilities().into_iter() {
+			println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has);
 	}
-}
-
-#[link(name = "zmq")]
-extern "C" {
-	fn zmq_has(capability: *const c_char) -> c_int;
 }
