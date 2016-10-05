@@ -267,7 +267,6 @@ impl Error {
             errno::ENOBUFS            => Error::ENOBUFS,
             errno::ENETDOWN           => Error::ENETDOWN,
             errno::EADDRNOTAVAIL      => Error::EADDRNOTAVAIL,
-            156384713                => Error::ENOTSUP,
             156384714                => Error::EPROTONOSUPPORT,
             156384715                => Error::ENOBUFS,
             156384716                => Error::ENETDOWN,

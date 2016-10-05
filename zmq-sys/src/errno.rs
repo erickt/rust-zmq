@@ -3,7 +3,7 @@
 use win_errno as errno;
 
 #[cfg(not(target_os = "windows"))]
-use nix_errno as errno; 
+use libc as errno;
 
 const ZMQ_HAUSNUMERO: i32 = 156384712;
 
