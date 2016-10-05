@@ -7,7 +7,7 @@ fn main() {
         println!("cargo:rustc-link-search=native={}/lib", prefix);
         println!("cargo:include={}/include", prefix);
     } else {
-        match pkg_config::find_library("libzmq") {
+        match pkg_config::probe_library("libzmq") {
             Ok(pkg) => println!("{:?}", pkg),
             Err(e) => panic!("Unable to locate libzmq, err={:?}", e),
         }

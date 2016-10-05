@@ -6,7 +6,7 @@ license = "MIT/Apache-2.0"
 description = "Low-level bindings to the zeromq library"
 repository = "https://github.com/erickt/rust-zmq"
 build = "build.rs"
-links = "libzmq"
+links = "zmq"
 
 [dependencies]
 libc = "0.2.15"
