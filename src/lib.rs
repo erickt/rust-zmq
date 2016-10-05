@@ -20,6 +20,7 @@ use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
+use zmq_sys::errno;
 
 pub use SocketType::*;
 
@@ -198,40 +199,39 @@ pub enum Mechanism {
 
 impl Copy for Mechanism {}
 
-const ZMQ_HAUSNUMERO: isize = 156384712;
 
 #[derive(Clone, Eq, PartialEq)]
 pub enum Error {
-    EACCES          = libc::EACCES as isize,
-    EADDRINUSE      = libc::EADDRINUSE as isize,
-    EAGAIN          = libc::EAGAIN as isize,
-    EBUSY           = libc::EBUSY as isize,
-    ECONNREFUSED    = libc::ECONNREFUSED as isize,
-    EFAULT          = libc::EFAULT as isize,
-    EINTR           = libc::EINTR as isize,
-    EHOSTUNREACH    = libc::EHOSTUNREACH as isize,
-    EINPROGRESS     = libc::EINPROGRESS as isize,
-    EINVAL          = libc::EINVAL as isize,
-    EMFILE          = libc::EMFILE as isize,
-    EMSGSIZE        = libc::EMSGSIZE as isize,
-    ENAMETOOLONG    = libc::ENAMETOOLONG as isize,
-    ENODEV          = libc::ENODEV as isize,
-    ENOENT          = libc::ENOENT as isize,
-    ENOMEM          = libc::ENOMEM as isize,
-    ENOTCONN        = libc::ENOTCONN as isize,
-    ENOTSOCK        = libc::ENOTSOCK as isize,
-    EPROTO          = libc::EPROTO as isize,
-    EPROTONOSUPPORT = libc::EPROTONOSUPPORT as isize,
-    ENOTSUP         = (ZMQ_HAUSNUMERO + 1) as isize,
-    ENOBUFS         = (ZMQ_HAUSNUMERO + 3) as isize,
-    ENETDOWN        = (ZMQ_HAUSNUMERO + 4) as isize,
-    EADDRNOTAVAIL   = (ZMQ_HAUSNUMERO + 6) as isize,
+    EACCES          = errno::EACCES as isize,
+    EADDRINUSE      = errno::EADDRINUSE as isize,
+    EAGAIN          = errno::EAGAIN as isize,
+    EBUSY           = errno::EBUSY as isize,
+    ECONNREFUSED    = errno::ECONNREFUSED as isize,
+    EFAULT          = errno::EFAULT as isize,
+    EINTR           = errno::EINTR as isize,
+    EHOSTUNREACH    = errno::EHOSTUNREACH as isize,
+    EINPROGRESS     = errno::EINPROGRESS as isize,
+    EINVAL          = errno::EINVAL as isize,
+    EMFILE          = errno::EMFILE as isize,
+    EMSGSIZE        = errno::EMSGSIZE as isize,
+    ENAMETOOLONG    = errno::ENAMETOOLONG as isize,
+    ENODEV          = errno::ENODEV as isize,
+    ENOENT          = errno::ENOENT as isize,
+    ENOMEM          = errno::ENOMEM as isize,
+    ENOTCONN        = errno::ENOTCONN as isize,
+    ENOTSOCK        = errno::ENOTSOCK as isize,
+    EPROTO          = errno::EPROTO as isize,
+    EPROTONOSUPPORT = errno::EPROTONOSUPPORT as isize,
+    ENOTSUP         = errno::ENOTSUP as isize,
+    ENOBUFS         = errno::ENOBUFS as isize,
+    ENETDOWN        = errno::ENETDOWN as isize,
+    EADDRNOTAVAIL   = errno::EADDRNOTAVAIL as isize,
 
     // native zmq error codes
-    EFSM            = (ZMQ_HAUSNUMERO + 51) as isize,
-    ENOCOMPATPROTO  = (ZMQ_HAUSNUMERO + 52) as isize,
-    ETERM           = (ZMQ_HAUSNUMERO + 53) as isize,
-    EMTHREAD        = (ZMQ_HAUSNUMERO + 54) as isize,
+    EFSM            = errno::EFSM as isize,
+    ENOCOMPATPROTO  = errno::ENOCOMPATPROTO as isize,
+    ETERM           = errno::ETERM as isize,
+    EMTHREAD        = errno::EMTHREAD as isize,
 }
 
 impl Copy for Error {}
@@ -244,25 +244,29 @@ impl Error {
     pub fn from_raw(raw: i32) -> Error {
         #![cfg_attr(feature = "clippy", allow(match_same_arms))]
         match raw {
-            libc::EACCES             => Error::EACCES,
-            libc::EADDRINUSE         => Error::EADDRINUSE,
-            libc::EAGAIN             => Error::EAGAIN,
-            libc::EBUSY              => Error::EBUSY,
-            libc::ECONNREFUSED       => Error::ECONNREFUSED,
-            libc::EFAULT             => Error::EFAULT,
-            libc::EHOSTUNREACH       => Error::EHOSTUNREACH,
-            libc::EINPROGRESS        => Error::EINPROGRESS,
-            libc::EINVAL             => Error::EINVAL,
-            libc::EMFILE             => Error::EMFILE,
-            libc::EMSGSIZE           => Error::EMSGSIZE,
-            libc::ENAMETOOLONG       => Error::ENAMETOOLONG,
-            libc::ENODEV             => Error::ENODEV,
-            libc::ENOENT             => Error::ENOENT,
-            libc::ENOMEM             => Error::ENOMEM,
-            libc::ENOTCONN           => Error::ENOTCONN,
-            libc::ENOTSOCK           => Error::ENOTSOCK,
-            libc::EPROTO             => Error::EPROTO,
-            libc::EPROTONOSUPPORT    => Error::EPROTONOSUPPORT,
+            errno::EACCES             => Error::EACCES,
+            errno::EADDRINUSE         => Error::EADDRINUSE,
+            errno::EAGAIN             => Error::EAGAIN,
+            errno::EBUSY              => Error::EBUSY,
+            errno::ECONNREFUSED       => Error::ECONNREFUSED,
+            errno::EFAULT             => Error::EFAULT,
+            errno::EHOSTUNREACH       => Error::EHOSTUNREACH,
+            errno::EINPROGRESS        => Error::EINPROGRESS,
+            errno::EINVAL             => Error::EINVAL,
+            errno::EMFILE             => Error::EMFILE,
+            errno::EMSGSIZE           => Error::EMSGSIZE,
+            errno::ENAMETOOLONG       => Error::ENAMETOOLONG,
+            errno::ENODEV             => Error::ENODEV,
+            errno::ENOENT             => Error::ENOENT,
+            errno::ENOMEM             => Error::ENOMEM,
+            errno::ENOTCONN           => Error::ENOTCONN,
+            errno::ENOTSOCK           => Error::ENOTSOCK,
+            errno::EPROTO             => Error::EPROTO,
+            errno::EPROTONOSUPPORT    => Error::EPROTONOSUPPORT,
+            errno::ENOTSUP            => Error::ENOTSUP,
+            errno::ENOBUFS            => Error::ENOBUFS,
+            errno::ENETDOWN           => Error::ENETDOWN,
+            errno::EADDRNOTAVAIL      => Error::EADDRNOTAVAIL,
             156384713                => Error::ENOTSUP,
             156384714                => Error::EPROTONOSUPPORT,
             156384715                => Error::ENOBUFS,

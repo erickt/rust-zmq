@@ -1,6 +1,9 @@
 
 extern crate libc;
 
+mod win_errno;
+pub mod errno;
+
 pub use ffi::{
     zmq_msg_t,
     zmq_free_fn,
