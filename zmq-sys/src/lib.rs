@@ -1,7 +1,9 @@
 
 extern crate libc;
 
+#[cfg(target_os = "windows")]
 mod win_errno;
+
 pub mod errno;
 
 pub use ffi::{
