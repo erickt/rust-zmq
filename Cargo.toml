@@ -48,6 +48,8 @@ name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
 [features]
+default = ["zmq_has"]
+zmq_has = []
 unstable = ["clippy"]
 unstable-testing = ["compiletest_rs", "unstable"]
 
