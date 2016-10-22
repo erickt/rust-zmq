@@ -29,13 +29,10 @@ before_script:
   export LIBRARY_PATH=$HOME/lib &&
   export LD_LIBRARY_PATH=$HOME/lib &&
   export PKG_CONFIG_PATH=$HOME/lib/pkgconfig &&
-  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz &&
-  wget https://download.libsodium.org/libsodium/releases/libsodium-1.0.8.tar.gz.sig &&
-  wget https://download.libsodium.org/jedi.gpg.asc &&
-  gpg --import jedi.gpg.asc &&
-  gpg --verify libsodium-1.0.8.tar.gz.sig libsodium-1.0.8.tar.gz &&
-  tar zxf libsodium-1.0.8.tar.gz &&
-  cd libsodium-1.0.8 &&
+  git clone https://github.com/jedisct1/libsodium.git &&
+  cd libsodium &&
+  git checkout 1.0.11 &&
+  ./autogen.sh &&
   ./configure --prefix=$HOME && make && make install &&
   cd .. &&
   wget https://github.com/zeromq/zeromq4-1/archive/v4.1.4.tar.gz &&
