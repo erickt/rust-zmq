@@ -10,6 +10,12 @@ Rust ZeroMQ bindings.
 Installation
 ------------
 
+Currently, rust-zmq requires ZeroMQ 4.1. For example, on recent
+Debian-based distributions, you can use the following command to get
+the prerequiste headers and library installed:
+
+    apt install libzmq3-dev
+
 rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
 their `Cargo.toml` file:
 
