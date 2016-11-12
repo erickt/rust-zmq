@@ -10,14 +10,6 @@ fn test_curve_keypair() {
 }
 
 #[test]
-fn test_z85() {
-    let test_str = "/AB8cGJ*-$lEbr2=TW$Q?i7:)<?G/4zr-hjppA3d";
-    let decoded = z85_decode(test_str).unwrap();
-    let encoded = z85_encode(&decoded).unwrap();
-    assert_eq!(test_str, encoded);
-}
-
-#[test]
 fn test_get_socket_type() {
     let mut ctx = Context::new();
 

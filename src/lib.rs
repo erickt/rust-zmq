@@ -1042,7 +1042,7 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
         return Err(EncodeError::BadLength);
     }
 
-    let len = data.len() * 5 / 4;
+    let len = data.len() * 5 / 4 + 1;
     let mut dest = vec![0u8; len];
 
     unsafe {
@@ -1052,6 +1052,7 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
             data.len());
     }
 
+    dest.truncate(len-1);
     String::from_utf8(dest).map_err(EncodeError::FromUtf8Error)
 }
 
