@@ -36,7 +36,7 @@ before_script:
   ./configure --prefix=$HOME && make && make install &&
   cd .. &&
   wget https://github.com/zeromq/zeromq4-1/archive/v4.1.6.tar.gz &&
-  tar zxf v4.1.4.tar.gz &&
+  tar zxf v4.1.6.tar.gz &&
   cd zeromq4-1-4.1.6 &&
   ./autogen.sh && ./configure --prefix=$HOME --with-libsodium && make && make install &&
   cd ..
