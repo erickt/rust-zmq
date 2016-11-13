@@ -16,7 +16,6 @@ the prerequiste headers and library installed:
 
 ```
     apt install libzmq3-dev
-
 ```
 
 For Ubuntu 14.04 you must install the newer release of libzmq in the git repository: https://github.com/zeromq/libzmq/releases
@@ -25,7 +24,6 @@ And for Ubuntu 16.04 you can install by terminal
 
 ```
     apt install libzmq5
-
 ```
 
 rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
