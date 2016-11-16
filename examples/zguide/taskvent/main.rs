@@ -11,7 +11,7 @@ use std::io::{self,BufRead};
 use rand::Rng;
 
 fn main() {
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
 
     // Socket to send messages on
     let mut sender = context.socket(zmq::PUSH).unwrap();

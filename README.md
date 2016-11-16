@@ -41,7 +41,7 @@ Usage
 extern crate zmq;
 
 fn main() {
-    let mut ctx = zmq::Context::new();
+    let ctx = zmq::Context::new();
 
     let mut socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("tcp://127.0.0.1:1234").unwrap();

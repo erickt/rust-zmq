@@ -9,7 +9,7 @@ use std::time::Duration;
 use std::thread;
 
 fn main() {
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
 
     // Connect to task ventilator
     let mut receiver = context.socket(zmq::PULL).unwrap();

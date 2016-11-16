@@ -9,7 +9,7 @@ use std::time::Instant;
 
 fn main() {
     //  Prepare our context and socket
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
     let mut receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.bind("tcp://*:5558").is_ok());
     

@@ -7,7 +7,7 @@ extern crate zmq;
 fn main() {
     println!("Connecting to hello world server...\n");
 
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
     let mut requester = context.socket(zmq::REQ).unwrap();
 
     assert!(requester.connect("tcp://localhost:5555").is_ok());

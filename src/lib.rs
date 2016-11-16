@@ -20,6 +20,7 @@ use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
+use std::sync::Arc;
 
 mod sockopt;
 
@@ -327,42 +328,12 @@ pub fn version() -> (i32, i32, i32) {
     (major as i32, minor as i32, patch as i32)
 }
 
-/// zmq context, used to create sockets. Is thread safe, and can be safely
-/// shared, but dropping it while sockets are still open will cause them to
-/// close (see `zmq_ctx_destroy`(3)).
-///
-/// For this reason, one should use an Arc to share it, rather than any unsafe
-/// trickery you might think up that would call the destructor.
-pub struct Context {
+pub struct RawContext {
     ctx: *mut c_void,
 }
 
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}
-
-impl Context {
-    pub fn new() -> Context {
-        Context {
-            ctx: unsafe { zmq_sys::zmq_ctx_new() }
-        }
-    }
-
-    pub fn socket(&mut self, socket_type: SocketType) -> Result<Socket> {
-        let sock = unsafe { zmq_sys::zmq_socket(self.ctx, socket_type as c_int) };
-
-        if sock.is_null() {
-            return Err(errno_to_error());
-        }
-
-        Ok(Socket {
-            sock: sock,
-            owned: true,
-        })
-    }
-
-    /// Try to destroy the context. This is different than the destructor; the
-    /// destructor will loop when zmq_ctx_destroy returns EINTR
-    pub fn destroy(&mut self) -> Result<()> {
+impl RawContext {
+    fn destroy(&self) -> Result<()> {
         if unsafe { zmq_sys::zmq_ctx_destroy(self.ctx) } == -1i32 {
             Err(errno_to_error())
         } else {
@@ -371,13 +342,10 @@ impl Context {
     }
 }
 
-impl Default for Context {
-    fn default() -> Self {
-        Context::new()
-    }
-}
+unsafe impl Send for RawContext {}
+unsafe impl Sync for RawContext {}
 
-impl Drop for Context {
+impl Drop for RawContext {
     fn drop(&mut self) {
         debug!("context dropped");
         let mut e = self.destroy();
@@ -387,8 +355,79 @@ impl Drop for Context {
     }
 }
 
+/// Handle for a zmq context, used to create sockets.
+///
+/// It is thread safe, and can be safely cloned and shared. Each clone
+/// references the same underlying C context. Internally, an `Arc` is
+/// used to implement this in a threadsafe way.
+///
+/// Also note that this binding deviates from the C API in that each
+/// socket created from a context initially owns a clone of that
+/// context. This reference is kept to avoid a potential deadlock
+/// situation that would otherwise occur:
+///
+/// Destroying the underlying C context is an operation which
+/// blocks waiting for all sockets created from it to be closed
+/// first. If one of the sockets belongs to thread issuing the
+/// destroy operation, you have established a deadlock.
+///
+/// You can still deadlock yourself (or intentionally close sockets in
+/// other threads, see `zmq_ctx_destroy`(3)) by explicitly calling
+/// `Context::destroy`.
+///
+#[derive(Clone)]
+pub struct Context {
+    raw: Arc<RawContext>,
+}
+
+impl Context {
+    /// Create a new reference-counted context handle.
+    pub fn new() -> Context {
+        Context {
+            raw: Arc::new(RawContext {
+                ctx: unsafe { zmq_sys::zmq_ctx_new() }
+            })
+        }
+    }
+
+    /// Create a new socket.
+    ///
+    /// Note that the returned socket keeps a an `Arc` reference to
+    /// the context it was created from, and will keep that context
+    /// from being dropped while being live.
+    pub fn socket(&self, socket_type: SocketType) -> Result<Socket> {
+        let sock = unsafe { zmq_sys::zmq_socket(self.raw.ctx, socket_type as c_int) };
+
+        if sock.is_null() {
+            return Err(errno_to_error());
+        }
+
+        Ok(Socket {
+            sock: sock,
+            context: Some(self.clone()),
+            owned: true,
+        })
+    }
+
+    /// Try to destroy the context. This is different than the destructor; the
+    /// destructor will loop when zmq_ctx_destroy returns EINTR
+    pub fn destroy(&mut self) -> Result<()> {
+        self.raw.destroy()
+    }
+}
+
+impl Default for Context {
+    fn default() -> Self {
+        Context::new()
+    }
+}
+
 pub struct Socket {
     sock: *mut c_void,
+    // The `context` field is never accessed, but implicitly does
+    // reference counting via the `Drop` trait.
+    #[allow(dead_code)]
+    context: Option<Context>,
     owned: bool,
 }
 
@@ -480,7 +519,8 @@ impl Socket {
     /// Consume the Socket and return the raw socket pointer.
     ///
     /// Failure to close the raw socket manually or call `from_raw`
-    /// will lead to a memory leak.
+    /// will lead to a memory leak. Also note that is function
+    /// relinquishes the reference on the context is was created from.
     pub fn into_raw(mut self) -> *mut c_void {
         self.owned = false;
         self.sock
@@ -488,10 +528,11 @@ impl Socket {
 
     /// Create a Socket from a raw socket pointer. The Socket assumes
     /// ownership of the pointer and will close the socket when it is
-    /// dropped.
+    /// dropped. The returned socket will not reference any context.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
             sock: sock,
+            context: None,
             owned: true,
         }
     }

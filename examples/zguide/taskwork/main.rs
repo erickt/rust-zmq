@@ -13,7 +13,7 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
 
     // socket to receive messages on
     let mut receiver = context.socket(zmq::PULL).unwrap();
