@@ -1,5 +1,6 @@
 extern crate zmq;
 use zmq::*;
+use std::net::TcpStream;
 
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
@@ -151,12 +152,24 @@ fn test_get_socket_type() {
         SocketType::PULL,
         SocketType::PUSH,
         SocketType::XPUB,
-        SocketType::XSUB
+        SocketType::XSUB,
+        SocketType::STREAM,
     ];
     for sock_type in socket_types.drain(..) {
         let sock = ctx.socket(sock_type).unwrap();
         assert_eq!(sock.get_socket_type().unwrap(), sock_type);
     }
+}
+
+#[test]
+fn test_create_stream_socket() {
+    let ctx = Context::new();
+    let sock = ctx.socket(STREAM).unwrap();
+    assert!(sock.bind("tcp://127.0.0.1:*").is_ok());
+    let ep = sock.get_last_endpoint().unwrap().unwrap();
+    let tcp = "tcp://";
+    assert!(ep.starts_with(tcp));
+    assert!(TcpStream::connect(&ep[tcp.len()..]).is_ok());
 }
 
 #[test]

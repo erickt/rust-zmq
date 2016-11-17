@@ -24,6 +24,10 @@ name = "msgsend"
 path = "examples/msgsend/main.rs"
 
 [[example]]
+name = "stream-logserver"
+path = "examples/stream/logserver.rs"
+
+[[example]]
 name = "tasksink"
 path = "examples/zguide/tasksink/main.rs"
 
