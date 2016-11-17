@@ -1,5 +1,6 @@
 extern crate zmq;
 use zmq::*;
+use std::net::TcpStream;
 
 #[test]
 fn test_raw_roundtrip() {
