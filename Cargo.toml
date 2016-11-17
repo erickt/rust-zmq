@@ -53,6 +53,14 @@ unstable = []
 unstable-testing = ["compiletest_rs", "unstable"]
 # unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
+[[example]]
+name = "rtdealer"
+path = "examples/zguide/rtdealer/main.rs"
+
+[[example]]
+name = "fileio3"
+path = "examples/zguide/fileio3/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
@@ -61,5 +69,6 @@ compiletest_rs = { version = "0.*", optional = true }
 clippy = { version = "0.*", optional = true }
 
 [dev-dependencies]
-rand = "*"
 quickcheck = "0.3.1"
+rand = "*"
+tempfile = "*"
