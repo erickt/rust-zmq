@@ -778,6 +778,11 @@ impl Socket {
         sockopt::get_string(self.sock, Constants::ZMQ_ZAP_DOMAIN.to_raw(), 255, true)
     }
 
+    pub fn get_last_endpoint(&self) -> Result<result::Result<String, Vec<u8>>> {
+        // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
+        sockopt::get_string(self.sock, Constants::ZMQ_LAST_ENDPOINT.to_raw(), 256 + 9 + 1, true)
+    }
+
     #[cfg(ZMQ_HAS_CURVE = "1")]
     // FIXME: there should be no decoding errors, hence the return type can be simplified
     pub fn get_curve_publickey(&self) -> Result<result::Result<String, Vec<u8>>> {
