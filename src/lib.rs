@@ -43,6 +43,7 @@ pub enum SocketType {
     PUSH   = 8,
     XPUB   = 9,
     XSUB   = 10,
+    STREAM = 11,
 }
 
 impl Copy for SocketType {}
@@ -701,6 +702,7 @@ impl Socket {
                 8 => SocketType::PUSH,
                 9 => SocketType::XPUB,
                 10 => SocketType::XSUB,
+                11 => SocketType::STREAM,
                 _ => panic!("socket type is out of range!")
             }
         })
