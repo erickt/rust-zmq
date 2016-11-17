@@ -48,8 +48,10 @@ name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
 [features]
-unstable = ["clippy"]
+unstable = []
+# Clippy is currently not compiling on nightly.
 unstable-testing = ["compiletest_rs", "unstable"]
+# unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
 [dependencies]
 libc = "0.2.15"
