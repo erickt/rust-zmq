@@ -3,8 +3,8 @@ extern crate zmq;
 #[macro_use]
 extern crate quickcheck;
 
-use zmq::{z85_encode,z85_decode};
-use quickcheck::{Gen,Arbitrary};
+use zmq::{z85_encode, z85_decode, DecodeError, EncodeError};
+use quickcheck::{Gen, Arbitrary};
 
 #[test]
 fn test_z85() {
@@ -12,6 +12,27 @@ fn test_z85() {
     let decoded = z85_decode(test_str).unwrap();
     let encoded = z85_encode(&decoded).unwrap();
     assert_eq!(test_str, encoded);
+}
+
+#[test]
+fn test_decode_errors() {
+    let bad_str = "/AB8";
+    match z85_decode(bad_str) {
+        Err(DecodeError::BadLength) => (),
+        _ => panic!("expected bad length error"),
+    }
+
+    let bad_str = "/AB\x008";
+    match z85_decode(bad_str) {
+        Err(DecodeError::NulError(_)) => (),
+        _ => panic!("expected nul error"),
+    }
+
+    let bad_bytes = b"\x01\x01\x01\x01\x01";
+    match z85_encode(bad_bytes) {
+        Err(EncodeError::BadLength) => (),
+        _ => { panic!("expected bad length error") },
+    }
 }
 
 // Valid input for z85 encoding (i.e. a slice of bytes with its length

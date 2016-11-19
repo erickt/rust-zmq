@@ -325,6 +325,21 @@ impl std::fmt::Display for Error {
     }
 }
 
+impl fmt::Debug for Error {
+    /// Return the error string for an error.
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        unsafe {
+            let s = zmq_sys::zmq_strerror(*self as c_int);
+            write!(f, "{}",
+                   str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap())
+        }
+    }
+}
+
+fn errno_to_error() -> Error {
+    Error::from_raw(unsafe { zmq_sys::zmq_errno() })
+}
+
 // Return the current zeromq version.
 pub fn version() -> (i32, i32, i32) {
     let mut major = 0;
@@ -1037,6 +1052,21 @@ impl fmt::Display for EncodeError {
     }
 }
 
+impl std::error::Error for EncodeError {
+    fn description(&self) -> &str {
+        match *self {
+            EncodeError::BadLength => "invalid data length",
+            EncodeError::FromUtf8Error(ref e) => e.description(),
+        }
+    }
+}
+
+/// Encode a binary key as Z85 printable text.
+///
+/// Z85 is an encoding similar to Base64, but operates on 4-byte chunks,
+/// which are encoded into 5-byte sequences.
+///
+/// The input slice *must* have a length divisible by 4.
 pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     if data.len() % 4 != 0 {
         return Err(EncodeError::BadLength);
@@ -1077,6 +1107,21 @@ impl fmt::Display for DecodeError {
     }
 }
 
+impl std::error::Error for DecodeError {
+    fn description(&self) -> &str {
+        match *self {
+            DecodeError::BadLength => "invalid data length",
+            DecodeError::NulError(ref e) => e.description(),
+        }
+    }
+}
+
+/// Decode a binary key from Z85-encoded text.
+///
+/// The input string must have a length divisible by 5.
+///
+/// Note that 0MQ silently accepts characters outside the range defined for
+/// the Z85 encoding.
 pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     if data.len() % 5 != 0 {
         return Err(DecodeError::BadLength);
@@ -1092,19 +1137,4 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     }
 
     Ok(dest)
-}
-
-impl fmt::Debug for Error {
-    /// Return the error string for an error.
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int);
-            write!(f, "{}",
-                   str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap())
-        }
-    }
-}
-
-fn errno_to_error() -> Error {
-    Error::from_raw(unsafe { zmq_sys::zmq_errno() })
 }
