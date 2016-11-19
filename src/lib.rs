@@ -817,8 +817,6 @@ impl Socket {
     }
 }
 
-const MSG_SIZE: usize = 64;
-
 pub struct Message {
     msg: zmq_sys::zmq_msg_t,
 }
@@ -841,14 +839,14 @@ impl fmt::Debug for Message {
 impl Message {
     /// Create an empty `Message`.
     pub fn new() -> Result<Message> {
-        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
+        let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(unsafe { zmq_sys::zmq_msg_init(&mut msg) });
         Ok(Message { msg: msg })
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
-        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
+        let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(zmq_sys::zmq_msg_init_size(&mut msg, len as size_t));
         Ok(Message { msg: msg })
     }
@@ -906,7 +904,7 @@ impl Deref for Message {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
-            let ptr = self.msg.unnamed_field1.as_ptr() as *mut _;
+            let ptr = &self.msg as *const _ as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
             slice::from_raw_parts(mem::transmute(data), len)
