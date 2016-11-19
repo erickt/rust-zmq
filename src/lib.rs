@@ -871,10 +871,19 @@ impl Message {
         }
     }
 
+    /// Return the message content as a string slice if it is valid UTF-8.
     pub fn as_str(&self) -> Option<&str> {
         str::from_utf8(self).ok()
     }
 
+    /// Return the `ZMQ_MORE` flag, which indicates if more parts of a multipart
+    /// message will follow.
+    pub fn get_more(&self) -> bool {
+        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _, ) };
+        rc != 0
+    }
+
+    /// Query a message metadata property.
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 

@@ -56,8 +56,22 @@ fn test_exchanging_strings() {
 #[test]
 fn test_exchanging_multipart() {
     let (mut sender, mut receiver) = create_socketpair();
+
+    // convenience API
     sender.send_multipart(&[b"foo", b"bar"], 0).unwrap();
     assert_eq!(receiver.recv_multipart(0).unwrap(), vec![b"foo", b"bar"]);
+
+    // manually
+    receiver.send(b"foo", SNDMORE).unwrap();
+    receiver.send(b"bar", 0).unwrap();
+    let msg1 = sender.recv_msg(0).unwrap();
+    assert!(msg1.get_more());
+    assert!(sender.get_rcvmore().unwrap());
+    assert_eq!(&msg1[..], b"foo");
+    let msg2 = sender.recv_msg(0).unwrap();
+    assert!(!msg2.get_more());
+    assert!(!sender.get_rcvmore().unwrap());
+    assert_eq!(&msg2[..], b"bar");
 }
 
 #[test]
