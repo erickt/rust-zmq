@@ -634,25 +634,16 @@ impl Socket {
 
     pub fn recv_msg(&mut self, flags: i32) -> Result<Message> {
         let mut msg = try!(Message::new());
-        match self.recv(&mut msg, flags) {
-            Ok(()) => Ok(msg),
-            Err(e) => Err(e),
-        }
+        self.recv(&mut msg, flags).map(|_| msg)
     }
 
     pub fn recv_bytes(&mut self, flags: i32) -> Result<Vec<u8>> {
-        match self.recv_msg(flags) {
-            Ok(msg) => Ok(msg.to_vec()),
-            Err(e) => Err(e),
-        }
+        self.recv_msg(flags).map(|msg| msg.to_vec())
     }
 
     /// Read a `String` from the socket.
     pub fn recv_string(&mut self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
-        match self.recv_bytes(flags) {
-            Ok(msg) => Ok(Ok(String::from_utf8(msg).unwrap_or("".to_string()))),
-            Err(e) => Err(e),
-        }
+        self.recv_bytes(flags).map(|bytes| Ok(String::from_utf8(bytes).unwrap_or("".to_string())))
     }
 
     pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>> {
