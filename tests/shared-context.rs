@@ -43,8 +43,5 @@ fn connect_socket<'a>(ctx: &'a zmq::Context,
                       typ: zmq::SocketType,
                       address: &str) -> Result<zmq::Socket, zmq::Error> {
     ctx.socket(typ)
-        .and_then(|mut socket| match socket.connect(address) {
-            Ok(()) => Ok(socket),
-            Err(e) => Err(e)
-        })
+        .and_then(|mut socket| socket.connect(address).map(|_| socket))
 }

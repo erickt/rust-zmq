@@ -18,23 +18,16 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
     let mut msg = zmq::Message::new().unwrap();
 
     while workers != 0 {
-        match pull_socket.recv(&mut msg, 0) {
-            Err(e) => panic!(e),
-            Ok(()) => {
-                let s = msg.as_str().unwrap();
-                if s.is_empty() {
-                    workers -= 1;
-                } else {
-                    count += s.parse::<u32>().unwrap();
-                }
-            }
+        pull_socket.recv(&mut msg, 0).unwrap();
+        let s = msg.as_str().unwrap();
+        if s.is_empty() {
+            workers -= 1;
+        } else {
+            count += s.parse::<u32>().unwrap();
         }
     }
 
-    match push_socket.send_str(&count.to_string(), 0) {
-        Ok(()) => { }
-        Err(e) => panic!(e),
-    }
+    push_socket.send_str(&count.to_string(), 0).unwrap();
 }
 
 fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
@@ -124,13 +117,8 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     }
 
     // Receive the final count.
-    let result: i32 = match pull_socket.recv_msg(0) {
-        Ok(msg) => {
-            let msg_str: &str = msg.as_str().unwrap();
-            msg_str.parse().unwrap()
-        },
-        Err(e) => panic!(e),
-    };
+    let msg = pull_socket.recv_msg(0).unwrap();
+    let result = msg.as_str().unwrap().parse::<i32>().unwrap();
 
     let elapsed = start.elapsed();
 
