@@ -22,6 +22,16 @@ use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
 use std::sync::Arc;
 
+macro_rules! zmq_try {
+    ($($tt:tt)*) => {{
+        let rc = $($tt)*;
+        if rc == -1 {
+            return Err(::errno_to_error());
+        }
+        rc
+    }}
+}
+
 mod sockopt;
 
 pub use SocketType::*;
@@ -326,16 +336,6 @@ pub fn version() -> (i32, i32, i32) {
     }
 
     (major as i32, minor as i32, patch as i32)
-}
-
-macro_rules! zmq_try {
-    ($($tt:tt)*) => {{
-        let rc = $($tt)*;
-        if rc == -1 {
-            return Err(errno_to_error());
-        }
-        rc
-    }}
 }
 
 struct RawContext {

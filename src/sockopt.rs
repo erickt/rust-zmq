@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::{mem, ptr, str};
 use std::result;
 
-use super::*;
+use super::Result;
 
 pub trait Getter where Self: Sized {
     fn get(sock: *mut c_void, opt: c_int) -> Result<Self>;
@@ -20,23 +20,18 @@ macro_rules! getsockopt_num(
         impl Getter for $ty {
             #[allow(trivial_casts)]
             fn get(sock: *mut c_void, opt: c_int) -> Result<$ty> {
-                unsafe {
-                    let mut value: $c_ty = 0;
-                    let value_ptr = &mut value as *mut $c_ty;
-                    let mut size = mem::size_of::<$c_ty>() as size_t;
+                let mut value: $c_ty = 0;
+                let value_ptr = &mut value as *mut $c_ty;
+                let mut size = mem::size_of::<$c_ty>() as size_t;
 
-                    let rc = zmq_sys::zmq_getsockopt(
+                zmq_try!(unsafe {
+                    zmq_sys::zmq_getsockopt(
                         sock,
                         opt,
                         value_ptr as *mut c_void,
-                        &mut size);
-
-                    if rc == -1 {
-                        Err(errno_to_error())
-                    } else {
-                        Ok(value as $ty)
-                    }
-                }
+                        &mut size)
+                });
+                Ok(value as $ty)
             }
         }
     )
@@ -46,32 +41,23 @@ getsockopt_num!(c_int, i32);
 getsockopt_num!(int64_t, i64);
 getsockopt_num!(uint64_t, u64);
 
-pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t, remove_nulbyte: bool) -> Result<result::Result<String, Vec<u8>>> {
+pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t,
+                  remove_nulbyte: bool) -> Result<result::Result<String, Vec<u8>>> {
     let mut size = size;
     let mut value = vec![0u8; size];
 
-    let r = unsafe {
+    zmq_try!(unsafe {
         zmq_sys::zmq_getsockopt(
             sock,
             opt,
             value.as_mut_ptr() as *mut c_void,
             &mut size)
-    };
-
-    if r == -1i32 {
-        Err(errno_to_error())
-    } else {
-        if remove_nulbyte {
-            size -= 1;
-        }
-        value.truncate(size);
-
-        if let Ok(s) = str::from_utf8(&value) {
-            return Ok(Ok(s.to_string()));
-        }
-
-        Ok(Err(value))
+    });
+    if remove_nulbyte {
+        size -= 1;
     }
+    value.truncate(size);
+    Ok(String::from_utf8(value).map_err(|e| e.into_bytes()))
 }
 
 macro_rules! setsockopt_num(
@@ -81,19 +67,14 @@ macro_rules! setsockopt_num(
             fn set(sock: *mut c_void, opt: c_int, value: $ty) -> Result<()> {
                 let size = mem::size_of::<$ty>() as size_t;
 
-                let rc = unsafe {
+                zmq_try!(unsafe {
                     zmq_sys::zmq_setsockopt(
                         sock,
                         opt,
                         (&value as *const $ty) as *const c_void,
                         size)
-                };
-
-                if rc == -1 {
-                    Err(errno_to_error())
-                } else {
-                    Ok(())
-                }
+                });
+                Ok(())
             }
         }
     )
@@ -104,20 +85,8 @@ setsockopt_num!(i64);
 setsockopt_num!(u64);
 
 fn setsockopt_null(sock: *mut c_void, opt: c_int) -> Result<()> {
-    let r = unsafe {
-        zmq_sys::zmq_setsockopt(
-            sock,
-            opt,
-            ptr::null(),
-            0
-        )
-    };
-
-    if r == -1i32 {
-        Err(errno_to_error())
-    } else {
-        Ok(())
-    }
+    zmq_try!(unsafe { zmq_sys::zmq_setsockopt(sock, opt, ptr::null(), 0) });
+    Ok(())
 }
 
 impl<'a> Setter for &'a str {
@@ -151,20 +120,15 @@ impl Setter for bool {
 
 impl<'a> Setter for &'a [u8] {
     fn set(sock: *mut c_void, opt: c_int, value: &'a [u8]) -> Result<()> {
-        let r = unsafe {
+        zmq_try!(unsafe {
             zmq_sys::zmq_setsockopt(
                 sock,
                 opt,
                 value.as_ptr() as *const c_void,
                 value.len() as size_t
             )
-        };
-
-        if r == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+        });
+        Ok(())
     }
 }
 
@@ -174,9 +138,4 @@ pub fn get<T: Getter>(sock: *mut c_void, opt: c_int) -> Result<T> {
 
 pub fn set<T: Setter>(sock: *mut c_void, opt: c_int, value: T) -> Result<()> {
     T::set(sock, opt, value)
-}
-
-// FIXME: duplicated from lib.rs
-fn errno_to_error() -> Error {
-    Error::from_raw(unsafe { zmq_sys::zmq_errno() })
 }
