@@ -643,7 +643,7 @@ impl Socket {
 
     /// Read a `String` from the socket.
     pub fn recv_string(&mut self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
-        self.recv_bytes(flags).map(|bytes| Ok(String::from_utf8(bytes).unwrap_or("".to_string())))
+        self.recv_bytes(flags).map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
     }
 
     pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>> {
