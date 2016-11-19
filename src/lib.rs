@@ -1038,12 +1038,12 @@ impl CurveKeyPair {
                 ffi_public_key.as_mut_ptr() as *mut libc::c_char,
                 ffi_secret_key.as_mut_ptr() as *mut libc::c_char);
 
-            let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
-            let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
-
             if rc == -1i32 {
                 Err(errno_to_error())
             } else {
+                let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
+                let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
+
                 Ok(CurveKeyPair {
                     public_key: public_key,
                     secret_key: secret_key,
