@@ -993,15 +993,18 @@ pub struct CurveKeyPair {
 #[cfg(ZMQ_HAS_CURVE = "1")]
 impl CurveKeyPair {
     pub fn new() -> Result<CurveKeyPair> {
-        // Curve keypairs are currently 40 bytes long.
-        let mut ffi_public_key = vec![0u8; 40];
-        let mut ffi_secret_key = vec![0u8; 40];
+        // Curve keypairs are currently 40 bytes long, plus terminating NULL.
+        let mut ffi_public_key = vec![0u8; 41];
+        let mut ffi_secret_key = vec![0u8; 41];
 
         zmq_try!(unsafe {
             zmq_sys::zmq_curve_keypair(
                 ffi_public_key.as_mut_ptr() as *mut libc::c_char,
                 ffi_secret_key.as_mut_ptr() as *mut libc::c_char)
         });
+
+        ffi_public_key.truncate(40);
+        ffi_secret_key.truncate(40);
 
         let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
         let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
