@@ -1,10 +1,12 @@
 #![crate_name = "tasksink"]
 
-///  Task sink
-///  Binds PULL socket to tcp://localhost:5558
-///  Collects results from workers via that socket
+/// Task sink
+/// Binds PULL socket to tcp://localhost:5558
+/// Collects results from workers via that socket
 
 extern crate zmq;
+
+use std::io::{self, Write};
 use std::time::Instant;
 
 fn main() {
@@ -12,24 +14,23 @@ fn main() {
     let context = zmq::Context::new();
     let mut receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.bind("tcp://*:5558").is_ok());
-    
-    // Wait for start of batch
-    let mut msg = zmq::Message::new().unwrap();
 
-    receiver.recv(&mut msg, 0).unwrap();
+    // Wait for start of batch
+    receiver.recv_bytes(0).unwrap();
 
     //  Start our clock now
     let start = Instant::now();
 
-    for i in 1..101 {
-        receiver.recv(&mut msg, 0).unwrap();
+    for task_nbr in 0..100 {
+        receiver.recv_bytes(0).unwrap();
 
-        if i % 10 == 0 {
+        if task_nbr % 10 == 0 {
             print!(":");
         } else {
             print!(".");
         }
+        let _ = io::stdout().flush();
     }
-    
+
     println!("\nTotal elapsed time: {:?}", start.elapsed());
 }
