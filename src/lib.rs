@@ -36,6 +36,7 @@ mod sockopt;
 
 pub use SocketType::*;
 
+/// `zmq`-specific Result type.
 pub type Result<T> = result::Result<T, Error>;
 
 /// Socket types
@@ -57,9 +58,13 @@ pub enum SocketType {
 
 impl Copy for SocketType {}
 
-pub static DONTWAIT : i32 = 1;
-pub static SNDMORE : i32 = 2;
+/// Flag for socket `send` methods that specifies non-blocking mode.
+pub static DONTWAIT: i32 = 1;
+/// Flag for socket `send` methods that specifies that more frames of a
+/// multipart message will follow.
+pub static SNDMORE: i32 = 2;
 
+/// Raw 0MQ socket option constants.
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Constants {
@@ -213,6 +218,7 @@ impl Copy for Mechanism {}
 
 const ZMQ_HAUSNUMERO: isize = 156384712;
 
+/// An error returned by a 0MQ API function.
 #[derive(Clone, Eq, PartialEq)]
 pub enum Error {
     EACCES          = libc::EACCES as isize,
@@ -340,7 +346,7 @@ fn errno_to_error() -> Error {
     Error::from_raw(unsafe { zmq_sys::zmq_errno() })
 }
 
-// Return the current zeromq version.
+/// Return the current zeromq version, as `(major, minor, patch)`.
 pub fn version() -> (i32, i32, i32) {
     let mut major = 0;
     let mut minor = 0;
@@ -377,7 +383,7 @@ impl Drop for RawContext {
     }
 }
 
-/// Handle for a zmq context, used to create sockets.
+/// Handle for a 0MQ context, used to create sockets.
 ///
 /// It is thread safe, and can be safely cloned and shared. Each clone
 /// references the same underlying C context. Internally, an `Arc` is
@@ -432,7 +438,7 @@ impl Context {
     }
 
     /// Try to destroy the context. This is different than the destructor; the
-    /// destructor will loop when zmq_ctx_destroy returns EINTR
+    /// destructor will loop when zmq_ctx_destroy returns EINTR.
     pub fn destroy(&mut self) -> Result<()> {
         self.raw.destroy()
     }
@@ -444,6 +450,7 @@ impl Default for Context {
     }
 }
 
+/// A socket, the central object in 0MQ.
 pub struct Socket {
     sock: *mut c_void,
     // The `context` field is never accessed, but implicitly does
@@ -548,9 +555,10 @@ impl Socket {
         self.sock
     }
 
-    /// Create a Socket from a raw socket pointer. The Socket assumes
-    /// ownership of the pointer and will close the socket when it is
-    /// dropped. The returned socket will not reference any context.
+    /// Create a Socket from a raw socket pointer.
+    ///
+    /// The Socket assumes ownership of the pointer and will close the socket
+    /// when it is dropped. The returned socket will not reference any context.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
             sock: sock,
@@ -559,8 +567,9 @@ impl Socket {
         }
     }
 
-    /// Returns the inner pointer to this Socket.
-    /// **WARNING**
+    /// Return the inner pointer to this Socket.
+    ///
+    /// **WARNING**:
     /// It is your responsibility to make sure that the underlying
     /// memory is not freed too early.
     pub fn as_mut_ptr(&mut self) -> *mut c_void {
@@ -593,10 +602,12 @@ impl Socket {
         Ok(())
     }
 
+    /// Send a UTF-8 encoded string message.
     pub fn send_str(&mut self, data: &str, flags: i32) -> Result<()> {
         self.send(data.as_bytes(), flags)
     }
 
+    /// Send a multipart message.
     pub fn send_multipart(&mut self, parts: &[&[u8]], flags: i32) -> Result<()> {
         if parts.is_empty() {
             return Ok(());
@@ -618,27 +629,37 @@ impl Socket {
         Ok(())
     }
 
-    // Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
+    /// Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
     pub fn recv_into(&mut self, bytes: &mut [u8], flags: i32) -> Result<()> {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
         zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
         Ok(())
     }
 
+    /// Receive a message into a fresh `Message`.
     pub fn recv_msg(&mut self, flags: i32) -> Result<Message> {
         let mut msg = try!(Message::new());
         self.recv(&mut msg, flags).map(|_| msg)
     }
 
+    /// Receive a message as a byte vector.
     pub fn recv_bytes(&mut self, flags: i32) -> Result<Vec<u8>> {
         self.recv_msg(flags).map(|msg| msg.to_vec())
     }
 
-    /// Read a `String` from the socket.
+    /// Receive a `String` from the socket.
+    ///
+    /// If the received message is not valid UTF-8, it is returned as the original
+    /// Vec in the `Err` part of the inner result.
     pub fn recv_string(&mut self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
         self.recv_bytes(flags).map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
     }
 
+    /// Receive a multipart message from the socket.
+    ///
+    /// Note that this will allocate a new vector for each message part; for
+    /// many applications it will be possible to process the different parts
+    /// sequentially and reuse allocations that way.
     pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>> {
         let mut parts: Vec<Vec<u8>> = vec![];
         loop {
@@ -671,6 +692,7 @@ impl Socket {
         },
     }
 
+    /// Return the type of this socket.
     pub fn get_socket_type(&self) -> Result<SocketType> {
         sockopt::get(self.sock, Constants::ZMQ_TYPE.to_raw()).map(|ty| {
             match ty {
@@ -690,6 +712,7 @@ impl Socket {
         })
     }
 
+    /// Return true if there are more frames of a multipart message to receive.
     pub fn get_rcvmore(&self) -> Result<bool> {
         sockopt::get(self.sock, Constants::ZMQ_RCVMORE.to_raw())
             .map(|o: i64| o == 1i64 )
@@ -817,6 +840,7 @@ impl Socket {
         },
     }
 
+    /// Create a `PollItem` from the socket.
     pub fn as_poll_item(&self, events: i16) -> PollItem {
         PollItem {
             socket: self.sock,
@@ -827,11 +851,25 @@ impl Socket {
         }
     }
 
+    /// Do a call to `zmq_poll` with only this socket.
+    ///
+    /// The return value on success will be either zero (no event) or one (some
+    /// event was signaled).
     pub fn poll(&self, events: i16, timeout_ms: i64) -> Result<i32> {
         poll(&mut [self.as_poll_item(events)], timeout_ms)
     }
 }
 
+/// Holds a 0MQ message.
+///
+/// A message is a single frame, either received or created locally and then
+/// sent over the wire. Multipart messages are transmitted as multiple
+/// `Message`s.
+///
+/// In rust-zmq, you aren't required to create message objects if you use the
+/// convenience APIs provided (e.g. `Socket::recv_bytes()` or
+/// `Socket::send_str()`). However, using message objects can make multiple
+/// operations in a loop more efficient, since allocated memory can be reused.
 pub struct Message {
     msg: zmq_sys::zmq_msg_t,
 }
@@ -939,10 +977,21 @@ impl DerefMut for Message {
     }
 }
 
-pub static POLLIN : i16 = 1i16;
-pub static POLLOUT : i16 = 2i16;
-pub static POLLERR : i16 = 4i16;
+/// For `poll()`, specifies to signal when a message/some data can be read from
+/// a socket.
+pub static POLLIN: i16 = 1i16;
+/// For `poll()`, specifies to signal when a message/some data can be written to
+/// a socket.
+pub static POLLOUT: i16 = 2i16;
+/// For `poll()`, specifies to signal when an error condition is present on a
+/// socket.  This only applies to non-0MQ sockets.
+pub static POLLERR: i16 = 4i16;
 
+/// Represents a handle that can be `poll()`ed.
+///
+/// This is either a reference to a 0MQ socket, or a standard socket.
+/// Apart from that it contains the requested event mask, and is updated
+/// with the occurred events after `poll()` finishes.
 #[repr(C)]
 pub struct PollItem<'a> {
     socket: *mut c_void,
@@ -953,6 +1002,8 @@ pub struct PollItem<'a> {
 }
 
 impl<'a> PollItem<'a> {
+    /// Construct a PollItem from a non-0MQ socket, given by its file
+    /// descriptor.
     pub fn from_fd(fd: c_int) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
@@ -963,11 +1014,23 @@ impl<'a> PollItem<'a> {
         }
     }
 
+    /// Retrieve the events that occurred for this handle.
     pub fn get_revents(&self) -> i16 {
         self.revents
     }
 }
 
+/// Poll for events on multiple sockets.
+///
+/// For every poll item given, the events given in the `events` bitmask are
+/// monitored, and signaled in `revents` when they occur. Any number of poll
+/// items can have events signaled when the function returns.
+///
+/// The given timeout is in milliseconds and can be zero. A timeout of `-1`
+/// indicates to block indefinitely until an event has occurred.
+///
+/// The result, if not `Err`, indicates the number of poll items that have
+/// events signaled.
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
     let rc = zmq_try!(unsafe {
         zmq_sys::zmq_poll(items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
@@ -977,12 +1040,23 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
     Ok(rc as i32)
 }
 
+/// Start a 0MQ proxy in the current thread.
+///
+/// A proxy connects a frontend socket with a backend socket, where the exact
+/// behavior depends on the type of both sockets.
+///
+/// This function only returns (always with an `Err`) when the sockets' context
+/// has been closed.
 pub fn proxy(frontend: &mut Socket,
              backend: &mut Socket) -> Result<()> {
     zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
     Ok(())
 }
 
+/// Start a 0MQ proxy in the current thread, with a capture socket.
+///
+/// The capture socket is sent all messages received on the frontend and backend
+/// sockets.
 pub fn proxy_with_capture(frontend: &mut Socket,
                           backend: &mut Socket,
                           capture: &mut Socket) -> Result<()> {
@@ -990,6 +1064,9 @@ pub fn proxy_with_capture(frontend: &mut Socket,
     Ok(())
 }
 
+/// Return true if the used 0MQ library has the given capability.
+///
+/// For a list of capabilities, please consult the `zmq_has` manual page.
 pub fn has(capability: &str) -> bool {
     let c_str = ffi::CString::new(capability.as_bytes()).unwrap();
 
@@ -998,6 +1075,7 @@ pub fn has(capability: &str) -> bool {
     }
 }
 
+/// A CURVE key pair generated by 0MQ.
 #[cfg(ZMQ_HAS_CURVE = "1")]
 #[derive(Debug)]
 pub struct CurveKeyPair {
@@ -1007,6 +1085,7 @@ pub struct CurveKeyPair {
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
 impl CurveKeyPair {
+    /// Create a new key pair.
     pub fn new() -> Result<CurveKeyPair> {
         // Curve keypairs are currently 40 bytes long, plus terminating NULL.
         let mut ffi_public_key = vec![0u8; 41];
@@ -1031,6 +1110,7 @@ impl CurveKeyPair {
     }
 }
 
+/// Errors that can occur while encoding Z85.
 #[derive(Debug)]
 pub enum EncodeError {
     BadLength,
@@ -1086,9 +1166,12 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     String::from_utf8(dest).map_err(EncodeError::FromUtf8Error)
 }
 
+/// Errors that can occur while decoding Z85.
 #[derive(Debug)]
 pub enum DecodeError {
+    /// The input string slice's length was not a multiple of 5.
     BadLength,
+    /// The input string slice had embedded NUL bytes.
     NulError(ffi::NulError),
 }
 
