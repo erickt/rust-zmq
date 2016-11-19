@@ -338,7 +338,7 @@ macro_rules! zmq_try {
     }}
 }
 
-pub struct RawContext {
+struct RawContext {
     ctx: *mut c_void,
 }
 
