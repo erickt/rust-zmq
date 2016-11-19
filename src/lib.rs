@@ -328,17 +328,24 @@ pub fn version() -> (i32, i32, i32) {
     (major as i32, minor as i32, patch as i32)
 }
 
+macro_rules! zmq_try {
+    ($($tt:tt)*) => {{
+        let rc = $($tt)*;
+        if rc == -1 {
+            return Err(errno_to_error());
+        }
+        rc
+    }}
+}
+
 pub struct RawContext {
     ctx: *mut c_void,
 }
 
 impl RawContext {
     fn destroy(&self) -> Result<()> {
-        if unsafe { zmq_sys::zmq_ctx_destroy(self.ctx) } == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+        zmq_try!(unsafe { zmq_sys::zmq_ctx_destroy(self.ctx) });
+        Ok(())
     }
 }
 
@@ -436,7 +443,7 @@ unsafe impl Send for Socket {}
 impl Drop for Socket {
     fn drop(&mut self) {
         if self.owned {
-            if unsafe { zmq_sys::zmq_close(self.sock) } == -1i32 {
+            if unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
                 panic!(errno_to_error());
             } else {
                 debug!("socket dropped");
@@ -548,23 +555,15 @@ impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&mut self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-
-        let rc = unsafe {
-            zmq_sys::zmq_bind(self.sock, c_str.as_ptr())
-        };
-
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+        zmq_try!(unsafe { zmq_sys::zmq_bind(self.sock, c_str.as_ptr()) });
+        Ok(())
     }
 
     /// Connect a socket.
     pub fn connect(&mut self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-
-        let rc = unsafe {
-            zmq_sys::zmq_connect(self.sock, c_str.as_ptr())
-        };
-
-        if rc == -1i32 { Err(errno_to_error()) } else { Ok(()) }
+        zmq_try!(unsafe { zmq_sys::zmq_connect(self.sock, c_str.as_ptr()) });
+        Ok(())
     }
 
     /// Send a `&[u8]` message.
@@ -575,15 +574,8 @@ impl Socket {
 
     /// Send a `Message` message.
     pub fn send_msg(&mut self, mut msg: Message, flags: i32) -> Result<()> {
-        let rc = unsafe {
-            zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int)
-        };
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+        zmq_try!(unsafe { zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int) });
+        Ok(())
     }
 
     pub fn send_str(&mut self, data: &str, flags: i32) -> Result<()> {
@@ -607,29 +599,15 @@ impl Socket {
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
     pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<()> {
-        let rc = unsafe {
-            zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int)
-        };
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+        zmq_try!(unsafe { zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int) });
+        Ok(())
     }
 
     // Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
     pub fn recv_into(&mut self, bytes: &mut [u8], flags: i32) -> Result<()> {
-        let rc = unsafe {
-            let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
-            zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
-        };
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
+        let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
+        zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
+        Ok(())
     }
 
     pub fn recv_msg(&mut self, flags: i32) -> Result<Message> {
@@ -857,23 +835,15 @@ impl Drop for Message {
 impl Message {
     /// Create an empty `Message`.
     pub fn new() -> Result<Message> {
-        unsafe {
-            let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
-            let rc = zmq_sys::zmq_msg_init(&mut msg);
-
-            if rc == -1i32 { return Err(errno_to_error()); }
-
-            Ok(Message { msg: msg })
-        }
+        let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
+        zmq_try!(unsafe { zmq_sys::zmq_msg_init(&mut msg) });
+        Ok(Message { msg: msg })
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t { unnamed_field1: [0; MSG_SIZE] };
-        let rc = zmq_sys::zmq_msg_init_size(&mut msg, len as size_t);
-
-        if rc == -1i32 { return Err(errno_to_error()); }
-
+        zmq_try!(zmq_sys::zmq_msg_init_size(&mut msg, len as size_t));
         Ok(Message { msg: msg })
     }
 
@@ -970,46 +940,26 @@ impl<'a> PollItem<'a> {
     }
 }
 
-pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32,> {
-    unsafe {
-        let rc = zmq_sys::zmq_poll(
-            items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
-            items.len() as c_int,
-            timeout as c_long);
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(rc as i32)
-        }
-    }
+pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
+    let rc = zmq_try!(unsafe {
+        zmq_sys::zmq_poll(items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
+                          items.len() as c_int,
+                          timeout as c_long)
+    });
+    Ok(rc as i32)
 }
 
 pub fn proxy(frontend: &mut Socket,
              backend: &mut Socket) -> Result<()> {
-    unsafe {
-        let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut());
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
-    }
+    zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
+    Ok(())
 }
 
 pub fn proxy_with_capture(frontend: &mut Socket,
                           backend: &mut Socket,
                           capture: &mut Socket) -> Result<()> {
-    unsafe {
-        let rc = zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock);
-
-        if rc == -1i32 {
-            Err(errno_to_error())
-        } else {
-            Ok(())
-        }
-    }
+    zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock) });
+    Ok(())
 }
 
 pub fn has(capability: &str) -> bool {
@@ -1033,23 +983,19 @@ impl CurveKeyPair {
         let mut ffi_public_key = vec![0u8; 40];
         let mut ffi_secret_key = vec![0u8; 40];
 
-        unsafe {
-            let rc = zmq_sys::zmq_curve_keypair(
+        zmq_try!(unsafe {
+            zmq_sys::zmq_curve_keypair(
                 ffi_public_key.as_mut_ptr() as *mut libc::c_char,
-                ffi_secret_key.as_mut_ptr() as *mut libc::c_char);
+                ffi_secret_key.as_mut_ptr() as *mut libc::c_char)
+        });
 
-            if rc == -1i32 {
-                Err(errno_to_error())
-            } else {
-                let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
-                let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
+        let public_key = String::from_utf8(ffi_public_key).expect("key not utf8");
+        let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
 
-                Ok(CurveKeyPair {
-                    public_key: public_key,
-                    secret_key: secret_key,
-                })
-            }
-        }
+        Ok(CurveKeyPair {
+            public_key: public_key,
+            secret_key: secret_key,
+        })
     }
 }
 
