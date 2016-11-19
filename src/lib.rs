@@ -583,7 +583,7 @@ impl Socket {
     }
 
     pub fn send_multipart(&mut self, parts: &[&[u8]], flags: i32) -> Result<()> {
-        if parts.len() == 0 {
+        if parts.is_empty() {
             return Ok(());
         }
         let (last_part, first_parts) = parts.split_last().unwrap();
@@ -802,7 +802,7 @@ impl Socket {
         },
     }
 
-    pub fn as_poll_item<'a>(&'a self, events: i16) -> PollItem<'a> {
+    pub fn as_poll_item(&self, events: i16) -> PollItem {
         PollItem {
             socket: self.sock,
             fd: 0,
@@ -865,7 +865,7 @@ impl Message {
         }
     }
 
-    pub fn as_str<'a>(&'a self) -> Option<&'a str> {
+    pub fn as_str(&self) -> Option<&str> {
         str::from_utf8(self).ok()
     }
 
@@ -887,7 +887,7 @@ impl Message {
 impl Deref for Message {
     type Target = [u8];
 
-    fn deref<'a>(&'a self) -> &'a [u8] {
+    fn deref(&self) -> &[u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {
@@ -900,7 +900,7 @@ impl Deref for Message {
 }
 
 impl DerefMut for Message {
-    fn deref_mut<'a>(&'a mut self) -> &'a mut [u8] {
+    fn deref_mut(&mut self) -> &mut [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
         unsafe {

@@ -76,7 +76,7 @@ fn test_getset_affinity() {
 fn test_getset_identity() {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_identity("moo".as_bytes()).unwrap();
+    sock.set_identity(b"moo").unwrap();
     assert_eq!(sock.get_identity().unwrap().unwrap(), "moo");
 }
 
@@ -84,8 +84,8 @@ fn test_getset_identity() {
 fn test_subscription() {
     let ctx = Context::new();
     let sock = ctx.socket(SUB).unwrap();
-    assert!(sock.set_subscribe("/channel".as_bytes()).is_ok());
-    assert!(sock.set_unsubscribe("/channel".as_bytes()).is_ok());
+    assert!(sock.set_subscribe(b"/channel").is_ok());
+    assert!(sock.set_unsubscribe(b"/channel").is_ok());
 }
 
 #[test]
@@ -193,7 +193,7 @@ fn test_getset_ipv6() {
     assert!(sock.is_ipv6().unwrap());
 
     sock.set_ipv6(false).unwrap();
-    assert!(sock.is_ipv6().unwrap() == false);
+    assert!(!sock.is_ipv6().unwrap());
 }
 
 #[test]
@@ -268,7 +268,7 @@ fn test_getset_immediate() {
     assert!(sock.is_immediate().unwrap());
 
     sock.set_immediate(false).unwrap();
-    assert!(sock.is_immediate().unwrap() == false);
+    assert!(!sock.is_immediate().unwrap());
 }
 
 #[test]
@@ -280,7 +280,7 @@ fn test_getset_plain_server() {
     assert!(sock.is_plain_server().unwrap());
 
     sock.set_plain_server(false).unwrap();
-    assert!(sock.is_plain_server().unwrap() == false);
+    assert!(!sock.is_plain_server().unwrap());
 }
 
 #[test]
