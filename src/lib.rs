@@ -51,7 +51,7 @@ pub static DONTWAIT : i32 = 1;
 pub static SNDMORE : i32 = 2;
 
 #[allow(non_camel_case_types)]
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Constants {
     ZMQ_AFFINITY                 = 4,
     ZMQ_IDENTITY                 = 5,
@@ -832,6 +832,12 @@ impl Drop for Message {
     }
 }
 
+impl fmt::Debug for Message {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self.deref())
+    }
+}
+
 impl Message {
     /// Create an empty `Message`.
     pub fn new() -> Result<Message> {
@@ -971,6 +977,7 @@ pub fn has(capability: &str) -> bool {
 }
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
+#[derive(Debug)]
 pub struct CurveKeyPair {
     pub public_key: String,
     pub secret_key: String,
