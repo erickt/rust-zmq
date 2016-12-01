@@ -20,11 +20,11 @@ fn main() {
     let context = zmq::Context::new();
 
     // socket to receive messages on
-    let mut receiver = context.socket(zmq::PULL).unwrap();
+    let receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.connect("tcp://localhost:5557").is_ok());
 
     //  Socket to send messages to
-    let mut sender = context.socket(zmq::PUSH).unwrap();
+    let sender = context.socket(zmq::PUSH).unwrap();
     assert!(sender.connect("tcp://localhost:5558").is_ok());
 
     loop {

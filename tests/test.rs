@@ -4,8 +4,8 @@ use zmq::*;
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
 
-    let mut sender = ctx.socket(zmq::REQ).unwrap();
-    let mut receiver = ctx.socket(zmq::REP).unwrap();
+    let sender = ctx.socket(zmq::REQ).unwrap();
+    let receiver = ctx.socket(zmq::REP).unwrap();
 
     receiver.bind("tcp://*:*").unwrap();
     let ep = receiver.get_last_endpoint().unwrap().unwrap();
@@ -16,7 +16,7 @@ fn create_socketpair() -> (Socket, Socket) {
 
 #[test]
 fn test_exchanging_messages() {
-    let (mut sender, mut receiver) = create_socketpair();
+    let (sender, receiver) = create_socketpair();
     sender.send_msg(Message::from_slice(b"foo").unwrap(), 0).unwrap();
     let msg = receiver.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"foo");
@@ -31,7 +31,7 @@ fn test_exchanging_messages() {
 
 #[test]
 fn test_exchanging_bytes() {
-    let (mut sender, mut receiver) = create_socketpair();
+    let (sender, receiver) = create_socketpair();
     sender.send(b"bar", 0).unwrap();
     assert_eq!(receiver.recv_bytes(0).unwrap(), b"bar");
 
@@ -43,7 +43,7 @@ fn test_exchanging_bytes() {
 
 #[test]
 fn test_exchanging_strings() {
-    let (mut sender, mut receiver) = create_socketpair();
+    let (sender, receiver) = create_socketpair();
     sender.send_str("bäz", 0).unwrap();
     assert_eq!(receiver.recv_string(0).unwrap().unwrap(), "bäz");
 
@@ -55,7 +55,7 @@ fn test_exchanging_strings() {
 
 #[test]
 fn test_exchanging_multipart() {
-    let (mut sender, mut receiver) = create_socketpair();
+    let (sender, receiver) = create_socketpair();
 
     // convenience API
     sender.send_multipart(&[b"foo", b"bar"], 0).unwrap();
@@ -76,7 +76,7 @@ fn test_exchanging_multipart() {
 
 #[test]
 fn test_polling() {
-    let (mut sender, receiver) = create_socketpair();
+    let (sender, receiver) = create_socketpair();
 
     // no message yet
     assert_eq!(receiver.poll(POLLIN, 1).unwrap(), 0);
@@ -112,7 +112,7 @@ fn test_zmq_error() {
     use std::error::Error as StdError;
 
     let ctx = Context::new();
-    let mut sock = ctx.socket(SocketType::REP).unwrap();
+    let sock = ctx.socket(SocketType::REP).unwrap();
 
     // cannot send from REP unless we received a message first
     let err = sock.send(b"...", 0).unwrap_err();

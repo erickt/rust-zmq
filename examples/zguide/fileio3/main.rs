@@ -27,7 +27,7 @@ fn random_string(length: usize) -> String {
 
 fn client_thread(expected_total: usize) {
     let context = zmq::Context::new();
-    let mut dealer = context.socket(zmq::DEALER).unwrap();
+    let dealer = context.socket(zmq::DEALER).unwrap();
     let identity: Vec<u8> = (0..10).map(|_| rand::random::<u8>()).collect();
     dealer.set_identity(&identity).unwrap();
 
@@ -78,7 +78,7 @@ fn client_thread(expected_total: usize) {
 
 fn server_thread(file: &mut File) -> Result<(), Error> {
     let context = zmq::Context::new();
-    let mut router = context.socket(zmq::ROUTER).unwrap();
+    let router = context.socket(zmq::ROUTER).unwrap();
     // We have two parts per message so HWM is PIPELINE * 2
     router.set_sndhwm(PIPELINE_HWM as i32).unwrap();
     assert!(router.bind("tcp://*:6000").is_ok());

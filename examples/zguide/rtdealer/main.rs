@@ -17,7 +17,7 @@ fn hex(bytes: &[u8]) -> String {
 
 fn worker_task() {
     let context = zmq::Context::new();
-    let mut worker = context.socket(zmq::DEALER).unwrap();
+    let worker = context.socket(zmq::DEALER).unwrap();
     let mut rng = rand::thread_rng();
     let identity: Vec<_> = (0..10).map(|_| rand::random::<u8>()).collect();
     worker.set_identity(&identity).unwrap();
@@ -48,7 +48,7 @@ fn main() {
     let worker_pool_size = 10;
     let allowed_duration = Duration::new(5, 0);
     let context = zmq::Context::new();
-    let mut broker = context.socket(zmq::ROUTER).unwrap();
+    let broker = context.socket(zmq::ROUTER).unwrap();
     assert!(broker.bind("tcp://*:5671").is_ok());
 
     // While this example runs in a single process, that is just to make

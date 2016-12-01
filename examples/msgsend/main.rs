@@ -13,7 +13,7 @@ use std::thread;
 use std::time::Instant;
 use std::sync::mpsc::{channel, Sender, Receiver};
 
-fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut workers: u64) {
+fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) {
     let mut count = 0;
     let mut msg = zmq::Message::new().unwrap();
 
@@ -31,8 +31,8 @@ fn server(mut pull_socket: zmq::Socket, mut push_socket: zmq::Socket, mut worker
 }
 
 fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
-    let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+    let pull_socket = ctx.socket(zmq::PULL).unwrap();
+    let push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     pull_socket.bind("inproc://server-pull").unwrap();
     push_socket.bind("inproc://server-push").unwrap();
@@ -57,7 +57,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
     start_tx
 }
 
-fn worker(mut push_socket: zmq::Socket, count: u64) {
+fn worker(push_socket: zmq::Socket, count: u64) {
     for _ in 0 .. count {
         push_socket.send_str(&100.to_string(), 0).unwrap();
     }
@@ -67,7 +67,7 @@ fn worker(mut push_socket: zmq::Socket, count: u64) {
 }
 
 fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+    let push_socket = ctx.socket(zmq::PUSH).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
     //push_socket.connect("tcp://127.0.0.1:3456").unwrap();
@@ -93,8 +93,8 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     let start_ch = spawn_server(ctx, workers);
 
     // Create some command/control sockets.
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
-    let mut pull_socket = ctx.socket(zmq::PULL).unwrap();
+    let push_socket = ctx.socket(zmq::PUSH).unwrap();
+    let pull_socket = ctx.socket(zmq::PULL).unwrap();
 
     push_socket.connect("inproc://server-pull").unwrap();
     pull_socket.connect("inproc://server-push").unwrap();

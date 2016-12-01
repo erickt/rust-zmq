@@ -11,7 +11,7 @@ use std::time::Duration;
 
 fn main() {
     let context = zmq::Context::new();
-    let mut responder = context.socket(zmq::REP).unwrap();
+    let responder = context.socket(zmq::REP).unwrap();
 
     assert!(responder.bind("tcp://*:5555").is_ok());
 

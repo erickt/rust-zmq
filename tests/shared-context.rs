@@ -16,7 +16,7 @@ fn test_tcp() {
 fn shared_context(address: &str) {
     let ctx = zmq::Context::new();
 
-    let mut push_socket = ctx.socket(zmq::PUSH).unwrap();
+    let push_socket = ctx.socket(zmq::PUSH).unwrap();
     push_socket.bind(address).unwrap();
     let endpoint = push_socket.get_last_endpoint().unwrap().unwrap();
     let worker1 = fork(&ctx, endpoint);
@@ -32,7 +32,7 @@ fn fork(ctx: &zmq::Context, endpoint: String) -> thread::JoinHandle<()> {
 }
 
 fn worker(ctx: &zmq::Context, endpoint: &str) {
-    let mut pull_socket = connect_socket(ctx, zmq::PULL, endpoint).unwrap();
+    let pull_socket = connect_socket(ctx, zmq::PULL, endpoint).unwrap();
 
     let mut msg = zmq::Message::new().unwrap();
     pull_socket.recv(&mut msg, 0).unwrap();
@@ -42,6 +42,5 @@ fn worker(ctx: &zmq::Context, endpoint: &str) {
 fn connect_socket(ctx: &zmq::Context,
                   typ: zmq::SocketType,
                   address: &str) -> Result<zmq::Socket, zmq::Error> {
-    ctx.socket(typ)
-        .and_then(|mut socket| socket.connect(address).map(|_| socket))
+    ctx.socket(typ).and_then(|socket| socket.connect(address).map(|_| socket))
 }
