@@ -577,38 +577,36 @@ impl Socket {
     }
 
     /// Accept connections on a socket.
-    pub fn bind(&mut self, endpoint: &str) -> Result<()> {
+    pub fn bind(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
         zmq_try!(unsafe { zmq_sys::zmq_bind(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
     /// Connect a socket.
-    pub fn connect(&mut self, endpoint: &str) -> Result<()> {
+    pub fn connect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
         zmq_try!(unsafe { zmq_sys::zmq_connect(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
     /// Send a `&[u8]` message.
-    pub fn send(&mut self, data: &[u8], flags: i32) -> Result<()> {
+    pub fn send(&self, data: &[u8], flags: i32) -> Result<()> {
         let msg = try!(Message::from_slice(data));
         self.send_msg(msg, flags)
     }
 
     /// Send a `Message` message.
-    pub fn send_msg(&mut self, mut msg: Message, flags: i32) -> Result<()> {
+    pub fn send_msg(&self, mut msg: Message, flags: i32) -> Result<()> {
         zmq_try!(unsafe { zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int) });
         Ok(())
     }
 
-    /// Send a UTF-8 encoded string message.
-    pub fn send_str(&mut self, data: &str, flags: i32) -> Result<()> {
+    pub fn send_str(&self, data: &str, flags: i32) -> Result<()> {
         self.send(data.as_bytes(), flags)
     }
 
-    /// Send a multipart message.
-    pub fn send_multipart(&mut self, parts: &[&[u8]], flags: i32) -> Result<()> {
+    pub fn send_multipart(&self, parts: &[&[u8]], flags: i32) -> Result<()> {
         if parts.is_empty() {
             return Ok(());
         }
@@ -624,26 +622,26 @@ impl Socket {
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
-    pub fn recv(&mut self, msg: &mut Message, flags: i32) -> Result<()> {
+    pub fn recv(&self, msg: &mut Message, flags: i32) -> Result<()> {
         zmq_try!(unsafe { zmq_sys::zmq_msg_recv(&mut msg.msg, self.sock, flags as c_int) });
         Ok(())
     }
 
     /// Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
-    pub fn recv_into(&mut self, bytes: &mut [u8], flags: i32) -> Result<()> {
+    pub fn recv_into(&self, bytes: &mut [u8], flags: i32) -> Result<()> {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
         zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
         Ok(())
     }
 
     /// Receive a message into a fresh `Message`.
-    pub fn recv_msg(&mut self, flags: i32) -> Result<Message> {
+    pub fn recv_msg(&self, flags: i32) -> Result<Message> {
         let mut msg = try!(Message::new());
         self.recv(&mut msg, flags).map(|_| msg)
     }
 
     /// Receive a message as a byte vector.
-    pub fn recv_bytes(&mut self, flags: i32) -> Result<Vec<u8>> {
+    pub fn recv_bytes(&self, flags: i32) -> Result<Vec<u8>> {
         self.recv_msg(flags).map(|msg| msg.to_vec())
     }
 
@@ -651,7 +649,7 @@ impl Socket {
     ///
     /// If the received message is not valid UTF-8, it is returned as the original
     /// Vec in the `Err` part of the inner result.
-    pub fn recv_string(&mut self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn recv_string(&self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
         self.recv_bytes(flags).map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
     }
 
@@ -660,7 +658,7 @@ impl Socket {
     /// Note that this will allocate a new vector for each message part; for
     /// many applications it will be possible to process the different parts
     /// sequentially and reuse allocations that way.
-    pub fn recv_multipart(&mut self, flags: i32) -> Result<Vec<Vec<u8>>> {
+    pub fn recv_multipart(&self, flags: i32) -> Result<Vec<Vec<u8>>> {
         let mut parts: Vec<Vec<u8>> = vec![];
         loop {
             let part = try!(self.recv_bytes(flags));

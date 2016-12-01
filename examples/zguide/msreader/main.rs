@@ -12,11 +12,11 @@ fn main() {
     let context = zmq::Context::new();
 
     // Connect to task ventilator
-    let mut receiver = context.socket(zmq::PULL).unwrap();
+    let receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.connect("tcp://localhost:5557").is_ok());
 
     // Connect to weather server
-    let mut subscriber = context.socket(zmq::SUB).unwrap();
+    let subscriber = context.socket(zmq::SUB).unwrap();
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
     let filter = b"10001";
     assert!(subscriber.set_subscribe(filter).is_ok());
