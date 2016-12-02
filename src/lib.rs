@@ -627,11 +627,13 @@ impl Socket {
         Ok(())
     }
 
-    /// Receive bytes into a slice. The length passed to zmq_recv is the length of the slice.
-    pub fn recv_into(&self, bytes: &mut [u8], flags: i32) -> Result<()> {
+    /// Receive bytes into a slice. The length passed to `zmq_recv` is the length of the slice. The
+    /// return value is the number of bytes in the message, which may be larger than the length of
+    /// the slice, indicating truncation.
+    pub fn recv_into(&self, bytes: &mut [u8], flags: i32) -> Result<usize> {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
-        zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
-        Ok(())
+        let rc = zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
+        Ok(rc as usize)
     }
 
     /// Receive a message into a fresh `Message`.
