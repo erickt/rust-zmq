@@ -7,6 +7,9 @@ Rust ZeroMQ bindings.
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE-MIT)
 [![crates.io](http://meritbadge.herokuapp.com/zmq)](https://crates.io/crates/zmq)
 
+[Documentation](https://docs.rs/crate/zmq/)
+[Release Notes](https://github.com/erickt/rust-zmq/tree/master/NEWS.md)
+
 Installation
 ------------
 
