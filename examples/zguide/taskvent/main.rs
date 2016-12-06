@@ -27,7 +27,7 @@ fn main() {
 
     println!("Sending tasks to workers...");
     //  The first message is "0" and signals start of batch
-    sink.send(b"0", 0).unwrap();
+    sink.send("0", 0).unwrap();
 
     let mut rng = rand::thread_rng();
 
@@ -40,7 +40,7 @@ fn main() {
         total_msec += workload;
 
         let workload_str = format!("{}", workload);
-        sender.send_str(&workload_str, 0).unwrap();
+        sender.send(&workload_str, 0).unwrap();
      }
 
     println!("Total expected cost: {} msec", total_msec)

@@ -528,34 +528,46 @@ impl Socket {
         Ok(())
     }
 
-    /// Send a `&[u8]` message.
-    pub fn send(&self, data: &[u8], flags: i32) -> Result<()> {
-        let msg = try!(Message::from_slice(data));
-        self.send_msg(msg, flags)
-    }
-
-    /// Send a `Message` message.
-    pub fn send_msg(&self, mut msg: Message, flags: i32) -> Result<()> {
+    /// Send a message.
+    ///
+    /// Due to the provided `From` implementations, this works for
+    /// `&[u8]`, `Vec<u8>` and `&str` `Message` itself.
+    pub fn send<T>(&self, data: T, flags: i32) -> Result<()>
+        where T: Into<Message>
+    {
+        let mut msg = data.into();
         zmq_try!(unsafe { zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int) });
         Ok(())
     }
 
-    pub fn send_str(&self, data: &str, flags: i32) -> Result<()> {
-        self.send(data.as_bytes(), flags)
+    /// Send a `Message` message.
+    #[deprecated(since="0.9.0", note="Use `send` instead")]
+    pub fn send_msg(&self, msg: Message, flags: i32) -> Result<()> {
+        self.send(msg, flags)
     }
 
-    pub fn send_multipart(&self, parts: &[&[u8]], flags: i32) -> Result<()> {
-        if parts.is_empty() {
-            return Ok(());
-        }
-        let (last_part, first_parts) = parts.split_last().unwrap();
+    #[deprecated(since="0.9.0", note="Use `send` instead")]
+    pub fn send_str(&self, data: &str, flags: i32) -> Result<()> {
+        self.send(data, flags)
+    }
 
-        for part in first_parts.iter() {
-            try!(self.send(part, flags | SNDMORE));
+    pub fn send_multipart<I, T>(&self, iter: I, flags: i32) -> Result<()>
+        where I: IntoIterator<Item=T>,
+              T: Into<Message>
+    {
+        let mut last_part: Option<T> = None;
+        for part in iter {
+            let maybe_last = last_part.take();
+            if let Some(last) = maybe_last {
+                try!(self.send(last.into(), flags | SNDMORE));
+            }
+            last_part = Some(part);
         }
-        try!(self.send(last_part, flags));
-
-        Ok(())
+        if let Some(last) = last_part {
+            self.send(last.into(), flags)
+        } else {
+            Ok(())
+        }
     }
 
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
@@ -576,7 +588,7 @@ impl Socket {
 
     /// Receive a message into a fresh `Message`.
     pub fn recv_msg(&self, flags: i32) -> Result<Message> {
-        let mut msg = try!(Message::new());
+        let mut msg = Message::new();
         self.recv(&mut msg, flags).map(|_| msg)
     }
 
@@ -829,35 +841,41 @@ impl fmt::Debug for Message {
 }
 
 impl Message {
-    /// Create an empty `Message`.
-    pub fn new() -> Result<Message> {
+
+    fn alloc<F>(f: F) -> Message where F: FnOnce(&mut zmq_sys::zmq_msg_t) -> i32 {
         let mut msg = zmq_sys::zmq_msg_t::default();
-        zmq_try!(unsafe { zmq_sys::zmq_msg_init(&mut msg) });
-        Ok(Message { msg: msg })
+        let rc = f(&mut msg);
+        if rc == -1 {
+            panic!(errno_to_error())
+        }
+        Message { msg: msg }
+    }
+
+    /// Create an empty `Message`.
+    pub fn new() -> Message {
+        Self::alloc(|msg| unsafe { zmq_sys::zmq_msg_init(msg) })
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
-    pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
-        let mut msg = zmq_sys::zmq_msg_t::default();
-        zmq_try!(zmq_sys::zmq_msg_init_size(&mut msg, len as size_t));
-        Ok(Message { msg: msg })
+    pub unsafe fn with_capacity_unallocated(len: usize) -> Message {
+        Self::alloc(|msg| { zmq_sys::zmq_msg_init_size(msg, len as size_t) })
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
-    pub fn with_capacity(len: usize) -> Result<Message> {
+    pub fn with_capacity(len: usize) -> Message {
         unsafe {
-            let mut msg = try!(Message::with_capacity_unallocated(len));
+            let mut msg = Message::with_capacity_unallocated(len);
             ptr::write_bytes(msg.as_mut_ptr(), 0, len);
-            Ok(msg)
+            msg
         }
     }
 
     /// Create a `Message` from a `&[u8]`. This will copy `data` into the message.
-    pub fn from_slice(data: &[u8]) -> Result<Message> {
+    pub fn from_slice(data: &[u8]) -> Message {
         unsafe {
-            let mut msg = try!(Message::with_capacity_unallocated(data.len()));
+            let mut msg = Message::with_capacity_unallocated(data.len());
             ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
-            Ok(msg)
+            msg
         }
     }
 
@@ -913,6 +931,38 @@ impl DerefMut for Message {
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
             slice::from_raw_parts_mut(mem::transmute(data), len)
         }
+    }
+}
+
+impl<'a> From<&'a [u8]> for Message {
+    fn from(msg: &'a [u8]) -> Self {
+        Message::from_slice(msg)
+    }
+}
+
+impl<'a> From<&'a Vec<u8>> for Message {
+    fn from(msg: &Vec<u8>) -> Self {
+        Message::from_slice(&msg[..])
+    }
+}
+
+impl<'a> From<&'a str> for Message {
+    fn from(msg: &str) -> Self {
+        Message::from_slice(msg.as_bytes())
+    }
+}
+
+impl<'a> From<&'a String> for Message {
+    fn from(msg: &String) -> Self {
+        Message::from_slice(msg.as_bytes())
+    }
+}
+
+impl<'a, T> From<&'a T> for Message
+    where T: Into<Message> + Clone
+{
+    fn from(v: &'a T) -> Self {
+        v.clone().into()
     }
 }
 

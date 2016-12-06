@@ -15,7 +15,7 @@ use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) {
     let mut count = 0;
-    let mut msg = zmq::Message::new().unwrap();
+    let mut msg = zmq::Message::new();
 
     while workers != 0 {
         pull_socket.recv(&mut msg, 0).unwrap();
@@ -27,7 +27,7 @@ fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) 
         }
     }
 
-    push_socket.send_str(&count.to_string(), 0).unwrap();
+    push_socket.send(&count.to_string(), 0).unwrap();
 }
 
 fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
@@ -59,11 +59,11 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
 
 fn worker(push_socket: zmq::Socket, count: u64) {
     for _ in 0 .. count {
-        push_socket.send_str(&100.to_string(), 0).unwrap();
+        push_socket.send(&100.to_string(), 0).unwrap();
     }
 
     // Let the server know we're done.
-    push_socket.send_str("", 0).unwrap();
+    push_socket.send("", 0).unwrap();
 }
 
 fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {

@@ -15,6 +15,6 @@ fn main() {
     let t = thread::spawn(move || {  //~ ERROR he trait bound `*mut std::os::raw::c_void: std::marker::Sync` is not satisfied [E0277]
         t!(s.bind("tcp://127.0.0.1:12345"))
     });
-    socket.send(b"ABC", 0);
+    socket.send("ABC", 0);
     t.join().unwrap();
 }

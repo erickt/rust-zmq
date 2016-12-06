@@ -21,15 +21,15 @@ fn main() {
 
     // Send out all 1,000 topic messages
     for topic_nbr in 0..1000  {
-        publisher.send_str(&format!("{:03}", topic_nbr), zmq::SNDMORE).unwrap();
-        publisher.send_str("Save Roger", 0).unwrap();
+        publisher.send(&format!("{:03}", topic_nbr), zmq::SNDMORE).unwrap();
+        publisher.send("Save Roger", 0).unwrap();
     }
     // Send one random update per second
     let mut rng = rand::thread_rng();
     let topic_range = Range::new(0, 1000);
     loop {
         sleep(Duration::from_millis(1000));
-        publisher.send_str(&format!("{:03}", topic_range.ind_sample(&mut rng)), zmq::SNDMORE).unwrap();
-        publisher.send_str("Off with his head!", 0).unwrap();
+        publisher.send(&format!("{:03}", topic_range.ind_sample(&mut rng)), zmq::SNDMORE).unwrap();
+        publisher.send("Off with his head!", 0).unwrap();
     }
 }

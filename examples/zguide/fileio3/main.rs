@@ -44,9 +44,9 @@ fn client_thread(expected_total: usize) {
     loop {
         while (credit > 0) && !clean_break {
             // Ask for next chunk
-            dealer.send_str("fetch", SNDMORE).unwrap();
-            dealer.send_str(&offset.to_string(), SNDMORE).unwrap();
-            dealer.send_str(CHUNK_SIZE_STR, 0).unwrap();
+            dealer.send("fetch", SNDMORE).unwrap();
+            dealer.send(&offset.to_string(), SNDMORE).unwrap();
+            dealer.send(CHUNK_SIZE_STR, 0).unwrap();
             offset += CHUNK_SIZE;
             credit -= 1;
         }
