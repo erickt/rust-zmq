@@ -7,13 +7,23 @@ documentation.
 
 - The deprecated `Constants` enum has been removed from the API.
 
+- Message allocation, e.g. `Message::new()` directly returns `Message`
+  instead of `Result<Message>` and will panic on allocation failure,
+  as is customary in Rust. Reported in #118 and fixed by #130.
+
 ## New and improved functionality
 
-None yet.
+- `Message` now implements `From` for various types that have an
+  obvious byte-level representation. This is possible due to the
+  message allocation API change (see above).
+
+- `Message::send()` now works on `Into<Message>` types, obsoleting
+  `send_msg()` and `send_str()`.
 
 ## Deprecations
 
-None yet.
+- `Message::send_msg()` and `send_str()` are deprecated in favor of
+  `Message::send()`.
 
 # 0.8.0
 

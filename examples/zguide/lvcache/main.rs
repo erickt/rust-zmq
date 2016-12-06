@@ -29,8 +29,8 @@ fn main() {
             let topic = frontend.recv_msg(0).unwrap();
             let current = frontend.recv_msg(0).unwrap();
             cache.insert(topic.to_vec(), current.to_vec());
-            backend.send_msg(topic, zmq::SNDMORE).unwrap();
-            backend.send_msg(current, 0).unwrap();
+            backend.send(topic, zmq::SNDMORE).unwrap();
+            backend.send(current, 0).unwrap();
         }
         if (items[1].get_revents() & zmq::POLLIN) != 0 {
             // Event is one byte 0=unsub or 1=sub, followed by topic

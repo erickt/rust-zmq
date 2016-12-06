@@ -27,7 +27,7 @@ fn main() {
         // very, very slow. Several orders of magnitude slower than glibc's
         // sprintf
         let update = format!("{:05} {} {}", zipcode, temperature, relhumidity);
-        publisher.send_str(&update, 0).unwrap();
+        publisher.send(&update, 0).unwrap();
     }
 
     // note: destructors mean no explicit cleanup necessary

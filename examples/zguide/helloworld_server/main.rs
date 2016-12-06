@@ -15,11 +15,11 @@ fn main() {
 
     assert!(responder.bind("tcp://*:5555").is_ok());
 
-    let mut msg = zmq::Message::new().unwrap();
+    let mut msg = zmq::Message::new();
     loop {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
         thread::sleep(Duration::from_millis(1000));
-        responder.send_str("World", 0).unwrap();
+        responder.send("World", 0).unwrap();
     }
 }

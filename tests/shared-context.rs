@@ -27,7 +27,7 @@ fn shared_context(address: &str) {
     let endpoint = push_socket.get_last_endpoint().unwrap().unwrap();
     let worker1 = fork(&ctx, endpoint);
 
-    push_socket.send(b"Message1", 0).unwrap();
+    push_socket.send("Message1", 0).unwrap();
 
     worker1.join().unwrap();
 }

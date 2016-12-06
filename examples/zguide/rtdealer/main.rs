@@ -26,8 +26,8 @@ fn worker_task() {
     let mut total = 0;
     loop {
         // Tell the broker we're ready for work
-        worker.send(b"", SNDMORE).unwrap();
-        worker.send_str("Hi boss!", 0).unwrap();
+        worker.send("", SNDMORE).unwrap();
+        worker.send("Hi boss!", 0).unwrap();
 
         // Get workload from broker, until finished
         worker.recv_bytes(0).unwrap();  // envelope delimiter
@@ -72,13 +72,13 @@ fn main() {
 
         broker.recv_bytes(0).unwrap(); // Envelope
         broker.recv_bytes(0).unwrap(); // Response from worker
-        broker.send(b"", SNDMORE).unwrap();
+        broker.send("", SNDMORE).unwrap();
 
         // Encourage workers until it's time to fire them
         if start_time.elapsed() < allowed_duration {
-            broker.send_str("Work harder", 0).unwrap();
+            broker.send("Work harder", 0).unwrap();
         } else {
-            broker.send_str("Fired!", 0).unwrap();
+            broker.send("Fired!", 0).unwrap();
             workers_fired += 1;
             if workers_fired >= worker_pool_size {
                 break;
