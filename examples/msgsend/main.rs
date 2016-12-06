@@ -10,7 +10,7 @@ extern crate zmq;
 
 use std::env;
 use std::thread;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) {
@@ -89,6 +89,10 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
     rx
 }
 
+fn seconds(d: &Duration) -> f64 {
+    d.as_secs() as f64 + (d.subsec_nanos() as f64 / 1e9)
+}
+
 fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     let start_ch = spawn_server(ctx, workers);
 
@@ -120,11 +124,11 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
     let msg = pull_socket.recv_msg(0).unwrap();
     let result = msg.as_str().unwrap().parse::<i32>().unwrap();
 
-    let elapsed = start.elapsed();
+    let elapsed = seconds(&start.elapsed());
 
     println!("Count is {}", result);
-    println!("Test took {} seconds", elapsed.as_secs());
-    let thruput = ((size / workers * workers) as f64) / (elapsed.as_secs() as f64);
+    println!("Test took {} seconds", elapsed);
+    let thruput = ((size / workers * workers) as f64) / elapsed;
     println!("Throughput={} per sec", thruput);
 }
 
