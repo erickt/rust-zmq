@@ -34,8 +34,7 @@ fn fork(ctx: &zmq::Context, endpoint: String) -> thread::JoinHandle<()> {
 fn worker(ctx: &zmq::Context, endpoint: &str) {
     let pull_socket = connect_socket(ctx, zmq::PULL, endpoint).unwrap();
 
-    let mut msg = zmq::Message::new().unwrap();
-    pull_socket.recv(&mut msg, 0).unwrap();
+    let msg = pull_socket.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"Message1");
 }
 
