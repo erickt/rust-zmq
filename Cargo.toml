@@ -20,6 +20,18 @@ name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
 [[example]]
+name = "pathopub"
+path = "examples/zguide/pathopub/main.rs"
+
+[[example]]
+name = "pathosub"
+path = "examples/zguide/pathosub/main.rs"
+
+[[example]]
+name = "lvcache"
+path = "examples/zguide/lvcache/main.rs"
+
+[[example]]
 name = "msgsend"
 path = "examples/msgsend/main.rs"
 
