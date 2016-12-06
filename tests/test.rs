@@ -213,7 +213,7 @@ test!(test_getset_identity, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_identity(b"moo").unwrap();
-    assert_eq!(sock.get_identity().unwrap().unwrap(), "moo");
+    assert_eq!(sock.get_identity().unwrap(), b"moo");
 });
 
 test!(test_subscription, {
@@ -453,24 +453,27 @@ test!(test_getset_curve_server, {
 test!(test_getset_curve_publickey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_publickey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    assert_eq!(sock.get_curve_publickey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
+    sock.set_curve_publickey(&key).unwrap();
+    assert_eq!(sock.get_curve_publickey().unwrap(), key);
 });
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_secretkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_secretkey("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
-    assert_eq!(sock.get_curve_secretkey().unwrap().unwrap(), "s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS");
+    let key = z85_decode("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
+    sock.set_curve_secretkey(&key).unwrap();
+    assert_eq!(sock.get_curve_secretkey().unwrap(), key);
 });
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_serverkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_serverkey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    assert_eq!(sock.get_curve_serverkey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
+    sock.set_curve_serverkey(&key).unwrap();
+    assert_eq!(sock.get_curve_serverkey().unwrap(), key);
 });
 
 test!(test_getset_conflate, {

@@ -41,8 +41,7 @@ getsockopt_num!(c_int, i32);
 getsockopt_num!(int64_t, i64);
 getsockopt_num!(uint64_t, u64);
 
-pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t,
-                  remove_nulbyte: bool) -> Result<result::Result<String, Vec<u8>>> {
+pub fn get_bytes(sock: *mut c_void, opt: c_int, size: size_t) -> Result<Vec<u8>> {
     let mut size = size;
     let mut value = vec![0u8; size];
 
@@ -53,10 +52,17 @@ pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t,
             value.as_mut_ptr() as *mut c_void,
             &mut size)
     });
-    if remove_nulbyte {
-        size -= 1;
-    }
     value.truncate(size);
+    Ok(value)
+}
+
+pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t, remove_nulbyte: bool)
+                  -> Result<result::Result<String, Vec<u8>>> {
+    let mut value = try!(get_bytes(sock, opt, size));
+
+    if remove_nulbyte {
+        value.pop();
+    }
     Ok(String::from_utf8(value).map_err(|e| e.into_bytes()))
 }
 
