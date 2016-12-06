@@ -17,6 +17,7 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
+use std::os::unix::io::RawFd;
 use std::result;
 use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
@@ -734,7 +735,7 @@ impl Socket {
         (get_reconnect_ivl, set_reconnect_ivl) => ZMQ_RECONNECT_IVL as i32,
         (get_reconnect_ivl_max, set_reconnect_ivl_max) => ZMQ_RECONNECT_IVL_MAX as i32,
         (get_backlog, set_backlog) => ZMQ_BACKLOG as i32,
-        (get_fd) => ZMQ_FD as i64,
+        (get_fd) => ZMQ_FD as RawFd,
         (get_events) => ZMQ_EVENTS as i32,
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
         (get_rcvtimeo, set_rcvtimeo) => ZMQ_RCVTIMEO as i32,
@@ -749,9 +750,9 @@ impl Socket {
         (_, set_unsubscribe) => ZMQ_UNSUBSCRIBE as &[u8],
     }
 
-    pub fn get_identity(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_identity(&self) -> Result<Vec<u8>> {
         // 255 = identity max length
-        sockopt::get_string(self.sock, Constants::ZMQ_IDENTITY.to_raw(), 255, false)
+        sockopt::get_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), 255)
     }
 
     pub fn get_socks_proxy(&self) -> Result<result::Result<String, Vec<u8>>> {
@@ -794,23 +795,27 @@ impl Socket {
 
     #[cfg(ZMQ_HAS_CURVE = "1")]
     // FIXME: there should be no decoding errors, hence the return type can be simplified
-    pub fn get_curve_publickey(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_curve_publickey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
-        sockopt::get_string(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 41, true)
+        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 32)
     }
 
     #[cfg(ZMQ_HAS_CURVE = "1")]
     // FIXME: there should be no decoding errors, hence the return type can be simplified
-    pub fn get_curve_secretkey(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_curve_secretkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
-        sockopt::get_string(self.sock, Constants::ZMQ_CURVE_SECRETKEY.to_raw(), 41, true)
+        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SECRETKEY.to_raw(), 32)
     }
 
+    /// Get `ZMQ_CURVE_SECRETKEY` option value.
+    ///
+    /// Note that the key is returned as raw bytes, as a 32-byte
+    /// vector. Use `z85_encode()` explicitly to obtain the
+    /// Z85-encoded string variant.
     #[cfg(ZMQ_HAS_CURVE = "1")]
-    // FIXME: there should be no decoding errors, hence the return type can be simplified
-    pub fn get_curve_serverkey(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_curve_serverkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
-        sockopt::get_string(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 41, true)
+        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 32)
     }
 
     #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -832,9 +837,9 @@ impl Socket {
         (_, set_zap_domain) => ZMQ_ZAP_DOMAIN as &str,
 
         if ZMQ_HAS_CURVE {
-            (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &str,
-            (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &str,
-            (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &str,
+            (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
+            (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
+            (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
         },
         if ZMQ_HAS_GSSAPI {
             (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
