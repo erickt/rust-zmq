@@ -80,12 +80,12 @@ fn test_polling() {
     let (sender, receiver) = create_socketpair();
 
     // no message yet
-    assert_eq!(receiver.poll(POLLIN, 1).unwrap(), 0);
+    assert_eq!(receiver.poll(POLLIN, 1000).unwrap(), 0);
 
     // send message
     sender.send(b"Hello!", 0).unwrap();
     let mut poll_items = vec![receiver.as_poll_item(POLLIN)];
-    assert_eq!(poll(&mut poll_items, 1).unwrap(), 1);
+    assert_eq!(poll(&mut poll_items, 1000).unwrap(), 1);
     assert_eq!(poll_items[0].get_revents(), POLLIN);
 }
 
