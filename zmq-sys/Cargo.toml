@@ -1,7 +1,10 @@
 [package]
 name = "zmq-sys"
 version = "0.8.0"
-authors = [ "erick.tryzelaar@gmail.com" ]
+authors = [
+    "a.rottmann@gmx.at",
+    "erick.tryzelaar@gmail.com",
+]
 license = "MIT/Apache-2.0"
 description = "Low-level bindings to the zeromq library"
 repository = "https://github.com/erickt/rust-zmq"
