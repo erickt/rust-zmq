@@ -67,8 +67,9 @@ name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
 [features]
-unstable = ["clippy"]
+unstable = []
 unstable-testing = ["compiletest_rs", "unstable"]
+#unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
 [[example]]
 name = "rtdealer"
