@@ -90,6 +90,6 @@ libc = "0.2.15"
 zmq-sys = { version = "0.8.0", path = "zmq-sys" }
 
 [dev-dependencies]
-quickcheck = "0.3.1"
+quickcheck = "0.4.0"
 rand = "*"
 tempfile = "*"
