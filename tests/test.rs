@@ -8,6 +8,12 @@ fn create_socketpair() -> (Socket, Socket) {
     let sender = ctx.socket(zmq::REQ).unwrap();
     let receiver = ctx.socket(zmq::REP).unwrap();
 
+    // Don't block forever
+    sender.set_sndtimeo(1000).unwrap();
+    sender.set_rcvtimeo(1000).unwrap();
+    receiver.set_sndtimeo(1000).unwrap();
+    receiver.set_rcvtimeo(1000).unwrap();
+
     receiver.bind("tcp://*:*").unwrap();
     let ep = receiver.get_last_endpoint().unwrap().unwrap();
     sender.connect(&ep).unwrap();
