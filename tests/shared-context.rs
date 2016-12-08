@@ -1,16 +1,22 @@
+extern crate timebomb;
 extern crate zmq;
 
 use std::thread;
 use std::str;
+use timebomb::timeout_ms;
 
 #[test]
 fn test_inproc() {
-    shared_context("inproc://pub");
+    timeout_ms(|| {
+        shared_context("inproc://pub");
+    }, 10000);
 }
 
 #[test]
 fn test_tcp() {
-    shared_context("tcp://127.0.0.1:*");
+    timeout_ms(|| {
+        shared_context("tcp://127.0.0.1:*");
+    }, 10000);
 }
 
 fn shared_context(address: &str) {

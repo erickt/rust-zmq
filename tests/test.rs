@@ -1,6 +1,9 @@
+extern crate timebomb;
 extern crate zmq;
-use zmq::*;
+
 use std::net::TcpStream;
+use timebomb::timeout_ms;
+use zmq::*;
 
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
@@ -21,8 +24,18 @@ fn create_socketpair() -> (Socket, Socket) {
     (sender, receiver)
 }
 
-#[test]
-fn test_exchanging_messages() {
+macro_rules! test {
+    ($name:ident, $block:block) => {
+        #[test]
+        fn $name() {
+            timeout_ms(|| {
+                $block
+            }, 10000);
+        }
+    }
+}
+
+test!(test_exchanging_messages, {
     let (sender, receiver) = create_socketpair();
     sender.send_msg(Message::from_slice(b"foo").unwrap(), 0).unwrap();
     let msg = receiver.recv_msg(0).unwrap();
@@ -34,22 +47,22 @@ fn test_exchanging_messages() {
     let mut msg = Message::with_capacity(1).unwrap();
     sender.recv(&mut msg, 0).unwrap();
     assert_eq!(&msg[..], b"bar");
-}
+});
 
-#[test]
-fn test_exchanging_bytes() {
-    let (sender, receiver) = create_socketpair();
-    sender.send(b"bar", 0).unwrap();
-    assert_eq!(receiver.recv_bytes(0).unwrap(), b"bar");
+test!(test_exchanging_bytes, {
+    timeout_ms(|| {
+        let (sender, receiver) = create_socketpair();
+        sender.send(b"bar", 0).unwrap();
+        assert_eq!(receiver.recv_bytes(0).unwrap(), b"bar");
 
-    receiver.send(b"a quite long string", 0).unwrap();
-    let mut buf = [0_u8; 10];
-    sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
-    assert_eq!(&buf[..], b"a quite lo");
-}
+        receiver.send(b"a quite long string", 0).unwrap();
+        let mut buf = [0_u8; 10];
+        sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
+        assert_eq!(&buf[..], b"a quite lo");
+    }, 10000);
+});
 
-#[test]
-fn test_exchanging_strings() {
+test!(test_exchanging_strings, {
     let (sender, receiver) = create_socketpair();
     sender.send_str("bäz", 0).unwrap();
     assert_eq!(receiver.recv_string(0).unwrap().unwrap(), "bäz");
@@ -58,10 +71,9 @@ fn test_exchanging_strings() {
     receiver.send(b"\xff\xb7", 0).unwrap();
     let result = sender.recv_string(0).unwrap();
     assert_eq!(result, Err(vec![0xff, 0xb7]));
-}
+});
 
-#[test]
-fn test_exchanging_multipart() {
+test!(test_exchanging_multipart, {
     let (sender, receiver) = create_socketpair();
 
     // convenience API
@@ -79,10 +91,9 @@ fn test_exchanging_multipart() {
     assert!(!msg2.get_more());
     assert!(!sender.get_rcvmore().unwrap());
     assert_eq!(&msg2[..], b"bar");
-}
+});
 
-#[test]
-fn test_polling() {
+test!(test_polling, {
     let (sender, receiver) = create_socketpair();
 
     // no message yet
@@ -93,10 +104,9 @@ fn test_polling() {
     let mut poll_items = vec![receiver.as_poll_item(POLLIN)];
     assert_eq!(poll(&mut poll_items, 1000).unwrap(), 1);
     assert_eq!(poll_items[0].get_revents(), POLLIN);
-}
+});
 
-#[test]
-fn test_raw_roundtrip() {
+test!(test_raw_roundtrip, {
     let ctx = Context::new();
     let mut sock = ctx.socket(SocketType::REQ).unwrap();
 
@@ -106,16 +116,14 @@ fn test_raw_roundtrip() {
     let raw = sock.into_raw();    // consumes the socket
     assert_eq!(ptr, raw);
     let _ = unsafe { Socket::from_raw(raw) };
-}
+});
 
-#[test]
-fn test_version() {
+test!(test_version, {
     let (major, _, _) = version();
     assert!(major == 3 || major == 4);
-}
+});
 
-#[test]
-fn test_zmq_error() {
+test!(test_zmq_error, {
     use std::error::Error as StdError;
 
     let ctx = Context::new();
@@ -133,18 +141,16 @@ fn test_zmq_error() {
     let debug = format!("{:?}", err);
     assert_eq!(desc, display);
     assert_eq!(desc, debug);
-}
+});
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-#[test]
-fn test_curve_keypair() {
+test!(test_curve_keypair, {
     let keypair = CurveKeyPair::new().unwrap();
     assert!(keypair.public_key.len() == 40);
     assert!(keypair.secret_key.len() == 40);
-}
+});
 
-#[test]
-fn test_get_socket_type() {
+test!(test_get_socket_type, {
     let ctx = Context::new();
 
     let mut socket_types = vec![
@@ -165,10 +171,9 @@ fn test_get_socket_type() {
         let sock = ctx.socket(sock_type).unwrap();
         assert_eq!(sock.get_socket_type().unwrap(), sock_type);
     }
-}
+});
 
-#[test]
-fn test_create_stream_socket() {
+test!(test_create_stream_socket, {
     let ctx = Context::new();
     let sock = ctx.socket(STREAM).unwrap();
     assert!(sock.bind("tcp://127.0.0.1:*").is_ok());
@@ -176,154 +181,135 @@ fn test_create_stream_socket() {
     let tcp = "tcp://";
     assert!(ep.starts_with(tcp));
     assert!(TcpStream::connect(&ep[tcp.len()..]).is_ok());
-}
+});
 
-#[test]
-fn test_getset_maxmsgsize() {
+test!(test_getset_maxmsgsize, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_maxmsgsize(512000).unwrap();
     assert_eq!(sock.get_maxmsgsize().unwrap(), 512000);
-}
+});
 
-#[test]
-fn test_getset_sndhwm() {
+test!(test_getset_sndhwm, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_sndhwm(500).unwrap();
     assert_eq!(sock.get_sndhwm().unwrap(), 500);
-}
+});
 
-#[test]
-fn test_getset_rcvhwm() {
+test!(test_getset_rcvhwm, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_rcvhwm(500).unwrap();
     assert_eq!(sock.get_rcvhwm().unwrap(), 500);
-}
+});
 
-#[test]
-fn test_getset_affinity() {
+test!(test_getset_affinity, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_affinity(1024).unwrap();
     assert_eq!(sock.get_affinity().unwrap(), 1024);
-}
+});
 
-#[test]
-fn test_getset_identity() {
+test!(test_getset_identity, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_identity(b"moo").unwrap();
     assert_eq!(sock.get_identity().unwrap().unwrap(), "moo");
-}
+});
 
-#[test]
-fn test_subscription() {
+test!(test_subscription, {
     let ctx = Context::new();
     let sock = ctx.socket(SUB).unwrap();
     assert!(sock.set_subscribe(b"/channel").is_ok());
     assert!(sock.set_unsubscribe(b"/channel").is_ok());
-}
+});
 
-#[test]
-fn test_getset_rate() {
+test!(test_getset_rate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_rate(200).unwrap();
     assert_eq!(sock.get_rate().unwrap(), 200);
-}
+});
 
-#[test]
-fn test_getset_recovery_ivl() {
+test!(test_getset_recovery_ivl, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_recovery_ivl(100).unwrap();
     assert_eq!(sock.get_recovery_ivl().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_sndbuf() {
+test!(test_getset_sndbuf, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_sndbuf(100).unwrap();
     assert_eq!(sock.get_sndbuf().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_rcvbuf() {
+test!(test_getset_rcvbuf, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_rcvbuf(100).unwrap();
     assert_eq!(sock.get_rcvbuf().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_tos() {
+test!(test_getset_tos, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_tos(100).unwrap();
     assert_eq!(sock.get_tos().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_linger() {
+test!(test_getset_linger, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_linger(100).unwrap();
     assert_eq!(sock.get_linger().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_reconnect_ivl() {
+test!(test_getset_reconnect_ivl, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_reconnect_ivl(100).unwrap();
     assert_eq!(sock.get_reconnect_ivl().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_reconnect_ivl_max() {
+test!(test_getset_reconnect_ivl_max, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_reconnect_ivl_max(100).unwrap();
     assert_eq!(sock.get_reconnect_ivl_max().unwrap(), 100);
-}
+});
 
-#[test]
-fn test_getset_backlog() {
+test!(test_getset_backlog, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_backlog(50).unwrap();
     assert_eq!(sock.get_backlog().unwrap(), 50);
-}
+});
 
-#[test]
-fn test_getset_multicast_hops() {
+test!(test_getset_multicast_hops, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_multicast_hops(20).unwrap();
     assert_eq!(sock.get_multicast_hops().unwrap(), 20);
-}
+});
 
-#[test]
-fn test_getset_rcvtimeo() {
+test!(test_getset_rcvtimeo, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_rcvtimeo(5000).unwrap();
     assert_eq!(sock.get_rcvtimeo().unwrap(), 5000);
-}
+});
 
-#[test]
-fn test_getset_sndtimeo() {
+test!(test_getset_sndtimeo, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_sndtimeo(5000).unwrap();
     assert_eq!(sock.get_sndtimeo().unwrap(), 5000);
-}
+});
 
-#[test]
-fn test_getset_ipv6() {
+test!(test_getset_ipv6, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -332,10 +318,9 @@ fn test_getset_ipv6() {
 
     sock.set_ipv6(false).unwrap();
     assert!(!sock.is_ipv6().unwrap());
-}
+});
 
-#[test]
-fn test_getset_socks_proxy() {
+test!(test_getset_socks_proxy, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -344,10 +329,9 @@ fn test_getset_socks_proxy() {
 
     sock.set_socks_proxy(None).unwrap();
     assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "");
-}
+});
 
-#[test]
-fn test_getset_keepalive() {
+test!(test_getset_keepalive, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -359,10 +343,9 @@ fn test_getset_keepalive() {
 
     sock.set_tcp_keepalive(1).unwrap();
     assert_eq!(sock.get_tcp_keepalive().unwrap(), 1);
-}
+});
 
-#[test]
-fn test_getset_keepalive_cnt() {
+test!(test_getset_keepalive_cnt, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -371,10 +354,9 @@ fn test_getset_keepalive_cnt() {
 
     sock.set_tcp_keepalive_cnt(500).unwrap();
     assert_eq!(sock.get_tcp_keepalive_cnt().unwrap(), 500);
-}
+});
 
-#[test]
-fn test_getset_keepalive_idle() {
+test!(test_getset_keepalive_idle, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -383,10 +365,9 @@ fn test_getset_keepalive_idle() {
 
     sock.set_tcp_keepalive_idle(500).unwrap();
     assert_eq!(sock.get_tcp_keepalive_idle().unwrap(), 500);
-}
+});
 
-#[test]
-fn test_getset_tcp_keepalive_intvl() {
+test!(test_getset_tcp_keepalive_intvl, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -395,10 +376,9 @@ fn test_getset_tcp_keepalive_intvl() {
 
     sock.set_tcp_keepalive_intvl(500).unwrap();
     assert_eq!(sock.get_tcp_keepalive_intvl().unwrap(), 500);
-}
+});
 
-#[test]
-fn test_getset_immediate() {
+test!(test_getset_immediate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -407,10 +387,9 @@ fn test_getset_immediate() {
 
     sock.set_immediate(false).unwrap();
     assert!(!sock.is_immediate().unwrap());
-}
+});
 
-#[test]
-fn test_getset_plain_server() {
+test!(test_getset_plain_server, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -419,10 +398,9 @@ fn test_getset_plain_server() {
 
     sock.set_plain_server(false).unwrap();
     assert!(!sock.is_plain_server().unwrap());
-}
+});
 
-#[test]
-fn test_getset_plain_username() {
+test!(test_getset_plain_username, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -432,10 +410,9 @@ fn test_getset_plain_username() {
 
     sock.set_plain_username(None).unwrap();
     assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
-}
+});
 
-#[test]
-fn test_getset_plain_password() {
+test!(test_getset_plain_password, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
@@ -445,18 +422,16 @@ fn test_getset_plain_password() {
 
     sock.set_plain_password(None).unwrap();
     assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
-}
+});
 
-#[test]
-fn test_getset_zap_domain() {
+test!(test_getset_zap_domain, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_zap_domain("test_domain").unwrap();
     assert_eq!(sock.get_zap_domain().unwrap().unwrap(), "test_domain");
-}
+});
 
-#[test]
-fn test_ctx_nohang() {
+test!(test_ctx_nohang, {
     // Test that holding on to a socket keeps the context it was
     // created from from being destroyed. Destroying the context while
     // a socket is still open would block, thus hanging this test in
@@ -466,96 +441,86 @@ fn test_ctx_nohang() {
         ctx.socket(REQ).unwrap()
     };
     assert_eq!(sock.get_socket_type(), Ok(REQ));
-}
+});
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-#[test]
-fn test_getset_curve_server() {
+test!(test_getset_curve_server, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_curve_server(true).unwrap();
     assert_eq!(sock.is_curve_server().unwrap(), true);
-}
+});
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-#[test]
-fn test_getset_curve_publickey() {
+test!(test_getset_curve_publickey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_curve_publickey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
     assert_eq!(sock.get_curve_publickey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
-}
+});
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-#[test]
-fn test_getset_curve_secretkey() {
+test!(test_getset_curve_secretkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_curve_secretkey("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
     assert_eq!(sock.get_curve_secretkey().unwrap().unwrap(), "s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS");
-}
+});
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
-#[test]
-fn test_getset_curve_serverkey() {
+test!(test_getset_curve_serverkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_curve_serverkey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
     assert_eq!(sock.get_curve_serverkey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
-}
+});
 
-#[test]
-fn test_getset_conflate() {
+test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_conflate(true).unwrap();
     assert_eq!(sock.is_conflate().unwrap(), true);
-}
+});
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
-#[test]
-fn test_getset_gssapi_server() {
+test!(test_getset_gssapi_server, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_server(true).unwrap();
     assert_eq!(sock.is_gssapi_server().unwrap(), true);
-}
+});
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
-#[test]
-fn test_getset_gssapi_principal() {
+test!(test_getset_gssapi_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_principal("principal").unwrap();
     assert_eq!(sock.get_gssapi_principal().unwrap().unwrap(), "principal");
-}
+});
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
-#[test]
-fn test_getset_gssapi_service_principal() {
+test!(test_getset_gssapi_service_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_service_principal("principal").unwrap();
     assert_eq!(sock.get_gssapi_service_principal().unwrap().unwrap(), "principal");
-}
+});
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
-#[test]
-fn test_getset_gssapi_plaintext() {
+test!(test_getset_gssapi_plaintext, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_plaintext(true).unwrap();
     assert_eq!(sock.is_gssapi_plaintext().unwrap(), true);
-}
+});
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
-#[test]
-fn test_getset_handshake_ivl() {
+test!(test_getset_handshake_ivl, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_handshake_ivl(50000).unwrap();
     assert_eq!(sock.get_handshake_ivl().unwrap(), 50000);
-}
+});
 
 #[cfg(feature = "compiletest_rs")]
 mod compile {

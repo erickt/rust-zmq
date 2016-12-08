@@ -95,3 +95,4 @@ zmq-sys = { version = "0.8.0", path = "zmq-sys" }
 quickcheck = "0.4.0"
 rand = "*"
 tempfile = "*"
+timebomb = "0.1.2"
