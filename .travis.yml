@@ -22,28 +22,31 @@ addons:
     - pkg-config
     - libtool
     - git
+
 before_script:
 - |
-  pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH &&
-  export LIBRARY_PATH=$HOME/lib &&
-  export LD_LIBRARY_PATH=$HOME/lib &&
-  export PKG_CONFIG_PATH=$HOME/lib/pkgconfig &&
-  git clone https://github.com/jedisct1/libsodium.git &&
-  cd libsodium &&
-  git checkout 1.0.11 &&
-  ./autogen.sh &&
-  ./configure --prefix=$HOME && make && make install &&
-  cd .. &&
-  wget https://github.com/zeromq/zeromq4-1/archive/v4.1.6.tar.gz &&
-  tar zxf v4.1.6.tar.gz &&
-  cd zeromq4-1-4.1.6 &&
-  ./autogen.sh && ./configure --prefix=$HOME --with-libsodium && make && make install &&
+  set -e
+  pip install 'travis-cargo<0.2' --user
+  git clone --depth 1 -b stable https://github.com/jedisct1/libsodium.git
+  cd libsodium
+  ./autogen.sh
+  ./configure --prefix=$HOME
+  make
+  make install
+  cd ..
+  wget https://github.com/zeromq/zeromq4-1/archive/v4.1.6.tar.gz
+  tar zxf v4.1.6.tar.gz
+  cd zeromq4-1-4.1.6
+  ./autogen.sh
+  ./configure --prefix=$HOME --with-libsodium
+  make
+  make install
   cd ..
 script:
 - travis-cargo --skip nightly build
 - travis-cargo --only nightly build -- --features unstable
 - travis-cargo --skip nightly test
+- travis-cargo --only nightly clean # needed due to compiltest-rs issue
 - travis-cargo --only nightly test -- --features unstable-testing
 - travis-cargo --skip nightly bench
 - travis-cargo --only nightly bench -- --features unstable-testing
@@ -60,8 +63,12 @@ script:
 - travis-cargo --only stable doc
 after_success:
 - travis-cargo --only stable doc-upload
-- travis-cargo coveralls --no-sudo
+#- travis-cargo coverage --no-sudo
+
 env:
   global:
+  - PATH=$HOME/.local/bin:$PATH
+  - LD_LIBRARY_PATH=$HOME/lib
+  - PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   - TRAVIS_CARGO_NIGHTLY_FEATURE=""
   - secure: HsoFtb8raiT2SJewpTEOFeMgXZUOwbcBEcjVPlsyrBI8WZ9dGp3aK1k6MsfiF4AV6PVE3XaaEQS/9iks5l4YswHP0WGz2L2hV2CORMem25x3q85PWZzZFm4RdO6E13LDRHjRZ56u80rYs0koL7loY2AZxc1iibwyKfUwba1LYu8=
