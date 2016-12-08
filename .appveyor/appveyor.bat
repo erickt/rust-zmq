@@ -56,7 +56,7 @@ set PATH=%SODIUM_LIBRARY_DIR%;%PATH%
 
 echo Installing libzmq
 set LIBZMQ_SOURCEDIR=C:\projects\libzmq
-git clone --depth 1 --quiet https://github.com/zeromq/libzmq.git "%LIBZMQ_SOURCEDIR%"
+git clone --branch v4.2.0 --depth 1 --quiet https://github.com/zeromq/libzmq.git "%LIBZMQ_SOURCEDIR%"
 if %ERRORLEVEL% NEQ 0 (
   echo cloning libzmq failed
   exit 1
