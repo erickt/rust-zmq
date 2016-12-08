@@ -1,6 +1,11 @@
 
 extern crate libc;
 
+#[cfg(target_os = "windows")]
+mod win_errno;
+
+pub mod errno;
+
 pub use ffi::{
     zmq_msg_t,
     zmq_free_fn,

@@ -68,6 +68,8 @@ path = "examples/zguide/weather_server/main.rs"
 
 [features]
 unstable = []
+default = ["zmq_has"]
+zmq_has = [] # zmq_has was added in zeromq 4.1.
 unstable-testing = ["compiletest_rs", "unstable"]
 #unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
@@ -87,10 +89,10 @@ compiletest_rs = { version = "0.*", optional = true }
 clippy = { version = "0.*", optional = true }
 
 [build-dependencies]
-libc = "0.2.15"
 zmq-sys = { version = "0.8.0", path = "zmq-sys" }
 
 [dev-dependencies]
 quickcheck = "0.4.0"
 rand = "*"
 tempfile = "*"
+timebomb = "0.1.2"
