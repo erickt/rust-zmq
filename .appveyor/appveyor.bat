@@ -50,7 +50,6 @@ if %ERRORLEVEL% NEQ 0 (
 set SODIUM_LIBRARY_DIR="%LIBSODIUM_DIR%\bin\%SODIUM_PLATFORM%\%Configuration%\%MSVCVERSION%\dynamic"
 set SODIUM_INCLUDE_DIR="%LIBSODIUM_DIR%\src\libsodium\include"
 move "%SODIUM_LIBRARY_DIR%\libsodium.lib" "%SODIUM_LIBRARY_DIR%\sodium.lib"
-dir /s %LIBSODIUM_LIBRARY_DIR%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 set PATH=%SODIUM_LIBRARY_DIR%;%PATH%
@@ -82,11 +81,8 @@ if %ERRORLEVEL% NEQ 0 (
 
 set LIBZMQ_INCLUDE_DIR=%LIBZMQ_SOURCEDIR%\include
 set LIBZMQ_LIB_DIR=%LIBZMQ_BUILDDIR%\lib\%Configuration%
-dir /s %LIBZMQ_SOURCEDIR%
 move "%LIBZMQ_LIB_DIR%\libzmq-*lib" "%LIBZMQ_LIB_DIR%\zmq.lib"
 set PATH=%LIBZMQ_BUILDDIR%\bin\%Configuration%;%PATH%
-dir /s %LIBZMQ_INCLUDE_DIR%
-dir /s %LIBZMQ_LIB_DIR%
 if %ERRORLEVEL% NEQ 0 exit 1
 
 cd %ORIGINAL_PATH%
