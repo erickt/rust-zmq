@@ -50,16 +50,14 @@ test!(test_exchanging_messages, {
 });
 
 test!(test_exchanging_bytes, {
-    timeout_ms(|| {
-        let (sender, receiver) = create_socketpair();
-        sender.send(b"bar", 0).unwrap();
-        assert_eq!(receiver.recv_bytes(0).unwrap(), b"bar");
+    let (sender, receiver) = create_socketpair();
+    sender.send(b"bar", 0).unwrap();
+    assert_eq!(receiver.recv_bytes(0).unwrap(), b"bar");
 
-        receiver.send(b"a quite long string", 0).unwrap();
-        let mut buf = [0_u8; 10];
-        sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
-        assert_eq!(&buf[..], b"a quite lo");
-    }, 10000);
+    receiver.send(b"a quite long string", 0).unwrap();
+    let mut buf = [0_u8; 10];
+    sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
+    assert_eq!(&buf[..], b"a quite lo");
 });
 
 test!(test_exchanging_strings, {
