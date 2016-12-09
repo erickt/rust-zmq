@@ -1,4 +1,4 @@
-# 0.8.0 (unreleased)
+# 0.8.0
 
 This is feature and bugfix release. The API has changed, partially in
 slightly incompatible ways. Typical code, for some suitable value of
