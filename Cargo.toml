@@ -93,6 +93,6 @@ zmq-sys = { version = "0.8.0", path = "zmq-sys" }
 
 [dev-dependencies]
 quickcheck = "0.4.0"
-rand = "*"
-tempfile = "*"
+rand = "0.3"
+tempfile = "2.1"
 timebomb = "0.1.2"
