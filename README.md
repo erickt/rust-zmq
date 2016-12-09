@@ -32,6 +32,12 @@ Install for developers:
     % cd rust-zmq
     % cargo build
 
+The build normally uses `pkg-config` to find out about libzmq's
+location. If that is not available, the environment variable
+`LIBZMQ_PREFIX` (or alternatively, `LIBZMQ_LIB_DIR` and
+`LIBZMQ_INCLUDE_DIR`) can be defined to avoid the invocation of
+`pkg-config`.
+
 Usage
 -----
 
