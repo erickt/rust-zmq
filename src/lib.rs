@@ -68,9 +68,9 @@ pub static DONTWAIT: i32 = 1;
 pub static SNDMORE: i32 = 2;
 
 /// Raw 0MQ socket option constants.
-#[allow(non_camel_case_types)]
+#[allow(non_camel_case_types,dead_code)]
 #[derive(Clone, Debug, PartialEq)]
-pub enum Constants {
+enum Constants {
     ZMQ_AFFINITY                 = 4,
     ZMQ_IDENTITY                 = 5,
     ZMQ_SUBSCRIBE                = 6,
@@ -137,73 +137,6 @@ impl Copy for Constants {}
 impl Constants {
     pub fn to_raw(&self) -> i32 {
         *self as i32
-    }
-
-    pub fn from_raw(raw: i32) -> Option<Constants> {
-        // fails if `raw` is not a valid value
-        match raw {
-            4   => Some(Constants::ZMQ_AFFINITY),
-            5   => Some(Constants::ZMQ_IDENTITY),
-            6   => Some(Constants::ZMQ_SUBSCRIBE),
-            7   => Some(Constants::ZMQ_UNSUBSCRIBE),
-            8   => Some(Constants::ZMQ_RATE),
-            9   => Some(Constants::ZMQ_RECOVERY_IVL),
-            11  => Some(Constants::ZMQ_SNDBUF),
-            12  => Some(Constants::ZMQ_RCVBUF),
-            13  => Some(Constants::ZMQ_RCVMORE),
-            14  => Some(Constants::ZMQ_FD),
-            15  => Some(Constants::ZMQ_EVENTS),
-            16  => Some(Constants::ZMQ_TYPE),
-            17  => Some(Constants::ZMQ_LINGER),
-            18  => Some(Constants::ZMQ_RECONNECT_IVL),
-            19  => Some(Constants::ZMQ_BACKLOG),
-            21  => Some(Constants::ZMQ_RECONNECT_IVL_MAX),
-            22  => Some(Constants::ZMQ_MAXMSGSIZE),
-            23  => Some(Constants::ZMQ_SNDHWM),
-            24  => Some(Constants::ZMQ_RCVHWM),
-            25  => Some(Constants::ZMQ_MULTICAST_HOPS),
-            27  => Some(Constants::ZMQ_RCVTIMEO),
-            28  => Some(Constants::ZMQ_SNDTIMEO),
-            32  => Some(Constants::ZMQ_LAST_ENDPOINT),
-            33  => Some(Constants::ZMQ_ROUTER_MANDATORY),
-            34  => Some(Constants::ZMQ_TCP_KEEPALIVE),
-            35  => Some(Constants::ZMQ_TCP_KEEPALIVE_CNT),
-            36  => Some(Constants::ZMQ_TCP_KEEPALIVE_IDLE),
-            37  => Some(Constants::ZMQ_TCP_KEEPALIVE_INTVL),
-            39  => Some(Constants::ZMQ_IMMEDIATE),
-            40  => Some(Constants::ZMQ_XPUB_VERBOSE),
-            41  => Some(Constants::ZMQ_ROUTER_RAW),
-            42  => Some(Constants::ZMQ_IPV6),
-            43  => Some(Constants::ZMQ_MECHANISM),
-            44  => Some(Constants::ZMQ_PLAIN_SERVER),
-            45  => Some(Constants::ZMQ_PLAIN_USERNAME),
-            46  => Some(Constants::ZMQ_PLAIN_PASSWORD),
-            47  => Some(Constants::ZMQ_CURVE_SERVER),
-            48  => Some(Constants::ZMQ_CURVE_PUBLICKEY),
-            49  => Some(Constants::ZMQ_CURVE_SECRETKEY),
-            50  => Some(Constants::ZMQ_CURVE_SERVERKEY),
-            51  => Some(Constants::ZMQ_PROBE_ROUTER),
-            52  => Some(Constants::ZMQ_REQ_CORRELATE),
-            53  => Some(Constants::ZMQ_REQ_RELAXED),
-            54  => Some(Constants::ZMQ_CONFLATE),
-            55  => Some(Constants::ZMQ_ZAP_DOMAIN),
-            56  => Some(Constants::ZMQ_ROUTER_HANDOVER),
-            57  => Some(Constants::ZMQ_TOS),
-            61  => Some(Constants::ZMQ_CONNECT_RID),
-            62  => Some(Constants::ZMQ_GSSAPI_SERVER),
-            63  => Some(Constants::ZMQ_GSSAPI_PRINCIPAL),
-            64  => Some(Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL),
-            65  => Some(Constants::ZMQ_GSSAPI_PLAINTEXT),
-            66  => Some(Constants::ZMQ_HANDSHAKE_IVL),
-            68  => Some(Constants::ZMQ_SOCKS_PROXY),
-            69  => Some(Constants::ZMQ_XPUB_NODROP),
-
-            1    => Some(Constants::ZMQ_MSG_MORE),
-            128  => Some(Constants::ZMQ_MSG_SHARED),
-            129  => Some(Constants::ZMQ_MSG_MASK),
-
-            _   => None,
-        }
     }
 }
 

@@ -5,7 +5,7 @@ documentation.
 
 ## Incompatible API changes
 
-None yet.
+- The deprecated `Constants` enum has been removed from the API.
 
 ## New and improved functionality
 
