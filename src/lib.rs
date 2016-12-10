@@ -482,6 +482,27 @@ macro_rules! sockopts {
     };
 }
 
+/// Sendable over a `Socket`.
+///
+/// A type can implement this trait there is an especially efficient
+/// implementation for sending it as a message over a zmq socket.
+///
+/// If the type needs to be directly passed to `Socket::send()`, but
+/// the overhead of allocating a `Message` instance is not an issue,
+/// `Into<Message>` should be implemented instead.
+///
+pub trait Sendable {
+    fn send(self, socket: &Socket, flags: i32) -> Result<()>;
+}
+
+impl<T> Sendable for T where T: Into<Message> {
+    fn send(self, socket: &Socket, flags: i32) -> Result<()> {
+        let mut msg = self.into();
+        zmq_try!(unsafe { zmq_sys::zmq_msg_send(&mut msg.msg, socket.sock, flags as c_int) });
+        Ok(())
+    }
+}
+
 impl Socket {
     /// Consume the Socket and return the raw socket pointer.
     ///
@@ -533,11 +554,9 @@ impl Socket {
     /// Due to the provided `From` implementations, this works for
     /// `&[u8]`, `Vec<u8>` and `&str` `Message` itself.
     pub fn send<T>(&self, data: T, flags: i32) -> Result<()>
-        where T: Into<Message>
+        where T: Sendable
     {
-        let mut msg = data.into();
-        zmq_try!(unsafe { zmq_sys::zmq_msg_send(&mut msg.msg, self.sock, flags as c_int) });
-        Ok(())
+        data.send(self, flags)
     }
 
     /// Send a `Message` message.
