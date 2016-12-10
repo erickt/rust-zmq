@@ -27,8 +27,8 @@ you will first have to install it from source; see
 rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
 their `Cargo.toml` file:
 
-    [dependencies.zmq]
-    git = "https://github.com/erickt/rust-zmq.git"
+    [dependencies]
+    zmq = "0.8"
 
 Install for developers:
 
