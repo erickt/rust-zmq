@@ -1,3 +1,20 @@
+# 0.9.0 (unreleased)
+
+This release will focus on API corrections and improving
+documentation.
+
+## Incompatible API changes
+
+None yet.
+
+## New and improved functionality
+
+None yet.
+
+## Deprecations
+
+None yet.
+
 # 0.8.0
 
 This is feature and bugfix release. The API has changed, partially in
