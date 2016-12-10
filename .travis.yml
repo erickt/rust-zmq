@@ -62,8 +62,11 @@ script:
 - travis-cargo build -- --example weather_server
 - travis-cargo --only stable doc
 after_success:
-- travis-cargo --only stable doc-upload
-#- travis-cargo coverage --no-sudo
+- |
+  if [ "$TRAVIS_BRANCH" = master ] && [ "$TRAVIS_PULL_REQUEST" = false ]; then
+    travis-cargo --only stable doc-upload
+    # travis-cargo coverage --no-sudo
+  fi
 
 env:
   global:
