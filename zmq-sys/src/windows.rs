@@ -1,3 +1,5 @@
+pub use std::os::windows::io::RawSocket;
+
 pub mod errno {
     use libc::c_int;
 

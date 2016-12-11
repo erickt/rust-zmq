@@ -11,6 +11,11 @@ mod imp;
 
 pub mod errno;
 
+pub use imp::{
+    // This maps to `RawFd` on Unixoids and `RawSocket` on Windows.
+    RawSocket,
+};
+
 pub use ffi::{
     zmq_msg_t,
     zmq_free_fn,
