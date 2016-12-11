@@ -1,8 +1,13 @@
 
 extern crate libc;
 
-#[cfg(target_os = "windows")]
-mod win_errno;
+#[path = "unix.rs"]
+#[cfg(unix)]
+mod imp;
+
+#[path = "windows.rs"]
+#[cfg(windows)]
+mod imp;
 
 pub mod errno;
 

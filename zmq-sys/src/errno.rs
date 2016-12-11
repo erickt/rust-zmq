@@ -1,9 +1,4 @@
-
-#[cfg(target_os = "windows")]
-use win_errno as errno;
-
-#[cfg(not(target_os = "windows"))]
-use libc as errno;
+use imp::errno as errno;
 
 const ZMQ_HAUSNUMERO: i32 = 156384712;
 
