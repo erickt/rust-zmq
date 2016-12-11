@@ -429,6 +429,22 @@ test!(test_getset_zap_domain, {
     assert_eq!(sock.get_zap_domain().unwrap().unwrap(), "test_domain");
 });
 
+test!(test_get_fd, {
+    let ctx = Context::new();
+    let sock_a = ctx.socket(REQ).unwrap();
+    let sock_b = ctx.socket(REQ).unwrap();
+
+    let mut fds_a: Vec<_> = (0..10).map(|_| sock_a.get_fd()).collect();
+    fds_a.dedup();
+    assert_eq!(fds_a.len(), 1);
+
+    let mut fds_b: Vec<_> = (0..10).map(|_| sock_b.get_fd()).collect();
+    fds_b.dedup();
+    assert_eq!(fds_b.len(), 1);
+
+    assert_ne!(fds_a[0], fds_b[0]);
+});
+
 test!(test_ctx_nohang, {
     // Test that holding on to a socket keeps the context it was
     // created from from being destroyed. Destroying the context while
