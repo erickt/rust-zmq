@@ -22,7 +22,7 @@ use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
 use std::sync::Arc;
 
-use zmq_sys::errno;
+use zmq_sys::{errno, RawSocket};
 
 macro_rules! zmq_try {
     ($($tt:tt)*) => {{
@@ -738,7 +738,15 @@ impl Socket {
         (get_reconnect_ivl, set_reconnect_ivl) => ZMQ_RECONNECT_IVL as i32,
         (get_reconnect_ivl_max, set_reconnect_ivl_max) => ZMQ_RECONNECT_IVL_MAX as i32,
         (get_backlog, set_backlog) => ZMQ_BACKLOG as i32,
-        (get_fd) => ZMQ_FD as i64,
+
+        /// Get the underlying file descriptor.
+        ///
+        /// Getter for the `ZMQ_FD` option. Note that the returned
+        /// type is platform-specific; it aliases either
+        /// `std::os::unix::io::RawFd` and or
+        /// `std::os::windows::io::RawSocket`.
+        (get_fd) => ZMQ_FD as RawSocket,
+
         (get_events) => ZMQ_EVENTS as i32,
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
         (get_rcvtimeo, set_rcvtimeo) => ZMQ_RCVTIMEO as i32,
