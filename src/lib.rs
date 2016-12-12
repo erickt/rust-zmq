@@ -9,6 +9,8 @@
 extern crate log;
 
 extern crate libc;
+#[cfg(target_os = "windows")]
+extern crate winapi;
 extern crate zmq_sys;
 
 use libc::{c_int, c_long, size_t};
@@ -1019,6 +1021,7 @@ pub static POLLERR: i16 = 4i16;
 /// Apart from that it contains the requested event mask, and is updated
 /// with the occurred events after `poll()` finishes.
 #[repr(C)]
+#[cfg(not(target_os = "windows"))]
 pub struct PollItem<'a> {
     socket: *mut c_void,
     fd: c_int,
@@ -1027,10 +1030,39 @@ pub struct PollItem<'a> {
     marker: PhantomData<&'a Socket>
 }
 
+/// Represents a handle that can be `poll()`ed.
+///
+/// This is either a reference to a 0MQ socket, or a standard socket.
+/// Apart from that it contains the requested event mask, and is updated
+/// with the occurred events after `poll()` finishes.
+#[repr(C)]
+#[cfg(target_os = "windows")]
+pub struct PollItem<'a> {
+    socket: *mut c_void,
+    fd: winapi::winsock2::SOCKET,
+    events: i16,
+    revents: i16,
+    marker: PhantomData<&'a Socket>
+}
+
 impl<'a> PollItem<'a> {
     /// Construct a PollItem from a non-0MQ socket, given by its file
     /// descriptor.
+    #[cfg(not(target_os = "windows"))]
     pub fn from_fd(fd: c_int) -> PollItem<'a> {
+        PollItem {
+            socket: ptr::null_mut(),
+            fd: fd,
+            events: 0,
+            revents: 0,
+            marker: PhantomData
+        }
+    }
+
+    /// Construct a PollItem from a non-0MQ socket, given by its file
+    /// descriptor.
+    #[cfg(target_os = "windows")]
+    pub fn from_fd(fd: winapi::winsock2::SOCKET) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
