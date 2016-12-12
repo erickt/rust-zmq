@@ -5,6 +5,17 @@ use std::net::TcpStream;
 use timebomb::timeout_ms;
 use zmq::*;
 
+#[cfg(not(target_os = "windows"))]
+#[inline]
+fn get_endpoint(receiver: &Socket) -> String {
+    receiver.get_last_endpoint().unwrap().unwrap()
+}
+#[cfg(target_os = "windows")]
+#[inline]
+fn get_endpoint(receiver: &Socket) -> String {
+    receiver.get_last_endpoint().unwrap().unwrap().replace("tcp://0.0.0.0", "tcp://127.0.0.1").to_owned()
+}
+
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
 
@@ -18,7 +29,7 @@ fn create_socketpair() -> (Socket, Socket) {
     receiver.set_rcvtimeo(1000).unwrap();
 
     receiver.bind("tcp://*:*").unwrap();
-    let ep = receiver.get_last_endpoint().unwrap().unwrap();
+    let ep = get_endpoint(&receiver);
     sender.connect(&ep).unwrap();
 
     (sender, receiver)
