@@ -17,7 +17,7 @@ fn create_socketpair() -> (Socket, Socket) {
     receiver.set_sndtimeo(1000).unwrap();
     receiver.set_rcvtimeo(1000).unwrap();
 
-    receiver.bind("tcp://*:*").unwrap();
+    receiver.bind("tcp://127.0.0.1:*").unwrap();
     let ep = receiver.get_last_endpoint().unwrap().unwrap();
     sender.connect(&ep).unwrap();
 
