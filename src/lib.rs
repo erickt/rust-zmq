@@ -1009,7 +1009,7 @@ pub static POLLERR: i16 = 4i16;
 #[repr(C)]
 pub struct PollItem<'a> {
     socket: *mut c_void,
-    fd: c_int,
+    fd: RawSocket,
     events: i16,
     revents: i16,
     marker: PhantomData<&'a Socket>
@@ -1018,7 +1018,7 @@ pub struct PollItem<'a> {
 impl<'a> PollItem<'a> {
     /// Construct a PollItem from a non-0MQ socket, given by its file
     /// descriptor.
-    pub fn from_fd(fd: c_int) -> PollItem<'a> {
+    pub fn from_fd(fd: RawSocket) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
