@@ -9,10 +9,10 @@ Rust ZeroMQ bindings.
 [![docs](https://docs.rs/zmq/badge.svg)](https://docs.rs/zmq)
 
 [Documentation](https://docs.rs/crate/zmq/)
+
 [Release Notes](https://github.com/erickt/rust-zmq/tree/master/NEWS.md)
 
-Installation
-------------
+# Installation
 
 Currently, rust-zmq requires ZeroMQ 3.2 or newer. For example, on
 recent Debian-based distributions, you can use the following command
@@ -24,17 +24,12 @@ If your OS of choice does not provide packages of a new-enough libzmq,
 you will first have to install it from source; see
 <https://github.com/zeromq/libzmq/releases>.
 
+
 rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
 their `Cargo.toml` file:
 
     [dependencies]
     zmq = "0.8"
-
-Install for developers:
-
-    % git clone https://github.com/erickt/rust-zmq
-    % cd rust-zmq
-    % cargo build
 
 The build normally uses `pkg-config` to find out about libzmq's
 location. If that is not available, the environment variable
@@ -42,8 +37,7 @@ location. If that is not available, the environment variable
 `LIBZMQ_INCLUDE_DIR`) can be defined to avoid the invocation of
 `pkg-config`.
 
-Usage
------
+# Usage
 
 `rust-zmq` is a pretty straight forward port of the C API into Rust:
 
@@ -61,3 +55,32 @@ fn main() {
 
 You can find more usage examples in
 https://github.com/erickt/rust-zmq/tree/master/examples.
+
+# Contributing
+
+Install for contributing to rust-zmq:
+
+    % git clone https://github.com/erickt/rust-zmq
+    % cd rust-zmq
+    % cargo build
+
+Note that the `master` branch is currently in API-breaking mode while
+we try to make the API more ergomic and flexible for the `0.9` release
+series.
+
+__This means that pull requests (e.g. bugfixes), which do not need to
+break API should be submitted for the `release/v0.8` branch__. This
+also applies to new features, if they can be implemented in an
+API-compatible way, the pull request should also aim for
+`release/v0.8`. Please submit an issue for missing features before you
+start coding, so the suitable branch and other potential questions can
+be clarified up-front.
+
+The reason for using branches, and thus increasing overhead a bit for
+all involved, is that it's not yet clear how long it will take to
+reach a point in `master` that we feel comfortable with releasing as
+0.9.0, as we'd like to have the core part of the API more-or-less
+fixed by then. Using the `release/v0.8` branch we can deliver bugfixes
+and smaller features in the meantime without forcing users to follow
+master's changing API and to continuously adjust their code to API
+changes.
