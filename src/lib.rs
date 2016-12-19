@@ -347,6 +347,30 @@ impl fmt::Debug for Error {
     }
 }
 
+impl From<Error> for std::io::Error {
+    fn from(error: Error) -> Self {
+        use std::io::ErrorKind;
+
+        let kind = match error {
+            Error::ENOENT => ErrorKind::NotFound,
+            Error::EACCES => ErrorKind::PermissionDenied,
+            Error::ECONNREFUSED => ErrorKind::ConnectionRefused,
+            Error::ENOTCONN => ErrorKind::NotConnected,
+            Error::EADDRINUSE => ErrorKind::AddrInUse,
+            Error::EADDRNOTAVAIL => ErrorKind::AddrNotAvailable,
+            Error::EAGAIN => ErrorKind::WouldBlock,
+            Error::EINVAL => ErrorKind::InvalidInput,
+            Error::EINTR => ErrorKind::Interrupted,
+            _ => ErrorKind::Other
+        };
+        // TODO: With rust 1.14 and up there is an optimization
+        // opportunity using `std::io::Error: From<ErrorKind>` when
+        // `kind != Other`. We should do that once 1.14 has been
+        // stable for a bit.
+        std::io::Error::new(kind, error)
+    }
+}
+
 fn errno_to_error() -> Error {
     Error::from_raw(unsafe { zmq_sys::zmq_errno() })
 }
