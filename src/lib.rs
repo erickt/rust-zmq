@@ -1036,6 +1036,22 @@ impl<'a> PollItem<'a> {
     pub fn get_revents(&self) -> i16 {
         self.revents
     }
+
+    /// Returns true if the polled socket has messages ready to receive.
+    pub fn is_readable(&self) -> bool {
+        (self.revents & POLLIN) != 0
+    }
+
+    /// Returns true if the polled socket can accept messages to be sent
+    /// without blocking.
+    pub fn is_writable(&self) -> bool {
+        (self.revents & POLLOUT) != 0
+    }
+
+    /// Returns true if the polled socket encountered an error condition.
+    pub fn is_error(&self) -> bool {
+        (self.revents & POLLERR) != 0
+    }
 }
 
 /// Poll for events on multiple sockets.

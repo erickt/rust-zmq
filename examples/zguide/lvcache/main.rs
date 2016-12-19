@@ -18,21 +18,21 @@ fn main() {
     let mut cache = HashMap::new();
 
     loop {
-        let mut items = vec![
+        let mut items = [
             frontend.as_poll_item(zmq::POLLIN),
             backend.as_poll_item(zmq::POLLIN),
         ];
         if zmq::poll(&mut items, 1000).is_err() {
             break;              //  Interrupted
         }
-        if (items[0].get_revents() & zmq::POLLIN) != 0 {
+        if items[0].is_readable() {
             let topic = frontend.recv_msg(0).unwrap();
             let current = frontend.recv_msg(0).unwrap();
             cache.insert(topic.to_vec(), current.to_vec());
             backend.send_msg(topic, zmq::SNDMORE).unwrap();
             backend.send_msg(current, 0).unwrap();
         }
-        if (items[1].get_revents() & zmq::POLLIN) != 0 {
+        if items[1].is_readable() {
             // Event is one byte 0=unsub or 1=sub, followed by topic
             let event = backend.recv_msg(0).unwrap();
             if event[0] == 1 {
