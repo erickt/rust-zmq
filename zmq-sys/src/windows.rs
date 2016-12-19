@@ -1,4 +1,4 @@
-pub use std::os::windows::io::RawSocket;
+pub use std::os::windows::io::RawSocket as RawFd;
 
 pub mod errno {
     use libc::c_int;
