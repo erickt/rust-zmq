@@ -22,7 +22,7 @@ use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
 use std::sync::Arc;
 
-use zmq_sys::{errno, RawSocket};
+use zmq_sys::{errno, RawFd};
 
 macro_rules! zmq_try {
     ($($tt:tt)*) => {{
@@ -739,13 +739,17 @@ impl Socket {
         (get_reconnect_ivl_max, set_reconnect_ivl_max) => ZMQ_RECONNECT_IVL_MAX as i32,
         (get_backlog, set_backlog) => ZMQ_BACKLOG as i32,
 
-        /// Get the underlying file descriptor.
+        /// Get the event notification file descriptor.
         ///
         /// Getter for the `ZMQ_FD` option. Note that the returned
         /// type is platform-specific; it aliases either
         /// `std::os::unix::io::RawFd` and or
         /// `std::os::windows::io::RawSocket`.
-        (get_fd) => ZMQ_FD as RawSocket,
+        ///
+        /// Note that the returned file desciptor has special
+        /// semantics: it should only used with an operating system
+        /// facility like Unix `poll()` to check its readability.
+        (get_fd) => ZMQ_FD as RawFd,
 
         (get_events) => ZMQ_EVENTS as i32,
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
@@ -1009,7 +1013,7 @@ pub static POLLERR: i16 = 4i16;
 #[repr(C)]
 pub struct PollItem<'a> {
     socket: *mut c_void,
-    fd: RawSocket,
+    fd: RawFd,
     events: i16,
     revents: i16,
     marker: PhantomData<&'a Socket>
@@ -1018,7 +1022,7 @@ pub struct PollItem<'a> {
 impl<'a> PollItem<'a> {
     /// Construct a PollItem from a non-0MQ socket, given by its file
     /// descriptor.
-    pub fn from_fd(fd: RawSocket) -> PollItem<'a> {
+    pub fn from_fd(fd: RawFd) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
