@@ -27,14 +27,14 @@ fn main() {
     let mut msg = zmq::Message::new().unwrap();
     loop {
         loop {
-            if let Err(_) = receiver.recv(&mut msg, zmq::DONTWAIT) {
+            if receiver.recv(&mut msg, zmq::DONTWAIT).is_err() {
                 break;
             }
             // Process task
         }
 
         loop {
-            if let Err(_) = subscriber.recv(&mut msg, zmq::DONTWAIT) {
+            if subscriber.recv(&mut msg, zmq::DONTWAIT).is_err() {
                 break;
             }
             // Process weather update
