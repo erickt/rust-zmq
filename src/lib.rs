@@ -11,7 +11,7 @@ extern crate log;
 extern crate libc;
 extern crate zmq_sys;
 
-use libc::{c_int, c_long, size_t};
+use libc::{c_int, c_long, c_short, size_t};
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
@@ -1038,8 +1038,8 @@ pub static POLLERR: i16 = 4i16;
 pub struct PollItem<'a> {
     socket: *mut c_void,
     fd: RawFd,
-    events: i16,
-    revents: i16,
+    events: c_short,
+    revents: c_short,
     marker: PhantomData<&'a Socket>
 }
 
