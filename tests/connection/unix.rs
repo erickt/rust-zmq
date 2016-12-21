@@ -42,14 +42,14 @@ impl<'a> PollState<'a> {
         let fd = socket.get_fd().unwrap();
         PollState {
             socket: socket,
-            available: 0,
+            available: zmq::PollEvents::empty(),
             fds: [poll::PollFd::new(fd, poll::POLLIN, poll::EventFlags::empty())],
         }
     }
 
     /// Wait for one of `events` to happen.
     fn wait(&mut self, events: zmq::PollEvents) {
-        while (self.available & events) == 0 {
+        while !self.available.intersects(events) {
             // FIXME: this has ugly scoping
             {
                 let fds = &mut self.fds;
@@ -71,7 +71,7 @@ impl<'a> PollState<'a> {
     /// This needs to be called after every sucessful receive or send
     /// on the socket.
     fn update(&mut self) {
-        self.available = self.socket.get_events().unwrap() as zmq::PollEvents;
+        self.available = self.socket.get_events().unwrap();
     }
 }
 

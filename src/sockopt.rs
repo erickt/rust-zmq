@@ -5,7 +5,7 @@ use std::os::raw::c_void;
 use std::{mem, ptr, str};
 use std::result;
 
-use super::Result;
+use super::{Result, PollEvents};
 
 pub trait Getter where Self: Sized {
     fn get(sock: *mut c_void, opt: c_int) -> Result<Self>;
@@ -135,6 +135,12 @@ impl<'a> Setter for &'a [u8] {
             )
         });
         Ok(())
+    }
+}
+
+impl Getter for PollEvents {
+    fn get(sock: *mut c_void, opt: c_int) -> Result<Self> {
+        get::<c_int>(sock, opt).map(|bits| PollEvents::from_bits_truncate(bits as i16))
     }
 }
 

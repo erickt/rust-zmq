@@ -6,6 +6,9 @@
 #![cfg_attr(feature = "clippy", allow(needless_lifetimes))]
 
 #[macro_use]
+extern crate bitflags;
+
+#[macro_use]
 extern crate log;
 
 extern crate libc;
@@ -751,8 +754,8 @@ impl Socket {
         /// use zmq;
         /// let ctx = zmq::Context::new();
         /// let socket = ctx.socket(zmq::REQ).unwrap();
-        /// let events = socket.get_events().unwrap() as zmq::PollEvents;
-        /// if (events & zmq::POLLIN) != 0 {
+        /// let events = socket.get_events().unwrap();
+        /// if events.contains(zmq::POLLIN) {
         ///   println!("socket readable")
         /// }
         /// drop(socket);
@@ -766,7 +769,7 @@ impl Socket {
         /// along.
         ///
         /// In the `0.9` series, this will be rectified.
-        (get_events) => ZMQ_EVENTS as i32,
+        (get_events) => ZMQ_EVENTS as PollEvents,
 
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
         (get_rcvtimeo, set_rcvtimeo) => ZMQ_RCVTIMEO as i32,
@@ -889,7 +892,7 @@ impl Socket {
         PollItem {
             socket: self.sock,
             fd: 0,
-            events: events,
+            events: events.bits(),
             revents: 0,
             marker: PhantomData
         }
@@ -1059,23 +1062,21 @@ impl<'a, T> From<&'a T> for Message
     }
 }
 
-/// Type representing pending socket events.
-///
-/// # Compatibility
-///
-/// This is currently a type alias for backwards compatibility, but
-/// will be changed to be a distinct type in the `0.9` series.
-pub type PollEvents = i16;
-
-/// For `poll()`, specifies to signal when a message/some data can be read from
-/// a socket.
-pub static POLLIN: PollEvents = 1;
-/// For `poll()`, specifies to signal when a message/some data can be written to
-/// a socket.
-pub static POLLOUT: PollEvents = 2;
-/// For `poll()`, specifies to signal when an error condition is present on a
-/// socket.  This only applies to non-0MQ sockets.
-pub static POLLERR: PollEvents = 4;
+bitflags! {
+    /// Type representing pending socket events.
+    pub flags PollEvents: i16 {
+        /// For `poll()`, specifies to signal when a message/some data
+        /// can be read from a socket.
+        const POLLIN = 1,
+        /// For `poll()`, specifies to signal when a message/some data
+        /// can be written to a socket.
+        const POLLOUT = 2,
+        /// For `poll()`, specifies to signal when an error condition
+        /// is present on a socket.  This only applies to non-0MQ
+        /// sockets.
+        const POLLERR = 4,
+    }
+}
 
 /// Represents a handle that can be `poll()`ed.
 ///
@@ -1106,23 +1107,23 @@ impl<'a> PollItem<'a> {
 
     /// Retrieve the events that occurred for this handle.
     pub fn get_revents(&self) -> PollEvents {
-        self.revents
+        PollEvents::from_bits_truncate(self.revents)
     }
 
     /// Returns true if the polled socket has messages ready to receive.
     pub fn is_readable(&self) -> bool {
-        (self.revents & POLLIN) != 0
+        (self.revents & POLLIN.bits()) != 0
     }
 
     /// Returns true if the polled socket can accept messages to be sent
     /// without blocking.
     pub fn is_writable(&self) -> bool {
-        (self.revents & POLLOUT) != 0
+        (self.revents & POLLOUT.bits()) != 0
     }
 
     /// Returns true if the polled socket encountered an error condition.
     pub fn is_error(&self) -> bool {
-        (self.revents & POLLERR) != 0
+        (self.revents & POLLERR.bits()) != 0
     }
 }
 
