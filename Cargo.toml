@@ -25,6 +25,10 @@ name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
 [[example]]
+name = "mspoller"
+path = "examples/zguide/mspoller/main.rs"
+
+[[example]]
 name = "pathopub"
 path = "examples/zguide/pathopub/main.rs"
 

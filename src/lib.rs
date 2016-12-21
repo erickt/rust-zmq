@@ -11,7 +11,7 @@ extern crate log;
 extern crate libc;
 extern crate zmq_sys;
 
-use libc::{c_int, c_long, size_t};
+use libc::{c_int, c_long, c_short, size_t};
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
@@ -22,7 +22,7 @@ use std::string::FromUtf8Error;
 use std::{mem, ptr, str, slice};
 use std::sync::Arc;
 
-use zmq_sys::{errno, RawSocket};
+use zmq_sys::{errno, RawFd};
 
 macro_rules! zmq_try {
     ($($tt:tt)*) => {{
@@ -277,6 +277,30 @@ impl fmt::Debug for Error {
             write!(f, "{}",
                    str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap())
         }
+    }
+}
+
+impl From<Error> for std::io::Error {
+    fn from(error: Error) -> Self {
+        use std::io::ErrorKind;
+
+        let kind = match error {
+            Error::ENOENT => ErrorKind::NotFound,
+            Error::EACCES => ErrorKind::PermissionDenied,
+            Error::ECONNREFUSED => ErrorKind::ConnectionRefused,
+            Error::ENOTCONN => ErrorKind::NotConnected,
+            Error::EADDRINUSE => ErrorKind::AddrInUse,
+            Error::EADDRNOTAVAIL => ErrorKind::AddrNotAvailable,
+            Error::EAGAIN => ErrorKind::WouldBlock,
+            Error::EINVAL => ErrorKind::InvalidInput,
+            Error::EINTR => ErrorKind::Interrupted,
+            _ => ErrorKind::Other
+        };
+        // TODO: With rust 1.14 and up there is an optimization
+        // opportunity using `std::io::Error: From<ErrorKind>` when
+        // `kind != Other`. We should do that once 1.14 has been
+        // stable for a bit.
+        std::io::Error::new(kind, error)
     }
 }
 
@@ -703,13 +727,17 @@ impl Socket {
         (get_reconnect_ivl_max, set_reconnect_ivl_max) => ZMQ_RECONNECT_IVL_MAX as i32,
         (get_backlog, set_backlog) => ZMQ_BACKLOG as i32,
 
-        /// Get the underlying file descriptor.
+        /// Get the event notification file descriptor.
         ///
         /// Getter for the `ZMQ_FD` option. Note that the returned
         /// type is platform-specific; it aliases either
         /// `std::os::unix::io::RawFd` and or
         /// `std::os::windows::io::RawSocket`.
-        (get_fd) => ZMQ_FD as RawSocket,
+        ///
+        /// Note that the returned file desciptor has special
+        /// semantics: it should only used with an operating system
+        /// facility like Unix `poll()` to check its readability.
+        (get_fd) => ZMQ_FD as RawFd,
 
         (get_events) => ZMQ_EVENTS as i32,
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
@@ -1021,16 +1049,16 @@ pub static POLLERR: i16 = 4i16;
 #[repr(C)]
 pub struct PollItem<'a> {
     socket: *mut c_void,
-    fd: RawSocket,
-    events: i16,
-    revents: i16,
+    fd: RawFd,
+    events: c_short,
+    revents: c_short,
     marker: PhantomData<&'a Socket>
 }
 
 impl<'a> PollItem<'a> {
     /// Construct a PollItem from a non-0MQ socket, given by its file
     /// descriptor.
-    pub fn from_fd(fd: RawSocket) -> PollItem<'a> {
+    pub fn from_fd(fd: RawFd) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
@@ -1043,6 +1071,22 @@ impl<'a> PollItem<'a> {
     /// Retrieve the events that occurred for this handle.
     pub fn get_revents(&self) -> i16 {
         self.revents
+    }
+
+    /// Returns true if the polled socket has messages ready to receive.
+    pub fn is_readable(&self) -> bool {
+        (self.revents & POLLIN) != 0
+    }
+
+    /// Returns true if the polled socket can accept messages to be sent
+    /// without blocking.
+    pub fn is_writable(&self) -> bool {
+        (self.revents & POLLOUT) != 0
+    }
+
+    /// Returns true if the polled socket encountered an error condition.
+    pub fn is_error(&self) -> bool {
+        (self.revents & POLLERR) != 0
     }
 }
 

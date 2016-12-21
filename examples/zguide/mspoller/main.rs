@@ -1,12 +1,7 @@
-#![crate_name = "msreader"]
-
-//! Reading from multiple sockets
-//! This version uses a simple recv loop
+//  Reading from multiple sockets
+//  This version uses zmq::poll()
 
 extern crate zmq;
-
-use std::time::Duration;
-use std::thread;
 
 fn main() {
     let context = zmq::Context::new();
@@ -23,24 +18,22 @@ fn main() {
 
 
     // Process messages from both sockets
-    // We prioritize traffic from the task ventilator
     let mut msg = zmq::Message::new();
     loop {
-        loop {
-            if receiver.recv(&mut msg, zmq::DONTWAIT).is_err() {
-                break;
+        let mut items = [
+            receiver.as_poll_item(zmq::POLLIN),
+            subscriber.as_poll_item(zmq::POLLIN),
+        ];
+        zmq::poll(&mut items, -1).unwrap();
+        if items[0].is_readable() {
+            if receiver.recv(&mut msg, 0).is_ok() {
+                //  Process task
             }
-            // Process task
         }
-
-        loop {
-            if subscriber.recv(&mut msg, zmq::DONTWAIT).is_err() {
-                break;
+        if items[1].is_readable() {
+            if subscriber.recv(&mut msg, 0).is_ok() {
+                // Process weather update
             }
-            // Process weather update
         }
-
-        // No activity, so sleep for 1 msec
-        thread::sleep(Duration::from_millis(1))
     }
 }

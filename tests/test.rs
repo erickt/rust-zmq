@@ -1,6 +1,7 @@
 extern crate timebomb;
 extern crate zmq;
 
+use std::io;
 use std::net::TcpStream;
 use timebomb::timeout_ms;
 use zmq::*;
@@ -139,6 +140,11 @@ test!(test_zmq_error, {
     let debug = format!("{:?}", err);
     assert_eq!(desc, display);
     assert_eq!(desc, debug);
+});
+
+test!(test_into_io_error, {
+    let e: io::Error = Error::ENOENT.into();
+    assert!(e.kind() == io::ErrorKind::NotFound);
 });
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
