@@ -1,9 +1,11 @@
 extern crate timebomb;
 extern crate zmq;
 
+#[macro_use]
+mod common;
+
 use std::io;
 use std::net::TcpStream;
-use timebomb::timeout_ms;
 use zmq::*;
 
 fn create_socketpair() -> (Socket, Socket) {
@@ -23,17 +25,6 @@ fn create_socketpair() -> (Socket, Socket) {
     sender.connect(&ep).unwrap();
 
     (sender, receiver)
-}
-
-macro_rules! test {
-    ($name:ident, $block:block) => {
-        #[test]
-        fn $name() {
-            timeout_ms(|| {
-                $block
-            }, 10000);
-        }
-    }
 }
 
 test!(test_exchanging_messages, {
