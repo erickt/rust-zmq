@@ -98,7 +98,9 @@ clippy = { version = "0.*", optional = true }
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 
 [dev-dependencies]
+env_logger = "0.3"
 quickcheck = "0.4.0"
 rand = "0.3"
 tempfile = "2.1"
 timebomb = "0.1.2"
+nix = "0.7"
