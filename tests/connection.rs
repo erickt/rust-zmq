@@ -12,6 +12,10 @@ extern crate log;
 #[macro_use]
 mod common;
 
+#[cfg(unix)]
+#[path = "connection/unix.rs"]
+mod unix;
+
 use std::str;
 use std::thread;
 
