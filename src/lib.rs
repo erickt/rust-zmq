@@ -775,7 +775,35 @@ impl Socket {
         /// facility like Unix `poll()` to check its readability.
         (get_fd) => ZMQ_FD as RawFd,
 
+        /// Get the currently pending events.
+        ///
+        /// Note that the result of this function can also change due
+        /// to receiving or sending a message on the socket, without
+        /// the signalling FD (see `Socket::get_fd()`).
+        ///
+        /// # Examples
+        ///
+        /// ```
+        /// use zmq;
+        /// let ctx = zmq::Context::new();
+        /// let socket = ctx.socket(zmq::REQ).unwrap();
+        /// let events = socket.get_events().unwrap() as zmq::PollEvents;
+        /// if (events & zmq::POLLIN) != 0 {
+        ///   println!("socket readable")
+        /// }
+        /// drop(socket);
+        /// ```
+        ///
+        /// # Compatibility
+        ///
+        /// This function currently returns the bitmask as an `i32`
+        /// for backwards compatibility; in effect it should have been
+        /// using the same type as `PollItem::get_revents()` all
+        /// along.
+        ///
+        /// In the `0.9` series, this will be rectified.
         (get_events) => ZMQ_EVENTS as i32,
+
         (get_multicast_hops, set_multicast_hops) => ZMQ_MULTICAST_HOPS as i32,
         (get_rcvtimeo, set_rcvtimeo) => ZMQ_RCVTIMEO as i32,
         (get_sndtimeo, set_sndtimeo) => ZMQ_SNDTIMEO as i32,
@@ -883,7 +911,7 @@ impl Socket {
     }
 
     /// Create a `PollItem` from the socket.
-    pub fn as_poll_item(&self, events: i16) -> PollItem {
+    pub fn as_poll_item(&self, events: PollEvents) -> PollItem {
         PollItem {
             socket: self.sock,
             fd: 0,
@@ -897,7 +925,7 @@ impl Socket {
     ///
     /// The return value on success will be either zero (no event) or one (some
     /// event was signaled).
-    pub fn poll(&self, events: i16, timeout_ms: i64) -> Result<i32> {
+    pub fn poll(&self, events: PollEvents, timeout_ms: i64) -> Result<i32> {
         poll(&mut [self.as_poll_item(events)], timeout_ms)
     }
 }
@@ -1019,15 +1047,23 @@ impl DerefMut for Message {
     }
 }
 
+/// Type representing pending socket events.
+///
+/// # Compatibility
+///
+/// This is currently a type alias for backwards compatibility, but
+/// will be changed to be a distinct type in the `0.9` series.
+pub type PollEvents = i16;
+
 /// For `poll()`, specifies to signal when a message/some data can be read from
 /// a socket.
-pub static POLLIN: i16 = 1i16;
+pub static POLLIN: PollEvents = 1;
 /// For `poll()`, specifies to signal when a message/some data can be written to
 /// a socket.
-pub static POLLOUT: i16 = 2i16;
+pub static POLLOUT: PollEvents = 2;
 /// For `poll()`, specifies to signal when an error condition is present on a
 /// socket.  This only applies to non-0MQ sockets.
-pub static POLLERR: i16 = 4i16;
+pub static POLLERR: PollEvents = 4;
 
 /// Represents a handle that can be `poll()`ed.
 ///
@@ -1057,7 +1093,7 @@ impl<'a> PollItem<'a> {
     }
 
     /// Retrieve the events that occurred for this handle.
-    pub fn get_revents(&self) -> i16 {
+    pub fn get_revents(&self) -> PollEvents {
         self.revents
     }
 
