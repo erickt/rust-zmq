@@ -10,6 +10,18 @@ extern crate zmq;
 use super::with_connection;
 use self::nix::poll;
 
+test!(test_external_poll_inproc, {
+    with_connection("inproc://test-poll",
+                    zmq::REQ, poll_client,
+                    zmq::REP, poll_worker);
+});
+
+test!(test_external_poll_ipc, {
+    with_connection("ipc:///tmp/zmq-tokio-test",
+                    zmq::REQ, poll_client,
+                    zmq::REP, poll_worker);
+});
+
 test!(test_external_poll_tcp, {
     with_connection("tcp://127.0.0.1:*",
                     zmq::REQ, poll_client,
@@ -33,7 +45,6 @@ fn poll_client(_ctx: zmq::Context, socket: zmq::Socket) {
 /// single socket.
 struct PollState<'a> {
     socket: &'a zmq::Socket,
-    available: zmq::PollEvents,
     fds: [poll::PollFd; 1],
 }
 
@@ -42,36 +53,30 @@ impl<'a> PollState<'a> {
         let fd = socket.get_fd().unwrap();
         PollState {
             socket: socket,
-            available: 0,
             fds: [poll::PollFd::new(fd, poll::POLLIN, poll::EventFlags::empty())],
         }
     }
 
     /// Wait for one of `events` to happen.
     fn wait(&mut self, events: zmq::PollEvents) {
-        while (self.available & events) == 0 {
-            // FIXME: this has ugly scoping
-            {
-                let fds = &mut self.fds;
-                poll::poll(fds, -1).unwrap();
-                debug!("poll done, events: {:?}", fds[0].revents());
-                match fds[0].revents() {
-                    Some(events) => {
-                        if (events & poll::POLLIN).is_empty() {
-                            continue;
-                        }
-                    },
-                    _ => continue,
-                }
+        while (self.events() & events) == 0 {
+            debug!("polling");
+            let fds = &mut self.fds;
+            poll::poll(fds, -1).unwrap();
+            debug!("poll done, events: {:?}", fds[0].revents());
+            match fds[0].revents() {
+                Some(events) => {
+                    if !events.contains(poll::POLLIN) {
+                        continue;
+                    }
+                },
+                _ => continue,
             }
-            self.update();
         }
     }
 
-    /// This needs to be called after every sucessful receive or send
-    /// on the socket.
-    fn update(&mut self) {
-        self.available = self.socket.get_events().unwrap() as zmq::PollEvents;
+    fn events(&self) -> zmq::PollEvents {
+        self.socket.get_events().unwrap() as zmq::PollEvents
     }
 }
 
@@ -83,16 +88,12 @@ fn poll_worker(_ctx: zmq::Context, socket: zmq::Socket) {
             None => {
                 state.wait(zmq::POLLIN);
                 let msg = socket.recv_msg(zmq::DONTWAIT).unwrap();
-                state.update();
-                debug!("received msg: {:?}, events now: {:?}", msg, state.available);
                 reply = Some(msg);
             },
             Some(msg) => {
                 state.wait(zmq::POLLOUT);
                 let done = msg.len() == 0;
                 socket.send_msg(msg, zmq::DONTWAIT).unwrap();
-                state.update();
-                debug!("sent msg, events now: {:?}", state.available);
                 if done {
                     break;
                 }
