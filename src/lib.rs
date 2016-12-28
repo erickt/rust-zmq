@@ -944,6 +944,14 @@ pub struct Message {
     msg: zmq_sys::zmq_msg_t,
 }
 
+impl PartialEq for Message {
+    fn eq(&self, other: &Message) -> bool {
+        &self[..] == &other[..]
+    }
+}
+
+impl Eq for Message {}
+
 impl Drop for Message {
     fn drop(&mut self) {
         unsafe {
