@@ -1,4 +1,4 @@
-extern crate pkg_config;
+extern crate metadeps;
 
 use std::env;
 
@@ -25,9 +25,8 @@ fn main() {
             panic!("Unable to locate libzmq library directory.")
         }
         (None, None) => {
-            match pkg_config::probe_library("libzmq") {
-                Ok(pkg) => println!("{:?}", pkg),
-                Err(e) => panic!("Unable to locate libzmq, err={:?}", e),
+            if let Err(e) = metadeps::probe() {
+                panic!("Unable to locate libzmq:\n{}", e);
             }
         }
     }

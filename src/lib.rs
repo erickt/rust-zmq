@@ -822,6 +822,14 @@ impl Socket {
         sockopt::get_string(self.sock, Constants::ZMQ_ZAP_DOMAIN.to_raw(), 255, true)
     }
 
+    /// Return the address of the last endpoint this socket was bound to.
+    ///
+    /// Note that the returned address is not guaranteed to be the
+    /// same as the one used with `bind`, and might also not be
+    /// directly usable with `connect`. In particular, when `bind` is
+    /// used with the wildcard address (`"*"`), in the address
+    /// returned, the wildcard will be expanded into the any address
+    /// (i.e. `0.0.0.0` with IPv4).
     pub fn get_last_endpoint(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
         sockopt::get_string(self.sock, Constants::ZMQ_LAST_ENDPOINT.to_raw(), 256 + 9 + 1, true)
@@ -920,6 +928,14 @@ impl Socket {
 pub struct Message {
     msg: zmq_sys::zmq_msg_t,
 }
+
+impl PartialEq for Message {
+    fn eq(&self, other: &Message) -> bool {
+        &self[..] == &other[..]
+    }
+}
+
+impl Eq for Message {}
 
 impl Drop for Message {
     fn drop(&mut self) {
