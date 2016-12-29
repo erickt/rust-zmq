@@ -28,4 +28,9 @@ quickcheck! {
     fn msg_cmp_ne(input: NePair<Vec<u8>>) -> bool {
         Message::from_slice(&input.0) != Message::from_slice(&input.1)
     }
+
+    fn msg_vec_roundtrip(input: Vec<u8>) -> bool {
+        let original = Message::from_slice(&input.clone());
+        Message::from(input) == original
+    }
 }

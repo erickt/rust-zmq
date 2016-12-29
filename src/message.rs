@@ -5,6 +5,7 @@ use libc::{size_t};
 use std::ffi;
 use std::fmt;
 use std::{mem, ptr, str, slice};
+use std::os::raw::c_void;
 use std::ops::{Deref, DerefMut};
 
 use super::errno_to_error;
@@ -38,9 +39,13 @@ impl fmt::Debug for Message {
     }
 }
 
+unsafe extern fn drop_msg_content_box(data: *mut c_void, _hint: *mut c_void) {
+    let _ = Box::from_raw(data as *mut u8);
+}
+
 impl Message {
 
-    fn alloc<F>(f: F) -> Message where F: FnOnce(&mut zmq_sys::zmq_msg_t) -> i32 {
+    unsafe fn alloc<F>(f: F) -> Message where F: FnOnce(&mut zmq_sys::zmq_msg_t) -> i32 {
         let mut msg = zmq_sys::zmq_msg_t::default();
         let rc = f(&mut msg);
         if rc == -1 {
@@ -51,7 +56,9 @@ impl Message {
 
     /// Create an empty `Message`.
     pub fn new() -> Message {
-        Self::alloc(|msg| unsafe { zmq_sys::zmq_msg_init(msg) })
+        unsafe {
+            Self::alloc(|msg| { zmq_sys::zmq_msg_init(msg) })
+        }
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
@@ -69,11 +76,29 @@ impl Message {
     }
 
     /// Create a `Message` from a `&[u8]`. This will copy `data` into the message.
+    ///
+    /// This is equivalent to using the `From<&[u8]>` trait.
     pub fn from_slice(data: &[u8]) -> Message {
         unsafe {
             let mut msg = Message::with_capacity_unallocated(data.len());
             ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
             msg
+        }
+    }
+
+    fn from_box(data: Box<[u8]>) -> Message {
+        let n = data.len();
+        if n == 0 {
+            return Message::new();
+        }
+        let raw = Box::into_raw(data);
+        unsafe {
+            Self::alloc(|msg| {
+                zmq_sys::zmq_msg_init_data(
+                    msg, raw as *mut c_void, n,
+                    drop_msg_content_box as *mut zmq_sys::zmq_free_fn,
+                    ptr::null_mut())
+            })
         }
     }
 
@@ -141,24 +166,28 @@ impl DerefMut for Message {
 }
 
 impl<'a> From<&'a [u8]> for Message {
+    /// Construct from a byte slice by copying the data.
     fn from(msg: &'a [u8]) -> Self {
         Message::from_slice(msg)
     }
 }
 
-impl<'a> From<&'a Vec<u8>> for Message {
-    fn from(msg: &Vec<u8>) -> Self {
-        Message::from_slice(&msg[..])
+impl From<Vec<u8>> for Message {
+    /// Construct from a byte vector without copying the data.
+    fn from(msg: Vec<u8>) -> Self {
+        Message::from_box(msg.into_boxed_slice())
     }
 }
 
 impl<'a> From<&'a str> for Message {
+    /// Construct from a string slice by copying the UTF-8 data.
     fn from(msg: &str) -> Self {
         Message::from_slice(msg.as_bytes())
     }
 }
 
 impl<'a> From<&'a String> for Message {
+    /// Construct from a string slice by copying the UTF-8 data.
     fn from(msg: &String) -> Self {
         Message::from_slice(msg.as_bytes())
     }
