@@ -1,4 +1,4 @@
-# 0.8.1 (unreleased)
+# 0.8.1
 
 This release fixes the remaining Windows-specific issues exposed by
 our test suite, as well as improving API convenience a bit.
