@@ -712,6 +712,8 @@ impl Socket {
         (is_plain_server, set_plain_server) => ZMQ_PLAIN_SERVER as bool,
         /// Accessor for the `ZMQ_CONFLATE` option.
         (is_conflate, set_conflate) => ZMQ_CONFLATE as bool,
+        (is_probe_router, set_probe_router) => ZMQ_PROBE_ROUTER as bool,
+        (is_router_mandatory, set_router_mandatory) => ZMQ_ROUTER_MANDATORY as bool,
         if ZMQ_HAS_CURVE {
             (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
         },
