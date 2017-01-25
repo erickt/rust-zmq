@@ -1,16 +1,19 @@
 extern crate metadeps;
 
 use std::env;
+use std::path::Path;
 
 fn main() {
     let lib_path = env::var("LIBZMQ_LIB_DIR").ok().or_else(|| {
         env::var("LIBZMQ_PREFIX").ok()
-            .map(|prefix| format!("{}/lib", prefix))
+            .map(|prefix| Path::new(&prefix).join("lib"))
+            .and_then(|path| path.to_str().map(|p| p.to_owned()))
     });
 
     let include = env::var("LIBZMQ_INCLUDE_DIR").ok().or_else(|| {
         env::var("LIBZMQ_PREFIX").ok()
-            .map(|prefix| format!("{}/include", prefix))
+            .map(|prefix| Path::new(&prefix).join("include"))
+            .and_then(|path| path.to_str().map(|p| p.to_owned()))
     });
 
     match (lib_path, include) {
