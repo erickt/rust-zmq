@@ -1,0 +1,6 @@
+build:
+  pre_ci:
+    - docker build --tag=apa -f rust-ubuntu.Dockerfile .
+
+  ci:
+    - docker run -v $(pwd)/repo apa /repo/build.sh
