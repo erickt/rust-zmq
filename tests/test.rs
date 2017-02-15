@@ -486,6 +486,7 @@ test!(test_getset_curve_serverkey, {
     assert_eq!(sock.get_curve_serverkey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
 });
 
+
 test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
