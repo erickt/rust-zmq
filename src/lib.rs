@@ -619,6 +619,13 @@ impl Socket {
         Ok(())
     }
 
+    /// Disconnect a previously connected socket
+    pub fn disconnect(&self, endpoint: &str) -> Result<()> {
+        let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
+        zmq_try!(unsafe { zmq_sys::zmq_disconnect(self.sock, c_str.as_ptr()) });
+        Ok(())
+    }
+
     /// Send a `&[u8]` message.
     pub fn send(&self, data: &[u8], flags: i32) -> Result<()> {
         let msg = try!(Message::from_slice(data));

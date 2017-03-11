@@ -494,6 +494,22 @@ test!(test_getset_conflate, {
     assert_eq!(sock.is_conflate().unwrap(), true);
 });
 
+test!(test_disconnect, {
+    // Make a connected socket pair
+    let (sender, receiver) = create_socketpair();
+    // Now disconnect them
+    let ep = receiver.get_last_endpoint().unwrap().unwrap();
+    sender.disconnect(&ep).unwrap();
+    // And check that the message can no longer be sent
+    assert_eq!(Error::EAGAIN, sender.send_msg(Message::from_slice(b"foo").unwrap(), DONTWAIT).unwrap_err());
+});
+
+test!(test_disconnect_err, {
+    let (sender, _) = create_socketpair();
+    // Check that disconnect propagates errors. The endpoint is not connected.
+    assert_eq!(Error::ENOENT, sender.disconnect("tcp://192.0.2.1:2233").unwrap_err());
+});
+
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_gssapi_server, {
     let ctx = Context::new();
