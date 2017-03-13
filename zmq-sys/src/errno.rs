@@ -23,7 +23,7 @@ pub const ENOTSOCK:         i32 = errno::ENOTSOCK;
 #[cfg(not(target_os = "openbsd"))]
 pub const EPROTO:           i32 = errno::EPROTO;
 #[cfg(target_os = "openbsd")]
-pub const EPROTO:           i32 = errno::EIO;
+pub const EPROTO:           i32 = errno::EOPNOTSUPP;
 pub const EPROTONOSUPPORT:  i32 = errno::EPROTONOSUPPORT;
 
 #[cfg(not(target_os = "windows"))]
