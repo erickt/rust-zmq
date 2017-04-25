@@ -37,10 +37,24 @@ Install for developers:
     % cargo build
 
 The build normally uses `pkg-config` to find out about libzmq's
-location. If that is not available, the environment variable
+location.
+
+MSVC ABI builds will find libraries in a
+[Vcpkg](https://github.com/Microsoft/vcpkg) ports tree
+if there is one available either via the `vcpkg integrate install`
+mechanism or the `VCPKG_ROOT` environment variable. For example to
+install the static library for x86-64-pc-windows-msvc use the
+following command:
+
+    vcpkg install zeromq:x64-windows-static
+
+See the [Vcpkg cargo helper](https://docs.rs/vcpkg)
+documentation for more information.
+
+The environment variable
 `LIBZMQ_PREFIX` (or alternatively, `LIBZMQ_LIB_DIR` and
-`LIBZMQ_INCLUDE_DIR`) can be defined to avoid the invocation of
-`pkg-config`.
+`LIBZMQ_INCLUDE_DIR`) can be defined to avoid use of
+`pkg-config` or `vcpkg`.
 
 Usage
 -----
