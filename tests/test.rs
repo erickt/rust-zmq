@@ -141,8 +141,8 @@ test!(test_into_io_error, {
 #[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_curve_keypair, {
     let keypair = CurveKeyPair::new().unwrap();
-    assert!(keypair.public_key.len() == 40);
-    assert!(keypair.secret_key.len() == 40);
+    assert!(keypair.public_key.len() == 32);
+    assert!(keypair.secret_key.len() == 32);
 });
 
 test!(test_get_socket_type, {
