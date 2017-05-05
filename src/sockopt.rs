@@ -1,6 +1,6 @@
 extern crate zmq_sys;
 
-use libc::{c_int, size_t, int64_t, uint64_t};
+use libc::{c_int, c_uint, size_t, int64_t, uint64_t};
 use std::os::raw::c_void;
 use std::{mem, ptr, str};
 use std::result;
@@ -38,6 +38,7 @@ macro_rules! getsockopt_num(
 );
 
 getsockopt_num!(c_int, i32);
+getsockopt_num!(c_uint, u32);
 getsockopt_num!(int64_t, i64);
 getsockopt_num!(uint64_t, u64);
 

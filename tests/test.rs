@@ -489,11 +489,28 @@ test!(test_getset_curve_serverkey, {
     assert_eq!(sock.get_curve_serverkey().unwrap(), key);
 });
 
+
 test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_conflate(true).unwrap();
     assert_eq!(sock.is_conflate().unwrap(), true);
+});
+
+test!(test_disconnect, {
+    // Make a connected socket pair
+    let (sender, receiver) = create_socketpair();
+    // Now disconnect them
+    let ep = receiver.get_last_endpoint().unwrap().unwrap();
+    sender.disconnect(&ep).unwrap();
+    // And check that the message can no longer be sent
+    assert_eq!(Error::EAGAIN, sender.send(Message::from_slice(b"foo"), DONTWAIT).unwrap_err());
+});
+
+test!(test_disconnect_err, {
+    let (sender, _) = create_socketpair();
+    // Check that disconnect propagates errors. The endpoint is not connected.
+    assert_eq!(Error::ENOENT, sender.disconnect("tcp://192.0.2.1:2233").unwrap_err());
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
