@@ -29,7 +29,7 @@ fn create_socketpair() -> (Socket, Socket) {
 
 test!(test_curve_messages, {
     let (sender, receiver) = create_socketpair();
-    sender.send(Message::from_slice(b"foo"), 0).unwrap();
+    sender.send("foo", 0).unwrap();
     let msg = receiver.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"foo");
     assert_eq!(msg.as_str(), Some("foo"));

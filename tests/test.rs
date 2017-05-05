@@ -504,7 +504,7 @@ test!(test_disconnect, {
     let ep = receiver.get_last_endpoint().unwrap().unwrap();
     sender.disconnect(&ep).unwrap();
     // And check that the message can no longer be sent
-    assert_eq!(Error::EAGAIN, sender.send(Message::from_slice(b"foo"), DONTWAIT).unwrap_err());
+    assert_eq!(Error::EAGAIN, sender.send("foo", DONTWAIT).unwrap_err());
 });
 
 test!(test_disconnect_err, {
