@@ -3,7 +3,7 @@
 #[repr(C)]
 #[derive(Copy)]
 pub struct Struct_zmq_msg_t {
-    pub unnamed_field1: [::std::os::raw::c_uchar; 64usize],
+    pub unnamed_field1: [i64; 8usize],
 }
 impl ::std::clone::Clone for Struct_zmq_msg_t {
     fn clone(&self) -> Self { *self }
