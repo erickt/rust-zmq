@@ -1,3 +1,4 @@
+#![cfg(ZMQ_HAS_CURVE = "1")]
 extern crate zmq;
 
 #[macro_use]
