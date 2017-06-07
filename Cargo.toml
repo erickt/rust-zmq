@@ -87,6 +87,18 @@ path = "examples/zguide/rtdealer/main.rs"
 name = "fileio3"
 path = "examples/zguide/fileio3/main.rs"
 
+[[example]]
+name = "rrclient"
+path = "examples/zguide/rrclient/main.rs"
+
+[[example]]
+name = "rrworker"
+path = "examples/zguide/rrworker/main.rs"
+
+[[example]]
+name = "rrbroker"
+path = "examples/zguide/rrbroker/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
