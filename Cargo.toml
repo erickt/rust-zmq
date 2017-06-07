@@ -103,6 +103,10 @@ path = "examples/zguide/rrbroker/main.rs"
 name = "msgqueue"
 path = "examples/zguide/msgqueue/main.rs"
 
+[[example]]
+name = "wuproxy"
+path = "examples/zguide/wuproxy/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
