@@ -1019,8 +1019,8 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
 ///
 /// This function only returns (always with an `Err`) when the sockets' context
 /// has been closed.
-pub fn proxy(frontend: &mut Socket,
-             backend: &mut Socket) -> Result<()> {
+pub fn proxy(frontend: &Socket,
+             backend: &Socket) -> Result<()> {
     zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
     Ok(())
 }
