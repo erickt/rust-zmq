@@ -87,6 +87,34 @@ path = "examples/zguide/rtdealer/main.rs"
 name = "fileio3"
 path = "examples/zguide/fileio3/main.rs"
 
+[[example]]
+name = "rrclient"
+path = "examples/zguide/rrclient/main.rs"
+
+[[example]]
+name = "rrworker"
+path = "examples/zguide/rrworker/main.rs"
+
+[[example]]
+name = "rrbroker"
+path = "examples/zguide/rrbroker/main.rs"
+
+[[example]]
+name = "msgqueue"
+path = "examples/zguide/msgqueue/main.rs"
+
+[[example]]
+name = "wuproxy"
+path = "examples/zguide/wuproxy/main.rs"
+
+[[example]]
+name = "tasksink2"
+path = "examples/zguide/tasksink2/main.rs"
+
+[[example]]
+name = "taskwork2"
+path = "examples/zguide/taskwork2/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
