@@ -14,7 +14,7 @@ fn main() {
     let context = zmq::Context::new();
     let receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.bind("tcp://*:5558").is_ok());
-    
+
     let controller = context.socket(zmq::PUB).unwrap();
     controller.bind("tcp://*:5559").expect("failed to bind controller");
 
