@@ -119,6 +119,10 @@ path = "examples/zguide/taskwork2/main.rs"
 name = "mtserver"
 path = "examples/zguide/mtserver/main.rs"
 
+[[example]]
+name = "mtrelay"
+path = "examples/zguide/mtrelay/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
