@@ -2,7 +2,7 @@
 
 extern crate zmq;
 
-fn main(){
+fn main() {
     let context = zmq::Context::new();
     let frontend = context.socket(zmq::ROUTER).unwrap();
     let backend = context.socket(zmq::DEALER).unwrap();
@@ -11,5 +11,4 @@ fn main(){
     backend.bind("tcp://*:5560").expect("failed binding backend");
 
     zmq::proxy(&frontend, &backend).expect("failed to proxy");
-
 }
