@@ -123,6 +123,14 @@ path = "examples/zguide/mtserver/main.rs"
 name = "mtrelay"
 path = "examples/zguide/mtrelay/main.rs"
 
+[[example]]
+name = "syncpub"
+path = "examples/zguide/syncpub/main.rs"
+
+[[example]]
+name = "syncsub"
+path = "examples/zguide/syncsub/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
