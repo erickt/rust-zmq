@@ -131,6 +131,14 @@ path = "examples/zguide/syncpub/main.rs"
 name = "syncsub"
 path = "examples/zguide/syncsub/main.rs"
 
+[[example]]
+name = "psenvpub"
+path = "examples/zguide/psenvpub/main.rs"
+
+[[example]]
+name="psenvsub"
+path="examples/zguide/psenvsub/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
