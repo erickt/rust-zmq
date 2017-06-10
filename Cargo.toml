@@ -135,6 +135,10 @@ path = "examples/zguide/psenvpub/main.rs"
 name="psenvsub"
 path="examples/zguide/psenvsub/main.rs"
 
+[[example]]
+name="rtreq"
+path="examples/zguide/rtreq/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
