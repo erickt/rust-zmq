@@ -143,6 +143,10 @@ path="examples/zguide/psenvsub/main.rs"
 name="rtreq"
 path="examples/zguide/rtreq/main.rs"
 
+[[example]]
+name="lbbroker"
+path="examples/zguide/lbbroker/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
