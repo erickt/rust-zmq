@@ -991,6 +991,25 @@ impl<'a> PollItem<'a> {
         (self.revents & POLLERR.bits()) != 0
     }
 }
+/// Poll for events on multiple sockets.
+///
+/// For items[0..nitems-1], the events given in the `events` bitmask are
+/// monitored, and signaled in `revents` when they occur. Any number of poll
+/// items can have events signaled when the function returns.
+///
+/// The given timeout is in milliseconds and can be zero. A timeout of `-1`
+/// indicates to block indefinitely until an event has occurred.
+///
+/// The result, if not `Err`, indicates the number of poll items that have
+/// events signaled.
+pub fn poll_some(items: &mut [PollItem], nitems: u32, timeout: i64) -> Result<i32> {
+    let rc = zmq_try!(unsafe {
+        zmq_sys::zmq_poll(items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
+                          nitems as c_int,
+                          timeout as c_long)
+    });
+    Ok(rc as i32)
+}
 
 /// Poll for events on multiple sockets.
 ///
@@ -1004,12 +1023,8 @@ impl<'a> PollItem<'a> {
 /// The result, if not `Err`, indicates the number of poll items that have
 /// events signaled.
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
-    let rc = zmq_try!(unsafe {
-        zmq_sys::zmq_poll(items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
-                          items.len() as c_int,
-                          timeout as c_long)
-    });
-    Ok(rc as i32)
+    let len = items.len();
+    poll_some(items, len as u32, timeout)    
 }
 
 /// Start a 0MQ proxy in the current thread.
