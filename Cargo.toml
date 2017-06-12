@@ -147,6 +147,10 @@ path="examples/zguide/rtreq/main.rs"
 name="lbbroker"
 path="examples/zguide/lbbroker/main.rs"
 
+[[example]]
+name="asyncsrv"
+path="examples/zguide/asyncsrv/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
