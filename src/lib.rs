@@ -1,4 +1,4 @@
-//! Module: zmq
+//! Module: zmq-pw
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
 #![cfg_attr(feature = "clippy", plugin(clippy))]
@@ -12,7 +12,7 @@ extern crate bitflags;
 extern crate log;
 
 extern crate libc;
-extern crate zmq_sys;
+extern crate zmq_pw_sys as zmq_sys;
 
 use libc::{c_int, c_long, c_short};
 use std::ffi;
@@ -783,11 +783,11 @@ impl Socket {
         /// # Examples
         ///
         /// ```
-        /// use zmq;
-        /// let ctx = zmq::Context::new();
-        /// let socket = ctx.socket(zmq::REQ).unwrap();
+        /// use zmq_pw;
+        /// let ctx = zmq_pw::Context::new();
+        /// let socket = ctx.socket(zmq_pw::REQ).unwrap();
         /// let events = socket.get_events().unwrap();
-        /// if events.contains(zmq::POLLIN) {
+        /// if events.contains(zmq_pw::POLLIN) {
         ///   println!("socket readable")
         /// }
         /// drop(socket);

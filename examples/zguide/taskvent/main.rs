@@ -4,7 +4,7 @@
 //! Binds PUSH socket to tcp://localhost:5557
 //! Sends batch of tasks to workers via that socket
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 extern crate rand;
 
 use std::io::{self, BufRead};

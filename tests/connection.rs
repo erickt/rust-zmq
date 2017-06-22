@@ -4,7 +4,7 @@
 //! child thread, along with the endpoint address to connect to. The
 //! second socket is the created in the child thread.
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 #[macro_use]
 extern crate log;

@@ -4,7 +4,7 @@
 /// Binds PULL socket to tcp://localhost:5558
 /// Collects results from workers via that socket
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use std::io::{self, Write};
 use std::time::Instant;

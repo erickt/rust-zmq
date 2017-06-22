@@ -4,7 +4,7 @@
 //! Binds REP socket to tcp://*:5555
 //! Expects "Hello" from client, replies with "World"
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use std::thread;
 use std::time::Duration;

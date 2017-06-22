@@ -8,7 +8,7 @@ authors = [
 license = "MIT/Apache-2.0"
 description = "High-level bindings to the zeromq library"
 keywords = ["bindings", "protocol"]
-repository = "https://github.com/erickt/rust-zmq"
+repository = "https://github.com/evernym/rust-zmq-pw"
 readme = "README.md"
 build = "build.rs"
 

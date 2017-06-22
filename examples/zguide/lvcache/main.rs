@@ -1,6 +1,6 @@
 #![crate_name = "lvcache"]
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use std::str::from_utf8;
 use std::collections::HashMap;

@@ -1,6 +1,6 @@
 // Pathological publisher
 // Sends out 1,000 topics and then one random update per second
-extern crate zmq;
+extern crate zmq_pw as zmq;
 extern crate rand;
 
 use std::env;

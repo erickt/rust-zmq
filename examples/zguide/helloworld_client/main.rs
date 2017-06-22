@@ -2,7 +2,7 @@
 
 //! Hello World client
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 fn main() {
     println!("Connecting to hello world server...\n");

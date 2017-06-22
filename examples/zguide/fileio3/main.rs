@@ -5,7 +5,7 @@
 //! In which the client requests each chunk individually, using
 //! command pipelining to give us a credit-based flow control.
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 extern crate tempfile;
 extern crate rand;
 

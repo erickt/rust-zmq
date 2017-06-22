@@ -1,4 +1,4 @@
-extern crate zmq_sys;
+extern crate zmq_pw_sys as zmq_sys;
 
 use libc::{c_int, c_uint, size_t, int64_t, uint64_t};
 use std::os::raw::c_void;
