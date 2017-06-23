@@ -62,6 +62,7 @@ fn main() {
     if found {
         println!("cargo:rustc-flags=-L {}/lib \
                   -l zmq-pw \
+                  -l stdc++ \
                   ", dst.join("pkg").display());
         println!("cargo:root={}", dst.join("pkg").display());
         println!("cargo:include={}/include/zmq-pw", dst.join("pkg").display());
@@ -101,6 +102,7 @@ fn main() {
 
     println!("cargo:rustc-flags=-L {}/lib \
               -l zmq-pw \
+              -l stdc++ \
               ", dst.join("pkg").display());
     println!("cargo:root={}", dst.join("pkg").display());
     println!("cargo:include={}/include/zmq-pw", dst.join("pkg").display());
