@@ -83,7 +83,7 @@ fn main() {
                        -DCMAKE_INSTALL_LIBDIR=\"/lib\" \
                        -DCMAKE_INSTALL_INCLUDEDIR=\"/include\" \
                        -DBUILD_SHARED=OFF \
-                       -DBUILD_SHARED=ON \
+                       -DBUILD_STATIC=ON \
                        -DCMAKE_POSITION_INDEPENDENT_CODE=ON {}",
                       dst.join("build").to_str().unwrap(),
                       root.as_path().to_str().unwrap()))
