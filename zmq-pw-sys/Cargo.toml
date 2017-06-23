@@ -17,6 +17,7 @@ libc = "0.2.15"
 
 [build-dependencies]
 metadeps = "1"
+pkg-config = "0.3.9"
 
 [package.metadata.pkg-config]
 libzmq-pw = "3.2"

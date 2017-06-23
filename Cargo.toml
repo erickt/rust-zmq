@@ -125,6 +125,7 @@ bitflags = "0.7"
 
 [build-dependencies]
 zmq-pw-sys = { version = "0.9.0", path = "zmq-pw-sys" }
+pkg-config = "0.3.9"
 
 [dev-dependencies]
 env_logger = "0.3"
