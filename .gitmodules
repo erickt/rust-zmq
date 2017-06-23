@@ -1,0 +1,3 @@
+[submodule "libzmq-pw"]
+	path = libzmq-pw
+	url = https://github.com/evernym/libzmq-pw.git
