@@ -151,6 +151,7 @@ enum Constants {
     ZMQ_USE_FD                   = 89,
     ZMQ_CURVE_ADD_KEYPAIR        = 90,
     ZMQ_CURVE_REMOVE_KEYPAIR     = 91,
+    ZMQ_SET_PROTOCOL_VERSION     = 92,
 
     ZMQ_MSG_MORE                 = 1,
     ZMQ_MSG_SHARED               = 128,
@@ -915,11 +916,14 @@ impl Socket {
         (_, set_plain_username) => ZMQ_PLAIN_USERNAME as Option<&str>,
         (_, set_plain_password) => ZMQ_PLAIN_PASSWORD as Option<&str>,
         (_, set_zap_domain) => ZMQ_ZAP_DOMAIN as &str,
+        (_, set_protocol_version) => ZMQ_SET_PROTOCOL_VERSION as i32,
 
         if ZMQ_HAS_CURVE {
             (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
             (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
             (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
+            (_, add_curve_keypair) => ZMQ_CURVE_ADD_KEYPAIR as &[u8],
+            (_, remove_curve_keypair) => ZMQ_CURVE_REMOVE_KEYPAIR as &[u8],
         },
         if ZMQ_HAS_GSSAPI {
             (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
@@ -1227,4 +1231,8 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     }
 
     Ok(dest)
+}
+
+pub fn make_proto_version(j :u8, i :u8) -> i32 {
+    return ((j as i32) << 8) | (i as i32);
 }
