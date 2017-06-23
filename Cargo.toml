@@ -1,6 +1,6 @@
 [package]
 name = "zmq-pw"
-version = "0.9.2"
+version = "0.9.3"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -118,13 +118,13 @@ path = "examples/zguide/taskwork2/main.rs"
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
-zmq-pw-sys = { version = "0.9.2", path = "zmq-pw-sys" }
+zmq-pw-sys = { version = "0.9.3", path = "zmq-pw-sys" }
 compiletest_rs = { version = "0.*", optional = true }
 clippy = { version = "0.*", optional = true }
 bitflags = "0.7"
 
 [build-dependencies]
-zmq-pw-sys = { version = "0.9.2", path = "zmq-pw-sys" }
+zmq-pw-sys = { version = "0.9.3", path = "zmq-pw-sys" }
 
 [dev-dependencies]
 env_logger = "0.3"
