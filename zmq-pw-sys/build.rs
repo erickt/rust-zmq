@@ -20,7 +20,7 @@ fn main() {
             let prebuilt_dir = env::var("SOVRIN_PREBUILT_DEPS_DIR").unwrap();
             println!("cargo:rustc-link-search=native={}", prebuilt_dir);
             println!("cargo:rustc-flags=-L {}/lib \
-                  -l libzmq-pw \
+                  -l zmq-pw \
                   ", prebuilt_dir);
             println!("cargo:include={}/include/zmq-pw", prebuilt_dir);
             return;
@@ -28,7 +28,7 @@ fn main() {
         None => {}
     }
 
-    let libs = vec!["libzmq-pw"];
+    let libs = vec!["zmq-pw"];
 
     let mut found = true;
     for l in libs {
@@ -61,7 +61,7 @@ fn main() {
 
     if found {
         println!("cargo:rustc-flags=-L {}/lib \
-                  -l libzmq-pw \
+                  -l zmq-pw \
                   -l stdc++ \
                   ", dst.join("pkg").display());
         println!("cargo:root={}", dst.join("pkg").display());
@@ -101,7 +101,7 @@ fn main() {
         .current_dir(&dst.join("build")));
 
     println!("cargo:rustc-flags=-L {}/lib \
-              -l libzmq-pw \
+              -l zmq-pw \
               -l stdc++ \
               ", dst.join("pkg").display());
     println!("cargo:root={}", dst.join("pkg").display());
