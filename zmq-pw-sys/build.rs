@@ -60,10 +60,19 @@ fn main() {
     }
 
     if found {
-        println!("cargo:rustc-flags=-L {}/lib \
+        if target.find("darwin").is_some() {
+            println!("cargo:rustc-flags=-L {}/lib \
+                  -l zmq-pw \
+                  -l c++ \
+                  ", dst.join("pkg").display());
+        }
+        else {
+            println!("cargo:rustc-flags=-L {}/lib \
                   -l zmq-pw \
                   -l stdc++ \
                   ", dst.join("pkg").display());
+        }
+        
         println!("cargo:root={}", dst.join("pkg").display());
         println!("cargo:include={}/include/zmq-pw", dst.join("pkg").display());
         return;
@@ -100,10 +109,19 @@ fn main() {
         .arg(&format!("DESTDIR={}", dst.join("pkg").to_str().unwrap()))
         .current_dir(&dst.join("build")));
 
-    println!("cargo:rustc-flags=-L {}/lib \
-              -l zmq-pw \
-              -l stdc++ \
-              ", dst.join("pkg").display());
+    if target.find("darwin").is_some() {
+            println!("cargo:rustc-flags=-L {}/lib \
+            -l zmq-pw \
+            -l c++ \
+            ", dst.join("pkg").display());
+    } 
+    else {
+        println!("cargo:rustc-flags=-L {}/lib \
+            -l zmq-pw \
+            -l stdc++ \
+            ", dst.join("pkg").display());
+    }
+    
     println!("cargo:root={}", dst.join("pkg").display());
     println!("cargo:include={}/include/zmq-pw", dst.join("pkg").display());
 }
