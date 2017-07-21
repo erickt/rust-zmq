@@ -1,6 +1,6 @@
 // Pathological subscriber
 // Subscribes to one random topic and prints received messages
-extern crate zmq;
+extern crate zmq_pw as zmq;
 extern crate rand;
 
 use std::env;

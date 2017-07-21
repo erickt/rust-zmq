@@ -1,6 +1,6 @@
 #![crate_name = "msgqueue"]
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 fn main() {
     let context = zmq::Context::new();

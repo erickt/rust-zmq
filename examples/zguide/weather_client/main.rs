@@ -6,7 +6,7 @@
  * Collects weather updates and find avg temp in zipcode
  */
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use std::env;
 

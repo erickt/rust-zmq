@@ -6,7 +6,7 @@
 
 #![crate_name = "msgsend"]
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use std::env;
 use std::thread;

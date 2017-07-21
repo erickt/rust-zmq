@@ -5,7 +5,7 @@
 // the basis for integration with external event loops works.
 
 extern crate nix;
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use super::with_connection;
 use self::nix::poll;

@@ -5,7 +5,7 @@
 /// Publishes random weather updates
 
 extern crate rand;
-extern crate zmq;
+extern crate zmq_pw as zmq;
 
 use rand::Rng;
 

@@ -1,6 +1,6 @@
 [package]
-name = "zmq-sys"
-version = "0.9.0"
+name = "zmq-pw-sys"
+version = "0.9.5"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -8,15 +8,16 @@ authors = [
 license = "MIT/Apache-2.0"
 description = "Low-level bindings to the zeromq library"
 keywords = ["ffi", "bindings"]
-repository = "https://github.com/erickt/rust-zmq"
+repository = "https://github.com/evernym/rust-zmq-pw"
 build = "build.rs"
-links = "zmq"
+links = "zmq-pw"
 
 [dependencies]
 libc = "0.2.15"
 
 [build-dependencies]
 metadeps = "1"
+pkg-config = "0.3.9"
 
 [package.metadata.pkg-config]
-libzmq = "3.2"
+libzmq-pw = "3.2"

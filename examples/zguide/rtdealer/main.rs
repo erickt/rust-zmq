@@ -2,7 +2,7 @@
 
 //! Router-to-dealer example
 
-extern crate zmq;
+extern crate zmq_pw as zmq;
 extern crate rand;
 
 use zmq::SNDMORE;
