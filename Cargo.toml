@@ -115,6 +115,38 @@ path = "examples/zguide/tasksink2/main.rs"
 name = "taskwork2"
 path = "examples/zguide/taskwork2/main.rs"
 
+[[example]]
+name = "mtrelay"
+path = "examples/zguide/mtrelay/main.rs"
+
+[[example]]
+name = "syncpub"
+path = "examples/zguide/syncpub/main.rs"
+
+[[example]]
+name = "syncsub"
+path = "examples/zguide/syncsub/main.rs"
+
+[[example]]
+name = "psenvpub"
+path = "examples/zguide/psenvpub/main.rs"
+
+[[example]]
+name="psenvsub"
+path="examples/zguide/psenvsub/main.rs"
+
+[[example]]
+name="rtreq"
+path="examples/zguide/rtreq/main.rs"
+
+[[example]]
+name="lbbroker"
+path="examples/zguide/lbbroker/main.rs"
+
+[[example]]
+name="asyncsrv"
+path="examples/zguide/asyncsrv/main.rs"
+
 [dependencies]
 libc = "0.2.15"
 log = "0.3.6"
