@@ -959,12 +959,12 @@ pub struct PollItem<'a> {
 
 impl<'a> PollItem<'a> {
     /// Construct a PollItem from a non-0MQ socket, given by its file
-    /// descriptor.
-    pub fn from_fd(fd: RawFd) -> PollItem<'a> {
+    /// descriptor and the events that should be polled.
+    pub fn from_fd(fd: RawFd, events: PollEvents) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
             fd: fd,
-            events: 0,
+            events: events.bits(),
             revents: 0,
             marker: PhantomData
         }

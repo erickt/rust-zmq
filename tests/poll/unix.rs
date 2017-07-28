@@ -12,8 +12,7 @@ use self::nix::unistd;
 fn test_pipe_poll() {
     let (pipe_read, pipe_write) = unistd::pipe().expect("pipe creation failed");
     let writer_thread = thread::spawn(move || { pipe_writer(pipe_write); });
-    let mut pipe_item = zmq::PollItem::from_fd(pipe_read);
-    pipe_item.set_events(zmq::POLLIN);
+    let pipe_item = zmq::PollItem::from_fd(pipe_read, zmq::POLLIN);
 
     let mut poll_items = [pipe_item];
     assert_eq!(zmq::poll(&mut poll_items, 1000).unwrap(), 1);
