@@ -970,6 +970,11 @@ impl<'a> PollItem<'a> {
         }
     }
 
+    /// Change the events to wait for.
+    pub fn set_events(&mut self, events: PollEvents) {
+        self.events = events.bits();
+    }
+
     /// Retrieve the events that occurred for this handle.
     pub fn get_revents(&self) -> PollEvents {
         PollEvents::from_bits_truncate(self.revents)

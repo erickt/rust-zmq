@@ -25,6 +25,24 @@ documentation.
 - `Message::send_msg()` and `send_str()` are deprecated in favor of
   `Message::send()`.
 
+# 0.8.2
+
+## New and improved functionality
+
+- Support for the `ZMQ_PROBE_ROUTER` and `ZMQ_ROUTER_MANDATORY` socket
+  options.
+- `zmq_disconnect` is now exposed as `Socket::disconnect`.
+
+## Bug fixes
+
+- Fix build on OpenBSD (issue #170).
+- Account for OpenBSD not defining `EPROTO`.
+- Fix build for 32-bit Windows.
+- Handle `EINTR` in `Error::from_raw` (issue #174).
+- Alignment of `zmq_msg_t` FFI type fixed.
+- Fix `build.rs` to portably construct paths, instead of hard-coding
+  slash as path separator.
+
 # 0.8.1
 
 This release fixes the remaining Windows-specific issues exposed by
