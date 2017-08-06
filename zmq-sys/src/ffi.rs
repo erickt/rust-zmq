@@ -33,7 +33,7 @@ pub type zmq_pollitem_t = Struct_zmq_pollitem_t;
 pub enum Struct_iovec { }
 pub type zmq_thread_fn =
     unsafe extern "C" fn(arg1: *mut ::std::os::raw::c_void);
-#[link(name = "zmq")]
+
 extern "C" {
     pub fn zmq_errno() -> ::std::os::raw::c_int;
     pub fn zmq_strerror(errnum: ::std::os::raw::c_int)
