@@ -131,7 +131,7 @@ enum Constants {
     ZMQ_HANDSHAKE_IVL            = 66,
     ZMQ_SOCKS_PROXY              = 68,
     ZMQ_XPUB_NODROP              = 69,
-
+    ZMQ_XPUB_WELCOME_MSG         = 72,
     ZMQ_MSG_MORE                 = 1,
     ZMQ_MSG_SHARED               = 128,
     ZMQ_MSG_MASK                 = 129,
