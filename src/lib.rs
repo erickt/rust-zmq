@@ -791,14 +791,14 @@ impl Socket {
         (get_tcp_keepalive_idle, set_tcp_keepalive_idle) => ZMQ_TCP_KEEPALIVE_IDLE as i32,
         (get_tcp_keepalive_intvl, set_tcp_keepalive_intvl) => ZMQ_TCP_KEEPALIVE_INTVL as i32,
         
-        (get_xpub_welcome,set_xpub_welcome)=> ZMQ_XPUB_WELCOME as &[u8],
         
         (get_handshake_ivl, set_handshake_ivl) => ZMQ_HANDSHAKE_IVL as i32,
         (_, set_identity) => ZMQ_IDENTITY as &[u8],
         (_, set_subscribe) => ZMQ_SUBSCRIBE as &[u8],
         (_, set_unsubscribe) => ZMQ_UNSUBSCRIBE as &[u8],
+        (_, set_xpub_welcome) => ZMQ_XPUB_WELCOME as &[u8],
     }
-
+    
     pub fn get_identity(&self) -> Result<Vec<u8>> {
         // 255 = identity max length
         sockopt::get_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), 255)
