@@ -15,8 +15,6 @@ fn main() {
     let backend = context.socket(zmq::XPUB).unwrap();
     backend.bind("tcp://*:5558").expect("could not bind backend socket");
 
-    println!("Connected");
-
     //  Subscribe to every single topic from publisher
     frontend.set_subscribe(b"").unwrap();
 
