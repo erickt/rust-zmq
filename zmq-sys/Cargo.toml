@@ -19,4 +19,4 @@ libc = "0.2.15"
 metadeps = "1"
 
 [package.metadata.pkg-config]
-libzmq = "4.2.2"
+libzmq = "4.0.0"
