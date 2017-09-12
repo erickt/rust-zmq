@@ -1,4 +1,4 @@
-#![cfg(feature = "unstable")]
+#![cfg(feature = "unstable-testing")]
 
 extern crate compiletest_rs as compiletest;
 

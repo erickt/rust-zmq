@@ -1,14 +1,16 @@
 [package]
 name = "zmq"
-version = "0.7.0"
-authors = [ "erick.tryzelaar@gmail.com" ]
+version = "0.9.0"
+authors = [
+    "a.rottmann@gmx.at",
+    "erick.tryzelaar@gmail.com",
+]
 license = "MIT/Apache-2.0"
 description = "High-level bindings to the zeromq library"
+keywords = ["bindings", "protocol"]
 repository = "https://github.com/erickt/rust-zmq"
-
-[[example]]
-name = "msgsend"
-path = "examples/msgsend/main.rs"
+readme = "README.md"
+build = "build.rs"
 
 [[example]]
 name = "helloworld_client"
@@ -17,6 +19,46 @@ path = "examples/zguide/helloworld_client/main.rs"
 [[example]]
 name = "helloworld_server"
 path = "examples/zguide/helloworld_server/main.rs"
+
+[[example]]
+name = "msreader"
+path = "examples/zguide/msreader/main.rs"
+
+[[example]]
+name = "mspoller"
+path = "examples/zguide/mspoller/main.rs"
+
+[[example]]
+name = "pathopub"
+path = "examples/zguide/pathopub/main.rs"
+
+[[example]]
+name = "pathosub"
+path = "examples/zguide/pathosub/main.rs"
+
+[[example]]
+name = "lvcache"
+path = "examples/zguide/lvcache/main.rs"
+
+[[example]]
+name = "msgsend"
+path = "examples/msgsend/main.rs"
+
+[[example]]
+name = "stream-logserver"
+path = "examples/stream/logserver.rs"
+
+[[example]]
+name = "tasksink"
+path = "examples/zguide/tasksink/main.rs"
+
+[[example]]
+name = "taskvent"
+path = "examples/zguide/taskvent/main.rs"
+
+[[example]]
+name = "taskwork"
+path = "examples/zguide/taskwork/main.rs"
 
 [[example]]
 name = "version"
@@ -30,31 +72,100 @@ path = "examples/zguide/weather_client/main.rs"
 name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
-[[example]]
-name = "taskvent"
-path = "examples/zguide/taskvent/main.rs"
-
-[[example]]
-name = "taskwork"
-path = "examples/zguide/taskwork/main.rs"
-
-[[example]]
-name = "tasksink"
-path = "examples/zguide/tasksink/main.rs"
-
-[[example]]
-name = "msreader"
-path = "examples/zguide/msreader/main.rs"
-
 [features]
-unstable = ["compiletest_rs"]
+unstable = []
+default = ["zmq_has"]
+zmq_has = [] # zmq_has was added in zeromq 4.1.
+unstable-testing = ["compiletest_rs", "unstable"]
+#unstable-testing = ["clippy", "compiletest_rs", "unstable"]
+
+[[example]]
+name = "rtdealer"
+path = "examples/zguide/rtdealer/main.rs"
+
+[[example]]
+name = "fileio3"
+path = "examples/zguide/fileio3/main.rs"
+
+[[example]]
+name = "rrclient"
+path = "examples/zguide/rrclient/main.rs"
+
+[[example]]
+name = "rrworker"
+path = "examples/zguide/rrworker/main.rs"
+
+[[example]]
+name = "rrbroker"
+path = "examples/zguide/rrbroker/main.rs"
+
+[[example]]
+name = "msgqueue"
+path = "examples/zguide/msgqueue/main.rs"
+
+[[example]]
+name = "wuproxy"
+path = "examples/zguide/wuproxy/main.rs"
+
+[[example]]
+name = "tasksink2"
+path = "examples/zguide/tasksink2/main.rs"
+
+[[example]]
+name = "taskwork2"
+path = "examples/zguide/taskwork2/main.rs"
+
+[[example]]
+name = "mtserver"
+path = "examples/zguide/mtserver/main.rs"
+
+[[example]]
+name = "mtrelay"
+path = "examples/zguide/mtrelay/main.rs"
+
+[[example]]
+name = "syncpub"
+path = "examples/zguide/syncpub/main.rs"
+
+[[example]]
+name = "syncsub"
+path = "examples/zguide/syncsub/main.rs"
+
+[[example]]
+name = "psenvpub"
+path = "examples/zguide/psenvpub/main.rs"
+
+[[example]]
+name="psenvsub"
+path="examples/zguide/psenvsub/main.rs"
+
+[[example]]
+name="rtreq"
+path="examples/zguide/rtreq/main.rs"
+
+[[example]]
+name="lbbroker"
+path="examples/zguide/lbbroker/main.rs"
+
+[[example]]
+name="asyncsrv"
+path="examples/zguide/asyncsrv/main.rs"
 
 [dependencies]
-libc = "0.2.*"
-log = "*"
-zmq-sys = { version = "*", path = "zmq-sys" }
-compiletest_rs = { version = "*", optional = true }
+libc = "0.2.15"
+log = "0.3.6"
+zmq-sys = { version = "0.9.0", path = "zmq-sys" }
+compiletest_rs = { version = "0.*", optional = true }
+clippy = { version = "0.*", optional = true }
+bitflags = "0.7"
+
+[build-dependencies]
+zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 
 [dev-dependencies]
-rand = "*"
-time = "*"
+env_logger = "0.3"
+quickcheck = "0.4.0"
+rand = "0.3"
+tempfile = "2.1"
+timebomb = "0.1.2"
+nix = "0.7"

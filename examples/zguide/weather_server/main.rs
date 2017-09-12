@@ -10,8 +10,8 @@ extern crate zmq;
 use rand::Rng;
 
 fn main() {
-    let mut context = zmq::Context::new();
-    let mut publisher = context.socket(zmq::PUB).unwrap();
+    let context = zmq::Context::new();
+    let publisher = context.socket(zmq::PUB).unwrap();
 
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
@@ -27,7 +27,7 @@ fn main() {
         // very, very slow. Several orders of magnitude slower than glibc's
         // sprintf
         let update = format!("{:05} {} {}", zipcode, temperature, relhumidity);
-        publisher.send(update.as_bytes(), 0).unwrap();
+        publisher.send(&update, 0).unwrap();
     }
 
     // note: destructors mean no explicit cleanup necessary

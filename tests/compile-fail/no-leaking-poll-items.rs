@@ -1,9 +1,9 @@
 extern crate zmq;
 
 fn main() {
-    let mut context = zmq::Context::new();
+    let context = zmq::Context::new();
     let _poll_item = {
         let socket = context.socket(zmq::PAIR).unwrap();
-        socket.as_poll_item(0) //~ ERROR error: `socket` does not live long enough
-    };
+        socket.as_poll_item(zmq::POLLIN)
+    }; //~ ERROR `socket` does not live long enough
 }

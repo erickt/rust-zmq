@@ -10,30 +10,68 @@ addons:
     - libcurl4-openssl-dev
     - libelf-dev
     - libdw-dev
-    - libzmq3-dev
+    - make
+    - automake
+    - gcc
+    - build-essential
+    - g++
+    - cpp
+    - libc6-dev
+    - man-db
+    - autoconf
+    - pkg-config
+    - libtool
+    - git
+
 before_script:
 - |
-  pip install 'travis-cargo<0.2' --user &&
-  export PATH=$HOME/.local/bin:$PATH
+  set -e
+  pip install 'travis-cargo<0.2' --user
+  git clone --depth 1 -b stable https://github.com/jedisct1/libsodium.git
+  cd libsodium
+  ./autogen.sh
+  ./configure --prefix=$HOME
+  make
+  make install
+  cd ..
+  wget https://github.com/zeromq/zeromq4-1/archive/v4.1.6.tar.gz
+  tar zxf v4.1.6.tar.gz
+  cd zeromq4-1-4.1.6
+  ./autogen.sh
+  ./configure --prefix=$HOME --with-libsodium
+  make
+  make install
+  cd ..
 script:
-- travis-cargo build
-- travis-cargo test
-- travis-cargo bench
-- travis-cargo build -- --example msgsend
+- travis-cargo --skip nightly build
+- travis-cargo --only nightly build -- --features unstable
+- travis-cargo --skip nightly test
+- travis-cargo --only nightly clean # needed due to compiltest-rs issue
+- travis-cargo --only nightly test -- --features unstable-testing
+- travis-cargo --skip nightly bench
+- travis-cargo --only nightly bench -- --features unstable-testing
 - travis-cargo build -- --example helloworld_client
 - travis-cargo build -- --example helloworld_server
+- travis-cargo build -- --example msgsend
+- travis-cargo build -- --example msreader
+- travis-cargo build -- --example tasksink
+- travis-cargo build -- --example taskvent
+- travis-cargo build -- --example taskwork
 - travis-cargo build -- --example version
 - travis-cargo build -- --example weather_client
 - travis-cargo build -- --example weather_server
-- travis-cargo build -- --example taskvent
-- travis-cargo build -- --example taskwork
-- travis-cargo build -- --example tasksink
-- travis-cargo build -- --example msreader
 - travis-cargo --only stable doc
 after_success:
-- travis-cargo --only stable doc-upload
-- travis-cargo coveralls --no-sudo
+- |
+  if [ "$TRAVIS_BRANCH" = master ] && [ "$TRAVIS_PULL_REQUEST" = false ]; then
+    travis-cargo --only stable doc-upload
+    # travis-cargo coverage --no-sudo
+  fi
+
 env:
   global:
+  - PATH=$HOME/.local/bin:$PATH
+  - LD_LIBRARY_PATH=$HOME/lib
+  - PKG_CONFIG_PATH=$HOME/lib/pkgconfig
   - TRAVIS_CARGO_NIGHTLY_FEATURE=""
   - secure: HsoFtb8raiT2SJewpTEOFeMgXZUOwbcBEcjVPlsyrBI8WZ9dGp3aK1k6MsfiF4AV6PVE3XaaEQS/9iks5l4YswHP0WGz2L2hV2CORMem25x3q85PWZzZFm4RdO6E13LDRHjRZ56u80rYs0koL7loY2AZxc1iibwyKfUwba1LYu8=
