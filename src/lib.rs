@@ -796,7 +796,7 @@ impl Socket {
         (_, set_identity) => ZMQ_IDENTITY as &[u8],
         (_, set_subscribe) => ZMQ_SUBSCRIBE as &[u8],
         (_, set_unsubscribe) => ZMQ_UNSUBSCRIBE as &[u8],
-        (_, set_xpub_welcome) => ZMQ_XPUB_WELCOME as &[u8],
+        (set_xpub_welcome) => ZMQ_XPUB_WELCOME as &[u8],
     }
     
     pub fn get_identity(&self) -> Result<Vec<u8>> {
