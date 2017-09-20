@@ -66,6 +66,50 @@ pub enum SocketType {
 
 impl Copy for SocketType {}
 
+/// Socket Events
+#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum SocketEvent {
+    CONNECTED       = 0x0001,
+    CONNECT_DELAYED = 0x0002,
+    CONNECT_RETRIED = 0x0004,
+    LISTENING       = 0x0008,
+    BIND_FAILED     = 0x0010,
+    ACCEPTED        = 0x0020,
+    ACCEPT_FAILED   = 0x0040,
+    CLOSED          = 0x0080,
+    CLOSE_FAILED    = 0x0100,
+    DISCONNECTED    = 0x0200,
+    MONITOR_STOPPED = 0x0400,
+    ALL             = 0xFFFF,
+}
+
+impl Copy for SocketEvent {}
+
+impl SocketEvent {
+    pub fn to_raw(&self) -> u16 {
+        *self as u16
+    }
+
+    pub fn from_raw(raw: u16) -> SocketEvent {
+        match raw {
+            0x0001 => SocketEvent::CONNECTED,
+            0x0002 => SocketEvent::CONNECT_DELAYED,
+            0x0004 => SocketEvent::CONNECT_RETRIED,
+            0x0008 => SocketEvent::LISTENING,
+            0x0010 => SocketEvent::BIND_FAILED,
+            0x0020 => SocketEvent::ACCEPTED,
+            0x0040 => SocketEvent::ACCEPT_FAILED,
+            0x0080 => SocketEvent::CLOSED,
+            0x0100 => SocketEvent::CLOSE_FAILED,
+            0x0200 => SocketEvent::DISCONNECTED,
+            0x0400 => SocketEvent::MONITOR_STOPPED,
+            0xFFFF => SocketEvent::ALL,
+            x => panic!("unknown event type {}", x),
+        }
+    }
+}
+
 /// Flag for socket `send` methods that specifies non-blocking mode.
 pub static DONTWAIT: i32 = 1;
 /// Flag for socket `send` methods that specifies that more frames of a
@@ -583,6 +627,13 @@ impl Socket {
     pub fn disconnect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
         zmq_try!(unsafe { zmq_sys::zmq_disconnect(self.sock, c_str.as_ptr()) });
+        Ok(())
+    }
+
+    /// Configure the socket for monitoring
+    pub fn monitor(&self, monitor_endpoint: &str, events: i32) -> Result<()> {
+        let c_str = ffi::CString::new(monitor_endpoint.as_bytes()).unwrap();
+        zmq_try!(unsafe { zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int) });
         Ok(())
     }
 
