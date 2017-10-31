@@ -1,6 +1,6 @@
 [package]
 name = "zmq"
-version = "0.8.2"
+version = "0.8.3"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -102,9 +102,9 @@ clippy = { version = "0.*", optional = true }
 zmq-sys = { version = "0.8.2", path = "zmq-sys" }
 
 [dev-dependencies]
-env_logger = "0.3"
+env_logger = "0.4.3"
 quickcheck = "0.4.0"
 rand = "0.3"
 tempfile = "2.1"
 timebomb = "0.1.2"
-nix = "0.7"
+nix = "0.9.0"

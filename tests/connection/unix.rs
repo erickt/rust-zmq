@@ -53,7 +53,7 @@ impl<'a> PollState<'a> {
         let fd = socket.get_fd().unwrap();
         PollState {
             socket: socket,
-            fds: [poll::PollFd::new(fd, poll::POLLIN, poll::EventFlags::empty())],
+            fds: [poll::PollFd::new(fd, poll::POLLIN)],
         }
     }
 
