@@ -52,6 +52,7 @@ script:
 - travis-cargo --only nightly bench -- --features unstable-testing
 - travis-cargo build -- --example helloworld_client
 - travis-cargo build -- --example helloworld_server
+- travis-cargo build -- --example monitor
 - travis-cargo build -- --example msgsend
 - travis-cargo build -- --example msreader
 - travis-cargo build -- --example tasksink
