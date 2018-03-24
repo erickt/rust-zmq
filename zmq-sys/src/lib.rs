@@ -1,20 +1,17 @@
-
 extern crate libc;
 
-#[path = "unix.rs"]
 #[cfg(unix)]
-mod imp;
+mod unix;
+#[cfg(unix)]
+pub use unix::RawFd;
 
-#[path = "windows.rs"]
 #[cfg(windows)]
-mod imp;
+mod windows;
+#[cfg(windows)]
+pub use windows::RawFd;
 
 pub mod errno;
 
-pub use imp::{
-    // This maps to `RawFd` on Unixoids and `RawSocket` on Windows.
-    RawFd,
-};
 
 pub use ffi::{
     zmq_msg_t,
