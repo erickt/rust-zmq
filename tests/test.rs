@@ -8,6 +8,11 @@ use std::io;
 use std::net::TcpStream;
 use zmq::*;
 
+fn version_ge_4_2() -> bool {
+    let (major, minor, _) = version();
+    (major > 4) || (major == 4 && minor >= 2)
+}
+
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
 
@@ -17,6 +22,9 @@ fn create_socketpair() -> (Socket, Socket) {
     // Don't block forever
     sender.set_sndtimeo(1000).unwrap();
     sender.set_rcvtimeo(1000).unwrap();
+    if version_ge_4_2() {
+        sender.set_connect_timeout(1000).unwrap();
+    }
     receiver.set_sndtimeo(1000).unwrap();
     receiver.set_rcvtimeo(1000).unwrap();
 
@@ -551,6 +559,15 @@ test!(test_getset_handshake_ivl, {
     let sock = ctx.socket(REQ).unwrap();
     sock.set_handshake_ivl(50000).unwrap();
     assert_eq!(sock.get_handshake_ivl().unwrap(), 50000);
+});
+
+test!(test_getset_connect_timeout, {
+    if version_ge_4_2() {
+        let ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_connect_timeout(5000).unwrap();
+        assert_eq!(sock.get_connect_timeout().unwrap(), 5000);
+    }
 });
 
 #[cfg(feature = "compiletest_rs")]
