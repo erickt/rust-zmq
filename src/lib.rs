@@ -131,6 +131,7 @@ enum Constants {
     ZMQ_HANDSHAKE_IVL            = 66,
     ZMQ_SOCKS_PROXY              = 68,
     ZMQ_XPUB_NODROP              = 69,
+    ZMQ_CONNECT_TIMEOUT          = 79,
 
     ZMQ_MSG_MORE                 = 1,
     ZMQ_MSG_SHARED               = 128,
@@ -794,6 +795,7 @@ impl Socket {
         (_, set_identity) => ZMQ_IDENTITY as &[u8],
         (_, set_subscribe) => ZMQ_SUBSCRIBE as &[u8],
         (_, set_unsubscribe) => ZMQ_UNSUBSCRIBE as &[u8],
+        (get_connect_timeout, set_connect_timeout) => ZMQ_CONNECT_TIMEOUT as i32,
     }
 
     pub fn get_identity(&self) -> Result<Vec<u8>> {
