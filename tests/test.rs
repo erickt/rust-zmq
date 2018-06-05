@@ -577,7 +577,7 @@ mod compile {
     use std::path::PathBuf;
 
     fn run_mode(mode: &'static str) {
-        let mut config = compiletest::default_config();
+        let mut config = compiletest::Config::default();
         let cfg_mode = mode.parse().ok().expect("Invalid mode");
 
         config.mode = cfg_mode;
