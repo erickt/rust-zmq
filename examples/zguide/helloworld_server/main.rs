@@ -20,6 +20,6 @@ fn main() {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
         thread::sleep(Duration::from_millis(1000));
-        responder.send_str("World", 0).unwrap();
+        responder.send(b"World", 0).unwrap();
     }
 }
