@@ -8,6 +8,8 @@ extern crate rand;
 extern crate zmq;
 
 use rand::Rng;
+use rand::FromEntropy;
+use rand::rngs::SmallRng;
 
 fn main() {
     let context = zmq::Context::new();
@@ -16,7 +18,7 @@ fn main() {
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
-    let mut rng = rand::weak_rng();
+    let mut rng = SmallRng::from_entropy();
 
     loop {
         let zipcode     = rng.gen_range(0, 100000);

@@ -13,6 +13,7 @@ use zmq::SNDMORE;
 use std::thread;
 use std::io::{Seek, SeekFrom, Write, Read, Error};
 use rand::Rng;
+use rand::distributions::Alphanumeric;
 use tempfile::tempfile;
 use std::fs::File;
 
@@ -22,7 +23,7 @@ static PIPELINE: usize = 10;
 static PIPELINE_HWM: usize = 20;
 
 fn random_string(length: usize) -> String {
-    rand::thread_rng().gen_ascii_chars().take(length).collect()
+    rand::thread_rng().sample_iter(&Alphanumeric).take(length).collect()
 }
 
 fn client_thread(expected_total: usize) {

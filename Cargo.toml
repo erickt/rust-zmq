@@ -153,7 +153,7 @@ path="examples/zguide/asyncsrv/main.rs"
 
 [dependencies]
 libc = "0.2.15"
-log = "0.3.6"
+log = "0.4.3"
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 compiletest_rs = { version = "0.*", optional = true }
 clippy = { version = "0.*", optional = true }
@@ -163,9 +163,9 @@ bitflags = "0.7"
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 
 [dev-dependencies]
-env_logger = "0.3"
-quickcheck = "0.4.0"
-rand = "0.3"
-tempfile = "2.1"
+env_logger = "0.5"
+quickcheck = "0.6.2"
+rand = "0.5"
+tempfile = "3.0"
 timebomb = "0.1.2"
-nix = "0.7"
+nix = "0.11"

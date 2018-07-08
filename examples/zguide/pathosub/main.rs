@@ -5,7 +5,7 @@ extern crate rand;
 
 use std::env;
 
-use rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Range};
 
 fn main() {
     let context = zmq::Context::new();
@@ -17,7 +17,7 @@ fn main() {
 
     let mut rng = rand::thread_rng();
     let topic_range = Range::new(0, 1000);
-    let subscription = format!("{:03}", topic_range.ind_sample(&mut rng)).into_bytes();
+    let subscription = format!("{:03}", topic_range.sample(&mut rng)).into_bytes();
     subscriber.set_subscribe(&subscription).unwrap();
 
     loop {
