@@ -53,7 +53,7 @@ impl<'a> PollState<'a> {
         let fd = socket.get_fd().unwrap();
         PollState {
             socket: socket,
-            fds: [poll::PollFd::new(fd, poll::POLLIN, poll::EventFlags::empty())],
+            fds: [poll::PollFd::new(fd, poll::EventFlags::POLLIN)],
         }
     }
 
@@ -66,7 +66,7 @@ impl<'a> PollState<'a> {
             debug!("poll done, events: {:?}", fds[0].revents());
             match fds[0].revents() {
                 Some(events) => {
-                    if !events.contains(poll::POLLIN) {
+                    if !events.contains(poll::EventFlags::POLLIN) {
                         continue;
                     }
                 },
