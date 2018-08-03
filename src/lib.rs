@@ -815,6 +815,7 @@ impl Socket {
         (heartbeat_ivl, set_heartbeat_ivl) => ZMQ_HEARTBEAT_IVL as i32,
         (heartbeat_ttl, set_heartbeat_ttl) => ZMQ_HEARTBEAT_TTL as i32,
         (heartbeat_timeout, set_heartbeat_timeout) => ZMQ_HEARTBEAT_TIMEOUT as i32,
+        (connect_timeout, set_connect_timeout) => ZMQ_CONNECT_TIMEOUT as i32,
     }
 
     pub fn get_identity(&self) -> Result<Vec<u8>> {
