@@ -691,6 +691,7 @@ impl Socket {
         (is_conflate, set_conflate) => ZMQ_CONFLATE as bool,
         (is_probe_router, set_probe_router) => ZMQ_PROBE_ROUTER as bool,
         (is_router_mandatory, set_router_mandatory) => ZMQ_ROUTER_MANDATORY as bool,
+        (is_router_handover, set_router_handover) => ZMQ_ROUTER_HANDOVER as bool,
         if ZMQ_HAS_CURVE {
             (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
         },
