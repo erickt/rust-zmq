@@ -29,7 +29,7 @@ fn main() {
 
     let controller = context.socket(zmq::SUB).unwrap();
     controller.connect("tcp://localhost:5559").expect("failed connecting controller");
-    controller.set_subscribe("".as_bytes()).expect("failed subscribing");
+    controller.set_subscribe(b"").expect("failed subscribing");
 
 
     loop {

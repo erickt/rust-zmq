@@ -9,7 +9,7 @@ fn main() {
         .connect("tcp://localhost:5563")
         .expect("failed connecting subscriber");
     subscriber
-        .set_subscribe("B".as_bytes())
+        .set_subscribe(b"B")
         .expect("failed subscribing");
 
     loop {

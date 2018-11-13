@@ -13,7 +13,7 @@ fn main() {
         .connect("tcp://localhost:5561")
         .expect("failed connecting subscriber");
     subscriber
-        .set_subscribe("".as_bytes())
+        .set_subscribe(b"")
         .expect("failed setting subscription");
     thread::sleep(Duration::from_millis(1));
 

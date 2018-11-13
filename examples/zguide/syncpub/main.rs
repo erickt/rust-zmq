@@ -7,7 +7,7 @@ fn main() {
 
     //socket to talk to clients
     let publisher = context.socket(zmq::PUB).unwrap();
-    publisher.set_sndhwm(1100000).expect("failed setting hwm");
+    publisher.set_sndhwm(1_100_000).expect("failed setting hwm");
     publisher
         .bind("tcp://*:5561")
         .expect("failed binding publisher");
@@ -26,7 +26,7 @@ fn main() {
     }
     //now broadcast 1M updates followed by end
     println!("Broadcasting messages");
-    for _ in 0..1000000 {
+    for _ in 0..1_000_000 {
         publisher.send("Rhubarb", 0).expect("failed broadcasting");
     }
     publisher.send("END", 0).expect("failed sending end");

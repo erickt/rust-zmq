@@ -21,7 +21,7 @@ fn main() {
     let mut rng = SmallRng::from_entropy();
 
     loop {
-        let zipcode     = rng.gen_range(0, 100000);
+        let zipcode     = rng.gen_range(0, 100_000);
         let temperature = rng.gen_range(-80, 135);
         let relhumidity = rng.gen_range(10, 60);
 

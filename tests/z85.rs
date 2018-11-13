@@ -51,6 +51,6 @@ quickcheck! {
     fn z85_roundtrip(input: Input) -> bool {
         let encoded = z85_encode(&input.0).unwrap();
         let decoded = z85_decode(&encoded).unwrap();
-        return input.0 == decoded;
+        input.0 == decoded
     }
 }

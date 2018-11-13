@@ -1,9 +1,7 @@
 //! Module: zmq
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(trivial_numeric_casts)]
-#![cfg_attr(feature = "clippy", allow(needless_lifetimes))]
 
 #[macro_use]
 extern crate bitflags;
@@ -140,8 +138,8 @@ enum Constants {
 impl Copy for Constants {}
 
 impl Constants {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    fn to_raw(self) -> i32 {
+        self as i32
     }
 }
 
@@ -196,12 +194,15 @@ pub enum Error {
 impl Copy for Error {}
 
 impl Error {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    // FIXME: switch this to copy when doing a major version bump.
+    //#![cfg_attr(feature = "cargo-clippy", allow(clippy::trivially_copy_pass_by_ref))]
+    pub fn to_raw(self) -> i32 {
+        self as i32
     }
 
     pub fn from_raw(raw: i32) -> Error {
-        #![cfg_attr(feature = "clippy", allow(match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
         match raw {
             errno::EACCES             => Error::EACCES,
             errno::EADDRINUSE         => Error::EADDRINUSE,
@@ -399,7 +400,7 @@ impl Context {
         }
 
         Ok(Socket {
-            sock: sock,
+            sock,
             context: Some(self.clone()),
             owned: true,
         })
@@ -550,7 +551,7 @@ impl Socket {
     /// when it is dropped. The returned socket will not reference any context.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
-            sock: sock,
+            sock,
             context: None,
             owned: true,
         }
@@ -964,7 +965,7 @@ impl<'a> PollItem<'a> {
     pub fn from_fd(fd: RawFd, events: PollEvents) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
-            fd: fd,
+            fd,
             events: events.bits(),
             revents: 0,
             marker: PhantomData

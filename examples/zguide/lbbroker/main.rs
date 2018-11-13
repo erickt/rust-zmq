@@ -57,7 +57,7 @@ fn worker_task(worker_nbr: i32) {
             .recv_string(0)
             .expect("worker failed receving empty")
             .unwrap();
-        assert!(empty.len() == 0);
+        assert!(empty.is_empty());
         // Get workload from broker, until finished
         let request = worker.recv_string(0).unwrap().unwrap();
         println!("Worker: {}", request);
