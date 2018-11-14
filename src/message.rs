@@ -1,12 +1,12 @@
 extern crate zmq_sys;
 
-use libc::{size_t};
+use libc::size_t;
 
 use std::ffi;
 use std::fmt;
-use std::{mem, ptr, str, slice};
-use std::os::raw::c_void;
 use std::ops::{Deref, DerefMut};
+use std::os::raw::c_void;
+use std::{mem, ptr, slice, str};
 
 use super::errno_to_error;
 
@@ -39,13 +39,15 @@ impl fmt::Debug for Message {
     }
 }
 
-unsafe extern fn drop_msg_content_box(data: *mut c_void, _hint: *mut c_void) {
+unsafe extern "C" fn drop_msg_content_box(data: *mut c_void, _hint: *mut c_void) {
     let _ = Box::from_raw(data as *mut u8);
 }
 
 impl Message {
-
-    unsafe fn alloc<F>(f: F) -> Message where F: FnOnce(&mut zmq_sys::zmq_msg_t) -> i32 {
+    unsafe fn alloc<F>(f: F) -> Message
+    where
+        F: FnOnce(&mut zmq_sys::zmq_msg_t) -> i32,
+    {
         let mut msg = zmq_sys::zmq_msg_t::default();
         let rc = f(&mut msg);
         if rc == -1 {
@@ -56,14 +58,12 @@ impl Message {
 
     /// Create an empty `Message`.
     pub fn new() -> Message {
-        unsafe {
-            Self::alloc(|msg| { zmq_sys::zmq_msg_init(msg) })
-        }
+        unsafe { Self::alloc(|msg| zmq_sys::zmq_msg_init(msg)) }
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: usize) -> Message {
-        Self::alloc(|msg| { zmq_sys::zmq_msg_init_size(msg, len as size_t) })
+        Self::alloc(|msg| zmq_sys::zmq_msg_init_size(msg, len as size_t))
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
@@ -95,9 +95,12 @@ impl Message {
         unsafe {
             Self::alloc(|msg| {
                 zmq_sys::zmq_msg_init_data(
-                    msg, raw as *mut c_void, n,
+                    msg,
+                    raw as *mut c_void,
+                    n,
                     drop_msg_content_box as *mut zmq_sys::zmq_free_fn,
-                    ptr::null_mut())
+                    ptr::null_mut(),
+                )
             })
         }
     }
@@ -110,7 +113,7 @@ impl Message {
     /// Return the `ZMQ_MORE` flag, which indicates if more parts of a multipart
     /// message will follow.
     pub fn get_more(&self) -> bool {
-        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _, ) };
+        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _) };
         rc != 0
     }
 
@@ -118,9 +121,7 @@ impl Message {
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 
-        let value = unsafe {
-            zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr())
-        };
+        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr()) };
 
         if value.is_null() {
             None
@@ -194,7 +195,8 @@ impl<'a> From<&'a String> for Message {
 }
 
 impl<'a, T> From<&'a T> for Message
-    where T: Into<Message> + Clone
+where
+    T: Into<Message> + Clone,
 {
     fn from(v: &'a T) -> Self {
         v.clone().into()

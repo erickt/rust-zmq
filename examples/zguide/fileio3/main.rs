@@ -5,17 +5,17 @@
 //! In which the client requests each chunk individually, using
 //! command pipelining to give us a credit-based flow control.
 
-extern crate zmq;
-extern crate tempfile;
 extern crate rand;
+extern crate tempfile;
+extern crate zmq;
 
-use zmq::SNDMORE;
-use std::thread;
-use std::io::{Seek, SeekFrom, Write, Read, Error};
-use rand::Rng;
 use rand::distributions::Alphanumeric;
-use tempfile::tempfile;
+use rand::Rng;
 use std::fs::File;
+use std::io::{Error, Read, Seek, SeekFrom, Write};
+use std::thread;
+use tempfile::tempfile;
+use zmq::SNDMORE;
 
 static CHUNK_SIZE: usize = 250000;
 static CHUNK_SIZE_STR: &'static str = "250000";
@@ -23,7 +23,10 @@ static PIPELINE: usize = 10;
 static PIPELINE_HWM: usize = 20;
 
 fn random_string(length: usize) -> String {
-    rand::thread_rng().sample_iter(&Alphanumeric).take(length).collect()
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .collect()
 }
 
 fn client_thread(expected_total: usize) {
@@ -37,9 +40,9 @@ fn client_thread(expected_total: usize) {
     // Up to this many chunks in transit
     let mut credit = PIPELINE;
 
-    let mut total = 0;       //  Total bytes received
-    let mut chunks = 0;      //  Total chunks received
-    let mut offset = 0;      //  Offset of next chunk request
+    let mut total = 0; //  Total bytes received
+    let mut chunks = 0; //  Total chunks received
+    let mut offset = 0; //  Offset of next chunk request
 
     let mut clean_break = false;
     loop {
@@ -53,14 +56,14 @@ fn client_thread(expected_total: usize) {
         }
         let chunk = dealer.recv_string(0).unwrap().unwrap();
         if chunk.is_empty() {
-            clean_break = true;  //  Shutting down, quit
+            clean_break = true; //  Shutting down, quit
         }
         chunks += 1;
         credit += 1;
         let size = chunk.len();
         total += size;
         if size < CHUNK_SIZE {
-            clean_break = true;  //  Last chunk received; exit
+            clean_break = true; //  Last chunk received; exit
         }
         if clean_break && (credit == PIPELINE) {
             break; // All requests have completed, we can cleanly break.
@@ -88,7 +91,7 @@ fn server_thread(file: &mut File) -> Result<(), Error> {
         // First frame in each message is the sender identity
         let identity = router.recv_bytes(0).unwrap();
         if identity.is_empty() {
-            break;              //  Shutting down, quit
+            break; //  Shutting down, quit
         }
 
         // Second frame is "fetch" command
@@ -127,7 +130,8 @@ fn main() {
         println!("Generating temporary data...");
         let mut file = tempfile().unwrap();
         // Prepare some random test data of appropriate size
-        file.write(random_string(10 * CHUNK_SIZE).as_bytes()).unwrap();
+        file.write(random_string(10 * CHUNK_SIZE).as_bytes())
+            .unwrap();
 
         // Start server thread
         println!("Emitting file content of {:?} bytes", 10 * CHUNK_SIZE);

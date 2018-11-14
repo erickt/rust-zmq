@@ -4,14 +4,16 @@
 extern crate nix;
 extern crate zmq;
 
-use std::thread;
-use std::os::unix::io::RawFd;
 use self::nix::unistd;
+use std::os::unix::io::RawFd;
+use std::thread;
 
 #[test]
 fn test_pipe_poll() {
     let (pipe_read, pipe_write) = unistd::pipe().expect("pipe creation failed");
-    let writer_thread = thread::spawn(move || { pipe_writer(pipe_write); });
+    let writer_thread = thread::spawn(move || {
+        pipe_writer(pipe_write);
+    });
     let pipe_item = zmq::PollItem::from_fd(pipe_read, zmq::POLLIN);
 
     let mut poll_items = [pipe_item];

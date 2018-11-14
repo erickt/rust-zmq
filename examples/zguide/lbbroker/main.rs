@@ -3,8 +3,8 @@
 //! load balancing broker
 //! clients and workers here are shown in process
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 
 use zmq::SNDMORE;
 //use std::time::;
@@ -68,11 +68,8 @@ fn worker_task(worker_nbr: i32) {
             .send("", SNDMORE)
             .expect("worker failed sending empty frame");
         worker.send("OK", 0).expect("worker failed sending OK");
-
-
     }
 }
-
 
 fn main() {
     let worker_pool_size = 3;
@@ -91,13 +88,17 @@ fn main() {
     // context and conceptually acts as a separate process.
     let mut client_thread_pool = Vec::new();
     for client_nbr in 0..client_pool_size {
-        let child = thread::spawn(move || { client_task(client_nbr); });
+        let child = thread::spawn(move || {
+            client_task(client_nbr);
+        });
         client_thread_pool.push(child);
     }
 
     let mut worker_thread_pool = Vec::new();
     for worker_nbr in 0..worker_pool_size {
-        let child = thread::spawn(move || { worker_task(worker_nbr); });
+        let child = thread::spawn(move || {
+            worker_task(worker_nbr);
+        });
         worker_thread_pool.push(child);
     }
     //  Here is the main loop for the least-recently-used queue. It has two
@@ -134,7 +135,8 @@ fn main() {
                 backend
                     .recv_string(0)
                     .expect("backend failed receiving empty")
-                    .unwrap() == ""
+                    .unwrap()
+                    == ""
             );
             assert!(worker_queue.len() < (worker_pool_size as usize));
             worker_queue.push(worker_id);
@@ -149,7 +151,8 @@ fn main() {
                     backend
                         .recv_string(0)
                         .expect("backend failed receiving second empty")
-                        .unwrap() == ""
+                        .unwrap()
+                        == ""
                 );
                 let reply = backend
                     .recv_string(0)
@@ -182,7 +185,8 @@ fn main() {
                 frontend
                     .recv_string(0)
                     .expect("frontend failed receiving empty")
-                    .unwrap() == ""
+                    .unwrap()
+                    == ""
             );
             let request = frontend
                 .recv_string(0)

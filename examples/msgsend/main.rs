@@ -9,9 +9,9 @@
 extern crate zmq;
 
 use std::env;
+use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
-use std::sync::mpsc::{channel, Sender, Receiver};
 
 fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) {
     let mut count = 0;
@@ -41,7 +41,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
     let (ready_tx, ready_rx) = channel();
     let (start_tx, start_rx) = channel();
 
-    thread::spawn(move|| {
+    thread::spawn(move || {
         // Let the main thread know we're ready.
         ready_tx.send(()).unwrap();
 
@@ -58,7 +58,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
 }
 
 fn worker(push_socket: zmq::Socket, count: u64) {
-    for _ in 0 .. count {
+    for _ in 0..count {
         push_socket.send(&100.to_string(), 0).unwrap();
     }
 
@@ -74,7 +74,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
 
     // Spawn the worker.
     let (tx, rx) = channel();
-    thread::spawn(move|| {
+    thread::spawn(move || {
         // Let the main thread we're ready.
         tx.send(()).unwrap();
 
@@ -107,7 +107,7 @@ fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {
 
     // Spawn all the workers.
     let mut worker_results = Vec::new();
-    for _ in 0 .. workers {
+    for _ in 0..workers {
         worker_results.push(spawn_worker(ctx, size / workers));
     }
 
@@ -136,9 +136,9 @@ fn main() {
     let args: Vec<String> = env::args().collect();
 
     let args = if env::var("RUST_BENCH").is_ok() {
-        vec!("".to_string(), "1000000".to_string(), "10000".to_string())
+        vec!["".to_string(), "1000000".to_string(), "10000".to_string()]
     } else if args.len() <= 1 {
-        vec!("".to_string(), "10000".to_string(), "4".to_string())
+        vec!["".to_string(), "10000".to_string(), "4".to_string()]
     } else {
         args
     };

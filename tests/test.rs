@@ -48,7 +48,7 @@ test!(test_exchanging_bytes, {
 
     receiver.send("a quite long string", 0).unwrap();
     let mut buf = [0_u8; 10];
-    sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
+    sender.recv_into(&mut buf, 0).unwrap(); // this should truncate the message
     assert_eq!(&buf[..], b"a quite lo");
 });
 
@@ -100,10 +100,10 @@ test!(test_raw_roundtrip, {
     let ctx = Context::new();
     let mut sock = ctx.socket(SocketType::REQ).unwrap();
 
-    let ptr = sock.as_mut_ptr();  // doesn't consume the socket
-    // NOTE: the socket will give up its context referecnce, but because we
-    // still hold a reference in `ctx`, we won't get a deadlock.
-    let raw = sock.into_raw();    // consumes the socket
+    let ptr = sock.as_mut_ptr(); // doesn't consume the socket
+                                 // NOTE: the socket will give up its context referecnce, but because we
+                                 // still hold a reference in `ctx`, we won't get a deadlock.
+    let raw = sock.into_raw(); // consumes the socket
     assert_eq!(ptr, raw);
     let _ = unsafe { Socket::from_raw(raw) };
 });
@@ -319,8 +319,12 @@ test!(test_getset_socks_proxy, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
-    sock.set_socks_proxy(Some("my_socks_server.com:10080")).unwrap();
-    assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "my_socks_server.com:10080");
+    sock.set_socks_proxy(Some("my_socks_server.com:10080"))
+        .unwrap();
+    assert_eq!(
+        sock.get_socks_proxy().unwrap().unwrap(),
+        "my_socks_server.com:10080"
+    );
 
     sock.set_socks_proxy(None).unwrap();
     assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "");
@@ -489,7 +493,6 @@ test!(test_getset_curve_serverkey, {
     assert_eq!(sock.get_curve_serverkey().unwrap(), key);
 });
 
-
 test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -510,7 +513,10 @@ test!(test_disconnect, {
 test!(test_disconnect_err, {
     let (sender, _) = create_socketpair();
     // Check that disconnect propagates errors. The endpoint is not connected.
-    assert_eq!(Error::ENOENT, sender.disconnect("tcp://192.0.2.1:2233").unwrap_err());
+    assert_eq!(
+        Error::ENOENT,
+        sender.disconnect("tcp://192.0.2.1:2233").unwrap_err()
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -534,7 +540,10 @@ test!(test_getset_gssapi_service_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_service_principal("principal").unwrap();
-    assert_eq!(sock.get_gssapi_service_principal().unwrap().unwrap(), "principal");
+    assert_eq!(
+        sock.get_gssapi_service_principal().unwrap().unwrap(),
+        "principal"
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]

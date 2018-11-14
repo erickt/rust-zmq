@@ -1,17 +1,23 @@
 extern crate zmq_sys;
 
-use libc::{c_int, c_uint, size_t, int64_t, uint64_t};
+use libc::{c_int, c_uint, int64_t, size_t, uint64_t};
 use std::os::raw::c_void;
-use std::{mem, ptr, str};
 use std::result;
+use std::{mem, ptr, str};
 
-use super::{Result, PollEvents};
+use super::{PollEvents, Result};
 
-pub trait Getter where Self: Sized {
+pub trait Getter
+where
+    Self: Sized,
+{
     fn get(sock: *mut c_void, opt: c_int) -> Result<Self>;
 }
 
-pub trait Setter where Self: Sized {
+pub trait Setter
+where
+    Self: Sized,
+{
     fn set(sock: *mut c_void, opt: c_int, value: Self) -> Result<()>;
 }
 
@@ -47,18 +53,18 @@ pub fn get_bytes(sock: *mut c_void, opt: c_int, size: size_t) -> Result<Vec<u8>>
     let mut value = vec![0u8; size];
 
     zmq_try!(unsafe {
-        zmq_sys::zmq_getsockopt(
-            sock,
-            opt,
-            value.as_mut_ptr() as *mut c_void,
-            &mut size)
+        zmq_sys::zmq_getsockopt(sock, opt, value.as_mut_ptr() as *mut c_void, &mut size)
     });
     value.truncate(size);
     Ok(value)
 }
 
-pub fn get_string(sock: *mut c_void, opt: c_int, size: size_t, remove_nulbyte: bool)
-                  -> Result<result::Result<String, Vec<u8>>> {
+pub fn get_string(
+    sock: *mut c_void,
+    opt: c_int,
+    size: size_t,
+    remove_nulbyte: bool,
+) -> Result<result::Result<String, Vec<u8>>> {
     let mut value = try!(get_bytes(sock, opt, size));
 
     if remove_nulbyte {
@@ -132,7 +138,7 @@ impl<'a> Setter for &'a [u8] {
                 sock,
                 opt,
                 value.as_ptr() as *const c_void,
-                value.len() as size_t
+                value.len() as size_t,
             )
         });
         Ok(())

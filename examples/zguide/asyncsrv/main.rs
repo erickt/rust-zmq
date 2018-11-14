@@ -5,11 +5,11 @@
 //  context and conceptually acts as a separate process.
 #![crate_name = "asyncsrv"]
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 use rand::{thread_rng, Rng};
-use std::{str, thread};
 use std::time::Duration;
+use std::{str, thread};
 
 fn client_task() {
     let context = zmq::Context::new();

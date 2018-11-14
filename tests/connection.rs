@@ -20,31 +20,46 @@ use std::str;
 use std::thread;
 
 test!(test_inproc, {
-    with_connection("inproc://pub",
-                    zmq::PUSH, send_message,
-                    zmq::PULL, check_recv);
+    with_connection(
+        "inproc://pub",
+        zmq::PUSH,
+        send_message,
+        zmq::PULL,
+        check_recv,
+    );
 });
 
 test!(test_tcp, {
-    with_connection("tcp://127.0.0.1:*",
-                    zmq::PUSH, send_message,
-                    zmq::PULL, check_recv);
+    with_connection(
+        "tcp://127.0.0.1:*",
+        zmq::PUSH,
+        send_message,
+        zmq::PULL,
+        check_recv,
+    );
 });
 
 test!(test_poll_inproc, {
-    with_connection("inproc://pub",
-                    zmq::PUSH, send_message,
-                    zmq::PULL, check_poll);
+    with_connection(
+        "inproc://pub",
+        zmq::PUSH,
+        send_message,
+        zmq::PULL,
+        check_poll,
+    );
 });
 
 test!(test_poll_tcp, {
-    with_connection("tcp://127.0.0.1:*",
-                    zmq::PUSH, send_message,
-                    zmq::PULL, check_poll);
+    with_connection(
+        "tcp://127.0.0.1:*",
+        zmq::PUSH,
+        send_message,
+        zmq::PULL,
+        check_poll,
+    );
 });
 
-fn send_message(_ctx: zmq::Context, socket: zmq::Socket)
-{
+fn send_message(_ctx: zmq::Context, socket: zmq::Socket) {
     socket.send("Message1", 0).unwrap();
 }
 
@@ -68,11 +83,15 @@ fn check_recv(_ctx: zmq::Context, pull_socket: zmq::Socket) {
 // Utilities
 //
 
-pub fn with_connection<F, G>(address: &str,
-                             parent_type: zmq::SocketType, parent: F,
-                             child_type: zmq::SocketType, child: G)
-    where F: Fn(zmq::Context, zmq::Socket) + Send + 'static,
-          G: Fn(zmq::Context, zmq::Socket) + Send + 'static
+pub fn with_connection<F, G>(
+    address: &str,
+    parent_type: zmq::SocketType,
+    parent: F,
+    child_type: zmq::SocketType,
+    child: G,
+) where
+    F: Fn(zmq::Context, zmq::Socket) + Send + 'static,
+    G: Fn(zmq::Context, zmq::Socket) + Send + 'static,
 {
     let ctx = zmq::Context::new();
 
@@ -93,8 +112,11 @@ pub fn with_connection<F, G>(address: &str,
     thread.join().unwrap();
 }
 
-fn connect_socket(ctx: &zmq::Context,
-                  typ: zmq::SocketType,
-                  address: &str) -> Result<zmq::Socket, zmq::Error> {
-    ctx.socket(typ).and_then(|socket| socket.connect(address).map(|_| socket))
+fn connect_socket(
+    ctx: &zmq::Context,
+    typ: zmq::SocketType,
+    address: &str,
+) -> Result<zmq::Socket, zmq::Error> {
+    ctx.socket(typ)
+        .and_then(|socket| socket.connect(address).map(|_| socket))
 }

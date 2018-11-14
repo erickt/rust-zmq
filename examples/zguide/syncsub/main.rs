@@ -1,8 +1,8 @@
 #![crate_name = "syncsub"]
 
 extern crate zmq;
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 fn main() {
     let context = zmq::Context::new();

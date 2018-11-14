@@ -5,7 +5,6 @@
 /// Collects workloads from ventilator via that socket
 /// Connects PUSH socket to tcp://localhost:5558
 /// Sends results to sink via that socket
-
 extern crate zmq;
 
 use std::io::{self, Write};
@@ -28,9 +27,12 @@ fn main() {
     assert!(sender.connect("tcp://localhost:5558").is_ok());
 
     let controller = context.socket(zmq::SUB).unwrap();
-    controller.connect("tcp://localhost:5559").expect("failed connecting controller");
-    controller.set_subscribe("".as_bytes()).expect("failed subscribing");
-
+    controller
+        .connect("tcp://localhost:5559")
+        .expect("failed connecting controller");
+    controller
+        .set_subscribe("".as_bytes())
+        .expect("failed subscribing");
 
     loop {
         let mut items = [

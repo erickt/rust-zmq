@@ -5,17 +5,24 @@ extern crate quickcheck;
 #[macro_use]
 mod common;
 
+use quickcheck::{Arbitrary, Gen};
 use zmq::Message;
-use quickcheck::{Gen, Arbitrary};
 
 // A pair which contains two non-equal values
 #[derive(Clone, Debug)]
 struct NePair<T>(T, T);
 
-impl<T> Arbitrary for NePair<T> where T: Eq + Arbitrary {
+impl<T> Arbitrary for NePair<T>
+where
+    T: Eq + Arbitrary,
+{
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let v1 = T::arbitrary(g);
-        let v2 = (0..).map(|_| T::arbitrary(g)).filter(|v| *v != v1).next().unwrap();
+        let v2 = (0..)
+            .map(|_| T::arbitrary(g))
+            .filter(|v| *v != v1)
+            .next()
+            .unwrap();
         NePair(v1, v2)
     }
 }
