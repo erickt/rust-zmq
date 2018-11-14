@@ -2,17 +2,21 @@
 
 //! Router-to-dealer example
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 
-use zmq::SNDMORE;
 use rand::Rng;
-use std::time::{Duration, Instant};
 use std::thread;
+use std::time::{Duration, Instant};
+use zmq::SNDMORE;
 
 // Inefficient but terse base16 encoder
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().map(|x| format!("{:02x}", x)).collect::<Vec<_>>().join("")
+    bytes
+        .iter()
+        .map(|x| format!("{:02x}", x))
+        .collect::<Vec<_>>()
+        .join("")
 }
 
 fn worker_task() {
@@ -30,7 +34,7 @@ fn worker_task() {
         worker.send_str("Hi boss!", 0).unwrap();
 
         // Get workload from broker, until finished
-        worker.recv_bytes(0).unwrap();  // envelope delimiter
+        worker.recv_bytes(0).unwrap(); // envelope delimiter
         let workload = worker.recv_string(0).unwrap().unwrap();
         if workload == "Fired!" {
             println!("Worker {} completed {} tasks", hex(&identity), total);
@@ -42,7 +46,6 @@ fn worker_task() {
         thread::sleep(Duration::from_millis(rng.gen_range(1, 500)));
     }
 }
-
 
 fn main() {
     let worker_pool_size = 10;

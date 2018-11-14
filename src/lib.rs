@@ -18,8 +18,8 @@ use std::marker::PhantomData;
 use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
-use std::{mem, ptr, str};
 use std::sync::Arc;
+use std::{mem, ptr, str};
 
 use zmq_sys::{errno, RawFd};
 
@@ -33,12 +33,12 @@ macro_rules! zmq_try {
     }}
 }
 
-mod sockopt;
 mod message;
+mod sockopt;
 
-pub use SocketType::*;
-pub use message::Message;
 use message::msg_ptr;
+pub use message::Message;
+pub use SocketType::*;
 
 /// `zmq`-specific Result type.
 pub type Result<T> = result::Result<T, Error>;
@@ -47,17 +47,17 @@ pub type Result<T> = result::Result<T, Error>;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SocketType {
-    PAIR   = 0,
-    PUB    = 1,
-    SUB    = 2,
-    REQ    = 3,
-    REP    = 4,
+    PAIR = 0,
+    PUB = 1,
+    SUB = 2,
+    REQ = 3,
+    REP = 4,
     DEALER = 5,
     ROUTER = 6,
-    PULL   = 7,
-    PUSH   = 8,
-    XPUB   = 9,
-    XSUB   = 10,
+    PULL = 7,
+    PUSH = 8,
+    XPUB = 9,
+    XSUB = 10,
     STREAM = 11,
 }
 
@@ -67,18 +67,18 @@ impl Copy for SocketType {}
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum SocketEvent {
-    CONNECTED       = 0x0001,
+    CONNECTED = 0x0001,
     CONNECT_DELAYED = 0x0002,
     CONNECT_RETRIED = 0x0004,
-    LISTENING       = 0x0008,
-    BIND_FAILED     = 0x0010,
-    ACCEPTED        = 0x0020,
-    ACCEPT_FAILED   = 0x0040,
-    CLOSED          = 0x0080,
-    CLOSE_FAILED    = 0x0100,
-    DISCONNECTED    = 0x0200,
+    LISTENING = 0x0008,
+    BIND_FAILED = 0x0010,
+    ACCEPTED = 0x0020,
+    ACCEPT_FAILED = 0x0040,
+    CLOSED = 0x0080,
+    CLOSE_FAILED = 0x0100,
+    DISCONNECTED = 0x0200,
     MONITOR_STOPPED = 0x0400,
-    ALL             = 0xFFFF,
+    ALL = 0xFFFF,
 }
 
 impl Copy for SocketEvent {}
@@ -117,65 +117,65 @@ pub static SNDMORE: i32 = 2;
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Constants {
-    ZMQ_AFFINITY                 = 4,
-    ZMQ_IDENTITY                 = 5,
-    ZMQ_SUBSCRIBE                = 6,
-    ZMQ_UNSUBSCRIBE              = 7,
-    ZMQ_RATE                     = 8,
-    ZMQ_RECOVERY_IVL             = 9,
-    ZMQ_SNDBUF                   = 11,
-    ZMQ_RCVBUF                   = 12,
-    ZMQ_RCVMORE                  = 13,
-    ZMQ_FD                       = 14,
-    ZMQ_EVENTS                   = 15,
-    ZMQ_TYPE                     = 16,
-    ZMQ_LINGER                   = 17,
-    ZMQ_RECONNECT_IVL            = 18,
-    ZMQ_BACKLOG                  = 19,
-    ZMQ_RECONNECT_IVL_MAX        = 21,
-    ZMQ_MAXMSGSIZE               = 22,
-    ZMQ_SNDHWM                   = 23,
-    ZMQ_RCVHWM                   = 24,
-    ZMQ_MULTICAST_HOPS           = 25,
-    ZMQ_RCVTIMEO                 = 27,
-    ZMQ_SNDTIMEO                 = 28,
-    ZMQ_LAST_ENDPOINT            = 32,
-    ZMQ_ROUTER_MANDATORY         = 33,
-    ZMQ_TCP_KEEPALIVE            = 34,
-    ZMQ_TCP_KEEPALIVE_CNT        = 35,
-    ZMQ_TCP_KEEPALIVE_IDLE       = 36,
-    ZMQ_TCP_KEEPALIVE_INTVL      = 37,
-    ZMQ_IMMEDIATE                = 39,
-    ZMQ_XPUB_VERBOSE             = 40,
-    ZMQ_ROUTER_RAW               = 41,
-    ZMQ_IPV6                     = 42,
-    ZMQ_MECHANISM                = 43,
-    ZMQ_PLAIN_SERVER             = 44,
-    ZMQ_PLAIN_USERNAME           = 45,
-    ZMQ_PLAIN_PASSWORD           = 46,
-    ZMQ_CURVE_SERVER             = 47,
-    ZMQ_CURVE_PUBLICKEY          = 48,
-    ZMQ_CURVE_SECRETKEY          = 49,
-    ZMQ_CURVE_SERVERKEY          = 50,
-    ZMQ_PROBE_ROUTER             = 51,
-    ZMQ_REQ_CORRELATE            = 52,
-    ZMQ_REQ_RELAXED              = 53,
-    ZMQ_CONFLATE                 = 54,
-    ZMQ_ZAP_DOMAIN               = 55,
-    ZMQ_ROUTER_HANDOVER          = 56,
-    ZMQ_TOS                      = 57,
-    ZMQ_CONNECT_RID              = 61,
-    ZMQ_GSSAPI_SERVER            = 62,
-    ZMQ_GSSAPI_PRINCIPAL         = 63,
+    ZMQ_AFFINITY = 4,
+    ZMQ_IDENTITY = 5,
+    ZMQ_SUBSCRIBE = 6,
+    ZMQ_UNSUBSCRIBE = 7,
+    ZMQ_RATE = 8,
+    ZMQ_RECOVERY_IVL = 9,
+    ZMQ_SNDBUF = 11,
+    ZMQ_RCVBUF = 12,
+    ZMQ_RCVMORE = 13,
+    ZMQ_FD = 14,
+    ZMQ_EVENTS = 15,
+    ZMQ_TYPE = 16,
+    ZMQ_LINGER = 17,
+    ZMQ_RECONNECT_IVL = 18,
+    ZMQ_BACKLOG = 19,
+    ZMQ_RECONNECT_IVL_MAX = 21,
+    ZMQ_MAXMSGSIZE = 22,
+    ZMQ_SNDHWM = 23,
+    ZMQ_RCVHWM = 24,
+    ZMQ_MULTICAST_HOPS = 25,
+    ZMQ_RCVTIMEO = 27,
+    ZMQ_SNDTIMEO = 28,
+    ZMQ_LAST_ENDPOINT = 32,
+    ZMQ_ROUTER_MANDATORY = 33,
+    ZMQ_TCP_KEEPALIVE = 34,
+    ZMQ_TCP_KEEPALIVE_CNT = 35,
+    ZMQ_TCP_KEEPALIVE_IDLE = 36,
+    ZMQ_TCP_KEEPALIVE_INTVL = 37,
+    ZMQ_IMMEDIATE = 39,
+    ZMQ_XPUB_VERBOSE = 40,
+    ZMQ_ROUTER_RAW = 41,
+    ZMQ_IPV6 = 42,
+    ZMQ_MECHANISM = 43,
+    ZMQ_PLAIN_SERVER = 44,
+    ZMQ_PLAIN_USERNAME = 45,
+    ZMQ_PLAIN_PASSWORD = 46,
+    ZMQ_CURVE_SERVER = 47,
+    ZMQ_CURVE_PUBLICKEY = 48,
+    ZMQ_CURVE_SECRETKEY = 49,
+    ZMQ_CURVE_SERVERKEY = 50,
+    ZMQ_PROBE_ROUTER = 51,
+    ZMQ_REQ_CORRELATE = 52,
+    ZMQ_REQ_RELAXED = 53,
+    ZMQ_CONFLATE = 54,
+    ZMQ_ZAP_DOMAIN = 55,
+    ZMQ_ROUTER_HANDOVER = 56,
+    ZMQ_TOS = 57,
+    ZMQ_CONNECT_RID = 61,
+    ZMQ_GSSAPI_SERVER = 62,
+    ZMQ_GSSAPI_PRINCIPAL = 63,
     ZMQ_GSSAPI_SERVICE_PRINCIPAL = 64,
-    ZMQ_GSSAPI_PLAINTEXT         = 65,
-    ZMQ_HANDSHAKE_IVL            = 66,
-    ZMQ_SOCKS_PROXY              = 68,
-    ZMQ_XPUB_NODROP              = 69,
+    ZMQ_GSSAPI_PLAINTEXT = 65,
+    ZMQ_HANDSHAKE_IVL = 66,
+    ZMQ_SOCKS_PROXY = 68,
+    ZMQ_XPUB_NODROP = 69,
 
-    ZMQ_MSG_MORE                 = 1,
-    ZMQ_MSG_SHARED               = 128,
-    ZMQ_MSG_MASK                 = 129,
+    ZMQ_MSG_MORE = 1,
+    ZMQ_MSG_SHARED = 128,
+    ZMQ_MSG_MASK = 129,
 }
 
 impl Copy for Constants {}
@@ -188,67 +188,67 @@ impl Constants {
     pub fn from_raw(raw: i32) -> Option<Constants> {
         // fails if `raw` is not a valid value
         match raw {
-            4   => Some(Constants::ZMQ_AFFINITY),
-            5   => Some(Constants::ZMQ_IDENTITY),
-            6   => Some(Constants::ZMQ_SUBSCRIBE),
-            7   => Some(Constants::ZMQ_UNSUBSCRIBE),
-            8   => Some(Constants::ZMQ_RATE),
-            9   => Some(Constants::ZMQ_RECOVERY_IVL),
-            11  => Some(Constants::ZMQ_SNDBUF),
-            12  => Some(Constants::ZMQ_RCVBUF),
-            13  => Some(Constants::ZMQ_RCVMORE),
-            14  => Some(Constants::ZMQ_FD),
-            15  => Some(Constants::ZMQ_EVENTS),
-            16  => Some(Constants::ZMQ_TYPE),
-            17  => Some(Constants::ZMQ_LINGER),
-            18  => Some(Constants::ZMQ_RECONNECT_IVL),
-            19  => Some(Constants::ZMQ_BACKLOG),
-            21  => Some(Constants::ZMQ_RECONNECT_IVL_MAX),
-            22  => Some(Constants::ZMQ_MAXMSGSIZE),
-            23  => Some(Constants::ZMQ_SNDHWM),
-            24  => Some(Constants::ZMQ_RCVHWM),
-            25  => Some(Constants::ZMQ_MULTICAST_HOPS),
-            27  => Some(Constants::ZMQ_RCVTIMEO),
-            28  => Some(Constants::ZMQ_SNDTIMEO),
-            32  => Some(Constants::ZMQ_LAST_ENDPOINT),
-            33  => Some(Constants::ZMQ_ROUTER_MANDATORY),
-            34  => Some(Constants::ZMQ_TCP_KEEPALIVE),
-            35  => Some(Constants::ZMQ_TCP_KEEPALIVE_CNT),
-            36  => Some(Constants::ZMQ_TCP_KEEPALIVE_IDLE),
-            37  => Some(Constants::ZMQ_TCP_KEEPALIVE_INTVL),
-            39  => Some(Constants::ZMQ_IMMEDIATE),
-            40  => Some(Constants::ZMQ_XPUB_VERBOSE),
-            41  => Some(Constants::ZMQ_ROUTER_RAW),
-            42  => Some(Constants::ZMQ_IPV6),
-            43  => Some(Constants::ZMQ_MECHANISM),
-            44  => Some(Constants::ZMQ_PLAIN_SERVER),
-            45  => Some(Constants::ZMQ_PLAIN_USERNAME),
-            46  => Some(Constants::ZMQ_PLAIN_PASSWORD),
-            47  => Some(Constants::ZMQ_CURVE_SERVER),
-            48  => Some(Constants::ZMQ_CURVE_PUBLICKEY),
-            49  => Some(Constants::ZMQ_CURVE_SECRETKEY),
-            50  => Some(Constants::ZMQ_CURVE_SERVERKEY),
-            51  => Some(Constants::ZMQ_PROBE_ROUTER),
-            52  => Some(Constants::ZMQ_REQ_CORRELATE),
-            53  => Some(Constants::ZMQ_REQ_RELAXED),
-            54  => Some(Constants::ZMQ_CONFLATE),
-            55  => Some(Constants::ZMQ_ZAP_DOMAIN),
-            56  => Some(Constants::ZMQ_ROUTER_HANDOVER),
-            57  => Some(Constants::ZMQ_TOS),
-            61  => Some(Constants::ZMQ_CONNECT_RID),
-            62  => Some(Constants::ZMQ_GSSAPI_SERVER),
-            63  => Some(Constants::ZMQ_GSSAPI_PRINCIPAL),
-            64  => Some(Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL),
-            65  => Some(Constants::ZMQ_GSSAPI_PLAINTEXT),
-            66  => Some(Constants::ZMQ_HANDSHAKE_IVL),
-            68  => Some(Constants::ZMQ_SOCKS_PROXY),
-            69  => Some(Constants::ZMQ_XPUB_NODROP),
+            4 => Some(Constants::ZMQ_AFFINITY),
+            5 => Some(Constants::ZMQ_IDENTITY),
+            6 => Some(Constants::ZMQ_SUBSCRIBE),
+            7 => Some(Constants::ZMQ_UNSUBSCRIBE),
+            8 => Some(Constants::ZMQ_RATE),
+            9 => Some(Constants::ZMQ_RECOVERY_IVL),
+            11 => Some(Constants::ZMQ_SNDBUF),
+            12 => Some(Constants::ZMQ_RCVBUF),
+            13 => Some(Constants::ZMQ_RCVMORE),
+            14 => Some(Constants::ZMQ_FD),
+            15 => Some(Constants::ZMQ_EVENTS),
+            16 => Some(Constants::ZMQ_TYPE),
+            17 => Some(Constants::ZMQ_LINGER),
+            18 => Some(Constants::ZMQ_RECONNECT_IVL),
+            19 => Some(Constants::ZMQ_BACKLOG),
+            21 => Some(Constants::ZMQ_RECONNECT_IVL_MAX),
+            22 => Some(Constants::ZMQ_MAXMSGSIZE),
+            23 => Some(Constants::ZMQ_SNDHWM),
+            24 => Some(Constants::ZMQ_RCVHWM),
+            25 => Some(Constants::ZMQ_MULTICAST_HOPS),
+            27 => Some(Constants::ZMQ_RCVTIMEO),
+            28 => Some(Constants::ZMQ_SNDTIMEO),
+            32 => Some(Constants::ZMQ_LAST_ENDPOINT),
+            33 => Some(Constants::ZMQ_ROUTER_MANDATORY),
+            34 => Some(Constants::ZMQ_TCP_KEEPALIVE),
+            35 => Some(Constants::ZMQ_TCP_KEEPALIVE_CNT),
+            36 => Some(Constants::ZMQ_TCP_KEEPALIVE_IDLE),
+            37 => Some(Constants::ZMQ_TCP_KEEPALIVE_INTVL),
+            39 => Some(Constants::ZMQ_IMMEDIATE),
+            40 => Some(Constants::ZMQ_XPUB_VERBOSE),
+            41 => Some(Constants::ZMQ_ROUTER_RAW),
+            42 => Some(Constants::ZMQ_IPV6),
+            43 => Some(Constants::ZMQ_MECHANISM),
+            44 => Some(Constants::ZMQ_PLAIN_SERVER),
+            45 => Some(Constants::ZMQ_PLAIN_USERNAME),
+            46 => Some(Constants::ZMQ_PLAIN_PASSWORD),
+            47 => Some(Constants::ZMQ_CURVE_SERVER),
+            48 => Some(Constants::ZMQ_CURVE_PUBLICKEY),
+            49 => Some(Constants::ZMQ_CURVE_SECRETKEY),
+            50 => Some(Constants::ZMQ_CURVE_SERVERKEY),
+            51 => Some(Constants::ZMQ_PROBE_ROUTER),
+            52 => Some(Constants::ZMQ_REQ_CORRELATE),
+            53 => Some(Constants::ZMQ_REQ_RELAXED),
+            54 => Some(Constants::ZMQ_CONFLATE),
+            55 => Some(Constants::ZMQ_ZAP_DOMAIN),
+            56 => Some(Constants::ZMQ_ROUTER_HANDOVER),
+            57 => Some(Constants::ZMQ_TOS),
+            61 => Some(Constants::ZMQ_CONNECT_RID),
+            62 => Some(Constants::ZMQ_GSSAPI_SERVER),
+            63 => Some(Constants::ZMQ_GSSAPI_PRINCIPAL),
+            64 => Some(Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL),
+            65 => Some(Constants::ZMQ_GSSAPI_PLAINTEXT),
+            66 => Some(Constants::ZMQ_HANDSHAKE_IVL),
+            68 => Some(Constants::ZMQ_SOCKS_PROXY),
+            69 => Some(Constants::ZMQ_XPUB_NODROP),
 
-            1    => Some(Constants::ZMQ_MSG_MORE),
-            128  => Some(Constants::ZMQ_MSG_SHARED),
-            129  => Some(Constants::ZMQ_MSG_MASK),
+            1 => Some(Constants::ZMQ_MSG_MORE),
+            128 => Some(Constants::ZMQ_MSG_SHARED),
+            129 => Some(Constants::ZMQ_MSG_MASK),
 
-            _   => None,
+            _ => None,
         }
     }
 }
@@ -257,48 +257,47 @@ impl Constants {
 #[allow(non_camel_case_types)]
 #[derive(Clone, Debug, PartialEq)]
 pub enum Mechanism {
-    ZMQ_NULL   = 0,
-    ZMQ_PLAIN  = 1,
-    ZMQ_CURVE  = 2,
+    ZMQ_NULL = 0,
+    ZMQ_PLAIN = 1,
+    ZMQ_CURVE = 2,
     ZMQ_GSSAPI = 3,
 }
 
 impl Copy for Mechanism {}
 
-
 /// An error returned by a 0MQ API function.
 #[derive(Clone, Eq, PartialEq)]
 pub enum Error {
-    EACCES          = errno::EACCES as isize,
-    EADDRINUSE      = errno::EADDRINUSE as isize,
-    EAGAIN          = errno::EAGAIN as isize,
-    EBUSY           = errno::EBUSY as isize,
-    ECONNREFUSED    = errno::ECONNREFUSED as isize,
-    EFAULT          = errno::EFAULT as isize,
-    EINTR           = errno::EINTR as isize,
-    EHOSTUNREACH    = errno::EHOSTUNREACH as isize,
-    EINPROGRESS     = errno::EINPROGRESS as isize,
-    EINVAL          = errno::EINVAL as isize,
-    EMFILE          = errno::EMFILE as isize,
-    EMSGSIZE        = errno::EMSGSIZE as isize,
-    ENAMETOOLONG    = errno::ENAMETOOLONG as isize,
-    ENODEV          = errno::ENODEV as isize,
-    ENOENT          = errno::ENOENT as isize,
-    ENOMEM          = errno::ENOMEM as isize,
-    ENOTCONN        = errno::ENOTCONN as isize,
-    ENOTSOCK        = errno::ENOTSOCK as isize,
-    EPROTO          = errno::EPROTO as isize,
+    EACCES = errno::EACCES as isize,
+    EADDRINUSE = errno::EADDRINUSE as isize,
+    EAGAIN = errno::EAGAIN as isize,
+    EBUSY = errno::EBUSY as isize,
+    ECONNREFUSED = errno::ECONNREFUSED as isize,
+    EFAULT = errno::EFAULT as isize,
+    EINTR = errno::EINTR as isize,
+    EHOSTUNREACH = errno::EHOSTUNREACH as isize,
+    EINPROGRESS = errno::EINPROGRESS as isize,
+    EINVAL = errno::EINVAL as isize,
+    EMFILE = errno::EMFILE as isize,
+    EMSGSIZE = errno::EMSGSIZE as isize,
+    ENAMETOOLONG = errno::ENAMETOOLONG as isize,
+    ENODEV = errno::ENODEV as isize,
+    ENOENT = errno::ENOENT as isize,
+    ENOMEM = errno::ENOMEM as isize,
+    ENOTCONN = errno::ENOTCONN as isize,
+    ENOTSOCK = errno::ENOTSOCK as isize,
+    EPROTO = errno::EPROTO as isize,
     EPROTONOSUPPORT = errno::EPROTONOSUPPORT as isize,
-    ENOTSUP         = errno::ENOTSUP as isize,
-    ENOBUFS         = errno::ENOBUFS as isize,
-    ENETDOWN        = errno::ENETDOWN as isize,
-    EADDRNOTAVAIL   = errno::EADDRNOTAVAIL as isize,
+    ENOTSUP = errno::ENOTSUP as isize,
+    ENOBUFS = errno::ENOBUFS as isize,
+    ENETDOWN = errno::ENETDOWN as isize,
+    EADDRNOTAVAIL = errno::EADDRNOTAVAIL as isize,
 
     // native zmq error codes
-    EFSM            = errno::EFSM as isize,
-    ENOCOMPATPROTO  = errno::ENOCOMPATPROTO as isize,
-    ETERM           = errno::ETERM as isize,
-    EMTHREAD        = errno::EMTHREAD as isize,
+    EFSM = errno::EFSM as isize,
+    ENOCOMPATPROTO = errno::ENOCOMPATPROTO as isize,
+    ETERM = errno::ETERM as isize,
+    EMTHREAD = errno::EMTHREAD as isize,
 }
 
 impl Copy for Error {}
@@ -311,52 +310,51 @@ impl Error {
     pub fn from_raw(raw: i32) -> Error {
         #![cfg_attr(feature = "clippy", allow(match_same_arms))]
         match raw {
-            errno::EACCES             => Error::EACCES,
-            errno::EADDRINUSE         => Error::EADDRINUSE,
-            errno::EAGAIN             => Error::EAGAIN,
-            errno::EBUSY              => Error::EBUSY,
-            errno::ECONNREFUSED       => Error::ECONNREFUSED,
-            errno::EFAULT             => Error::EFAULT,
-            errno::EHOSTUNREACH       => Error::EHOSTUNREACH,
-            errno::EINPROGRESS        => Error::EINPROGRESS,
-            errno::EINVAL             => Error::EINVAL,
-            errno::EMFILE             => Error::EMFILE,
-            errno::EMSGSIZE           => Error::EMSGSIZE,
-            errno::ENAMETOOLONG       => Error::ENAMETOOLONG,
-            errno::ENODEV             => Error::ENODEV,
-            errno::ENOENT             => Error::ENOENT,
-            errno::ENOMEM             => Error::ENOMEM,
-            errno::ENOTCONN           => Error::ENOTCONN,
-            errno::ENOTSOCK           => Error::ENOTSOCK,
-            errno::EPROTO             => Error::EPROTO,
-            errno::EPROTONOSUPPORT    => Error::EPROTONOSUPPORT,
-            errno::ENOTSUP            => Error::ENOTSUP,
-            errno::ENOBUFS            => Error::ENOBUFS,
-            errno::ENETDOWN           => Error::ENETDOWN,
-            errno::EADDRNOTAVAIL      => Error::EADDRNOTAVAIL,
-            errno::EINTR              => Error::EINTR,
-            156384714                => Error::EPROTONOSUPPORT,
-            156384715                => Error::ENOBUFS,
-            156384716                => Error::ENETDOWN,
-            156384717                => Error::EADDRINUSE,
-            156384718                => Error::EADDRNOTAVAIL,
-            156384719                => Error::ECONNREFUSED,
-            156384720                => Error::EINPROGRESS,
-            156384721                => Error::ENOTSOCK,
-            156384763                => Error::EFSM,
-            156384764                => Error::ENOCOMPATPROTO,
-            156384765                => Error::ETERM,
-            156384766                => Error::EMTHREAD,
+            errno::EACCES => Error::EACCES,
+            errno::EADDRINUSE => Error::EADDRINUSE,
+            errno::EAGAIN => Error::EAGAIN,
+            errno::EBUSY => Error::EBUSY,
+            errno::ECONNREFUSED => Error::ECONNREFUSED,
+            errno::EFAULT => Error::EFAULT,
+            errno::EHOSTUNREACH => Error::EHOSTUNREACH,
+            errno::EINPROGRESS => Error::EINPROGRESS,
+            errno::EINVAL => Error::EINVAL,
+            errno::EMFILE => Error::EMFILE,
+            errno::EMSGSIZE => Error::EMSGSIZE,
+            errno::ENAMETOOLONG => Error::ENAMETOOLONG,
+            errno::ENODEV => Error::ENODEV,
+            errno::ENOENT => Error::ENOENT,
+            errno::ENOMEM => Error::ENOMEM,
+            errno::ENOTCONN => Error::ENOTCONN,
+            errno::ENOTSOCK => Error::ENOTSOCK,
+            errno::EPROTO => Error::EPROTO,
+            errno::EPROTONOSUPPORT => Error::EPROTONOSUPPORT,
+            errno::ENOTSUP => Error::ENOTSUP,
+            errno::ENOBUFS => Error::ENOBUFS,
+            errno::ENETDOWN => Error::ENETDOWN,
+            errno::EADDRNOTAVAIL => Error::EADDRNOTAVAIL,
+            errno::EINTR => Error::EINTR,
+            156384714 => Error::EPROTONOSUPPORT,
+            156384715 => Error::ENOBUFS,
+            156384716 => Error::ENETDOWN,
+            156384717 => Error::EADDRINUSE,
+            156384718 => Error::EADDRNOTAVAIL,
+            156384719 => Error::ECONNREFUSED,
+            156384720 => Error::EINPROGRESS,
+            156384721 => Error::ENOTSOCK,
+            156384763 => Error::EFSM,
+            156384764 => Error::ENOCOMPATPROTO,
+            156384765 => Error::ETERM,
+            156384766 => Error::EMTHREAD,
 
-            x => {
-                unsafe {
-                    let s = zmq_sys::zmq_strerror(x);
-                    panic!("unknown error [{}]: {}",
-                        x,
-                        str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
-                    )
-                }
-            }
+            x => unsafe {
+                let s = zmq_sys::zmq_strerror(x);
+                panic!(
+                    "unknown error [{}]: {}",
+                    x,
+                    str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
+                )
+            },
         }
     }
 }
@@ -365,8 +363,7 @@ impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            let v: &'static [u8] =
-                mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
+            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             str::from_utf8(v).unwrap()
         }
     }
@@ -376,8 +373,7 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            let v: &'static [u8] =
-                mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
+            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             write!(f, "{}", str::from_utf8(v).unwrap())
         }
     }
@@ -388,8 +384,11 @@ impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
             let s = zmq_sys::zmq_strerror(*self as c_int);
-            write!(f, "{}",
-                   str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap())
+            write!(
+                f,
+                "{}",
+                str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
+            )
         }
     }
 }
@@ -408,7 +407,7 @@ impl From<Error> for std::io::Error {
             Error::EAGAIN => ErrorKind::WouldBlock,
             Error::EINVAL => ErrorKind::InvalidInput,
             Error::EINTR => ErrorKind::Interrupted,
-            _ => ErrorKind::Other
+            _ => ErrorKind::Other,
         };
         // TODO: With rust 1.14 and up there is an optimization
         // opportunity using `std::io::Error: From<ErrorKind>` when
@@ -489,8 +488,8 @@ impl Context {
     pub fn new() -> Context {
         Context {
             raw: Arc::new(RawContext {
-                ctx: unsafe { zmq_sys::zmq_ctx_new() }
-            })
+                ctx: unsafe { zmq_sys::zmq_ctx_new() },
+            }),
         }
     }
 
@@ -676,7 +675,9 @@ impl Socket {
     /// Configure the socket for monitoring
     pub fn monitor(&self, monitor_endpoint: &str, events: i32) -> Result<()> {
         let c_str = ffi::CString::new(monitor_endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe { zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int) });
+        zmq_try!(unsafe {
+            zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int)
+        });
         Ok(())
     }
 
@@ -722,7 +723,9 @@ impl Socket {
     /// the slice, indicating truncation.
     pub fn recv_into(&self, bytes: &mut [u8], flags: i32) -> Result<usize> {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
-        let rc = zmq_try!(unsafe { zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int) });
+        let rc = zmq_try!(unsafe {
+            zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
+        });
         Ok(rc as usize)
     }
 
@@ -742,7 +745,8 @@ impl Socket {
     /// If the received message is not valid UTF-8, it is returned as the original
     /// Vec in the `Err` part of the inner result.
     pub fn recv_string(&self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
-        self.recv_bytes(flags).map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
+        self.recv_bytes(flags)
+            .map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
     }
 
     /// Receive a multipart message from the socket.
@@ -786,29 +790,26 @@ impl Socket {
 
     /// Return the type of this socket.
     pub fn get_socket_type(&self) -> Result<SocketType> {
-        sockopt::get(self.sock, Constants::ZMQ_TYPE.to_raw()).map(|ty| {
-            match ty {
-                0 => SocketType::PAIR,
-                1 => SocketType::PUB,
-                2 => SocketType::SUB,
-                3 => SocketType::REQ,
-                4 => SocketType::REP,
-                5 => SocketType::DEALER,
-                6 => SocketType::ROUTER,
-                7 => SocketType::PULL,
-                8 => SocketType::PUSH,
-                9 => SocketType::XPUB,
-                10 => SocketType::XSUB,
-                11 => SocketType::STREAM,
-                _ => panic!("socket type is out of range!")
-            }
+        sockopt::get(self.sock, Constants::ZMQ_TYPE.to_raw()).map(|ty| match ty {
+            0 => SocketType::PAIR,
+            1 => SocketType::PUB,
+            2 => SocketType::SUB,
+            3 => SocketType::REQ,
+            4 => SocketType::REP,
+            5 => SocketType::DEALER,
+            6 => SocketType::ROUTER,
+            7 => SocketType::PULL,
+            8 => SocketType::PUSH,
+            9 => SocketType::XPUB,
+            10 => SocketType::XSUB,
+            11 => SocketType::STREAM,
+            _ => panic!("socket type is out of range!"),
         })
     }
 
     /// Return true if there are more frames of a multipart message to receive.
     pub fn get_rcvmore(&self) -> Result<bool> {
-        sockopt::get(self.sock, Constants::ZMQ_RCVMORE.to_raw())
-            .map(|o: i64| o == 1i64 )
+        sockopt::get(self.sock, Constants::ZMQ_RCVMORE.to_raw()).map(|o: i64| o == 1i64)
     }
 
     sockopts! {
@@ -892,14 +893,12 @@ impl Socket {
     }
 
     pub fn get_mechanism(&self) -> Result<Mechanism> {
-        sockopt::get(self.sock, Constants::ZMQ_MECHANISM.to_raw()).map(|mech| {
-            match mech {
-                0 => Mechanism::ZMQ_NULL,
-                1 => Mechanism::ZMQ_PLAIN,
-                2 => Mechanism::ZMQ_CURVE,
-                3 => Mechanism::ZMQ_GSSAPI,
-                _ => panic!("Mechanism is out of range!")
-            }
+        sockopt::get(self.sock, Constants::ZMQ_MECHANISM.to_raw()).map(|mech| match mech {
+            0 => Mechanism::ZMQ_NULL,
+            1 => Mechanism::ZMQ_PLAIN,
+            2 => Mechanism::ZMQ_CURVE,
+            3 => Mechanism::ZMQ_GSSAPI,
+            _ => panic!("Mechanism is out of range!"),
         })
     }
 
@@ -928,7 +927,12 @@ impl Socket {
     /// (i.e. `0.0.0.0` with IPv4).
     pub fn get_last_endpoint(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
-        sockopt::get_string(self.sock, Constants::ZMQ_LAST_ENDPOINT.to_raw(), 256 + 9 + 1, true)
+        sockopt::get_string(
+            self.sock,
+            Constants::ZMQ_LAST_ENDPOINT.to_raw(),
+            256 + 9 + 1,
+            true,
+        )
     }
 
     #[cfg(ZMQ_HAS_CURVE = "1")]
@@ -955,13 +959,23 @@ impl Socket {
     #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(self.sock, Constants::ZMQ_GSSAPI_PRINCIPAL.to_raw(), 260, true)
+        sockopt::get_string(
+            self.sock,
+            Constants::ZMQ_GSSAPI_PRINCIPAL.to_raw(),
+            260,
+            true,
+        )
     }
 
     #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(self.sock, Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL.to_raw(), 260, true)
+        sockopt::get_string(
+            self.sock,
+            Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL.to_raw(),
+            260,
+            true,
+        )
     }
 
     sockopts! {
@@ -988,7 +1002,7 @@ impl Socket {
             fd: 0,
             events: events,
             revents: 0,
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 
@@ -1030,7 +1044,7 @@ pub struct PollItem<'a> {
     fd: RawFd,
     events: c_short,
     revents: c_short,
-    marker: PhantomData<&'a Socket>
+    marker: PhantomData<&'a Socket>,
 }
 
 impl<'a> PollItem<'a> {
@@ -1042,7 +1056,7 @@ impl<'a> PollItem<'a> {
             fd: fd,
             events: 0,
             revents: 0,
-            marker: PhantomData
+            marker: PhantomData,
         }
     }
 
@@ -1086,9 +1100,11 @@ impl<'a> PollItem<'a> {
 /// events signaled.
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
     let rc = zmq_try!(unsafe {
-        zmq_sys::zmq_poll(items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
-                          items.len() as c_int,
-                          timeout as c_long)
+        zmq_sys::zmq_poll(
+            items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
+            items.len() as c_int,
+            timeout as c_long,
+        )
     });
     Ok(rc as i32)
 }
@@ -1100,8 +1116,7 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
 ///
 /// This function only returns (always with an `Err`) when the sockets' context
 /// has been closed.
-pub fn proxy(frontend: &mut Socket,
-             backend: &mut Socket) -> Result<()> {
+pub fn proxy(frontend: &mut Socket, backend: &mut Socket) -> Result<()> {
     zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
     Ok(())
 }
@@ -1110,9 +1125,11 @@ pub fn proxy(frontend: &mut Socket,
 ///
 /// The capture socket is sent all messages received on the frontend and backend
 /// sockets.
-pub fn proxy_with_capture(frontend: &mut Socket,
-                          backend: &mut Socket,
-                          capture: &mut Socket) -> Result<()> {
+pub fn proxy_with_capture(
+    frontend: &mut Socket,
+    backend: &mut Socket,
+    capture: &mut Socket,
+) -> Result<()> {
     zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock) });
     Ok(())
 }
@@ -1126,9 +1143,7 @@ pub fn proxy_with_capture(frontend: &mut Socket,
 pub fn has(capability: &str) -> Option<bool> {
     if cfg!(ZMQ_HAS_ZMQ_HAS) {
         let c_str = ffi::CString::new(capability).unwrap();
-        unsafe {
-            Some(zmq_sys::zmq_has(c_str.as_ptr()) == 1)
-        }
+        unsafe { Some(zmq_sys::zmq_has(c_str.as_ptr()) == 1) }
     } else {
         None
     }
@@ -1153,7 +1168,8 @@ impl CurveKeyPair {
         zmq_try!(unsafe {
             zmq_sys::zmq_curve_keypair(
                 ffi_public_key.as_mut_ptr() as *mut libc::c_char,
-                ffi_secret_key.as_mut_ptr() as *mut libc::c_char)
+                ffi_secret_key.as_mut_ptr() as *mut libc::c_char,
+            )
         });
 
         ffi_public_key.truncate(40);
@@ -1218,10 +1234,11 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
         zmq_sys::zmq_z85_encode(
             dest.as_mut_ptr() as *mut libc::c_char,
             data.as_ptr(),
-            data.len());
+            data.len(),
+        );
     }
 
-    dest.truncate(len-1);
+    dest.truncate(len - 1);
     String::from_utf8(dest).map_err(EncodeError::FromUtf8Error)
 }
 

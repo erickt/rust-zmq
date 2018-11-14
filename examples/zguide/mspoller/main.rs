@@ -16,7 +16,6 @@ fn main() {
     let filter = b"10001";
     assert!(subscriber.set_subscribe(filter).is_ok());
 
-
     // Process messages from both sockets
     let mut msg = zmq::Message::new().unwrap();
     loop {

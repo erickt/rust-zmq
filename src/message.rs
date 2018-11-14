@@ -1,11 +1,11 @@
 extern crate zmq_sys;
 
-use libc::{size_t};
+use libc::size_t;
 
 use std::ffi;
 use std::fmt;
-use std::{mem, ptr, str, slice};
 use std::ops::{Deref, DerefMut};
+use std::{mem, ptr, slice, str};
 
 use super::Result;
 
@@ -87,7 +87,7 @@ impl Message {
     /// Return the `ZMQ_MORE` flag, which indicates if more parts of a multipart
     /// message will follow.
     pub fn get_more(&self) -> bool {
-        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _, ) };
+        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _) };
         rc != 0
     }
 
@@ -95,9 +95,7 @@ impl Message {
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 
-        let value = unsafe {
-            zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr())
-        };
+        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr()) };
 
         if value.is_null() {
             None

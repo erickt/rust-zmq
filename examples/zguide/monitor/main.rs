@@ -1,20 +1,18 @@
 #![crate_name = "monitor"]
 
-
-
 extern crate zmq;
 use std::str;
 
 /// Read one event off the monitor socket; return the SocketEvent value.
-fn get_monitor_event(monitor: &mut zmq::Socket)
-    -> zmq::Result<zmq::SocketEvent>
-{
+fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent> {
     let mut msg = zmq::Message::new()?;
     monitor.recv(&mut msg, 0)?;
-    let event= ((msg[1] as u16) << 8) | msg[0] as u16;
+    let event = ((msg[1] as u16) << 8) | msg[0] as u16;
 
-    assert!(monitor.get_rcvmore()?,
-            "Monitor socket should have two messages per event");
+    assert!(
+        monitor.get_rcvmore()?,
+        "Monitor socket should have two messages per event"
+    );
 
     // the address, we'll ignore it
     monitor.recv(&mut msg, 0)?;
@@ -67,14 +65,21 @@ fn main() {
     let mut client = ctx.socket(zmq::DEALER).unwrap();
     let mut server = ctx.socket(zmq::DEALER).unwrap();
 
-    let err = client.monitor("tcp://127.0.0.1:9999", 0).expect_err(
-        "Socket monitoring only works over inproc://");
+    let err = client
+        .monitor("tcp://127.0.0.1:9999", 0)
+        .expect_err("Socket monitoring only works over inproc://");
     assert_eq!(zmq::Error::EPROTONOSUPPORT, err);
 
-    assert!(client.monitor("inproc://monitor-client",
-                           zmq::SocketEvent::ALL as i32).is_ok());
-    assert!(server.monitor("inproc://monitor-server",
-                           zmq::SocketEvent::ALL as i32).is_ok());
+    assert!(
+        client
+            .monitor("inproc://monitor-client", zmq::SocketEvent::ALL as i32)
+            .is_ok()
+    );
+    assert!(
+        server
+            .monitor("inproc://monitor-server", zmq::SocketEvent::ALL as i32)
+            .is_ok()
+    );
 
     let mut client_mon = ctx.socket(zmq::PAIR).unwrap();
     let mut server_mon = ctx.socket(zmq::PAIR).unwrap();

@@ -27,12 +27,16 @@ fn main() {
 
     let mut total_temp = 0;
 
-    for _ in 0 .. 100 {
+    for _ in 0..100 {
         let string = subscriber.recv_string(0).unwrap().unwrap();
         let chks: Vec<i64> = string.split(' ').map(atoi).collect();
         let (_zipcode, temperature, _relhumidity) = (chks[0], chks[1], chks[2]);
         total_temp += temperature;
     }
 
-    println!("Average temperature for zipcode '{}' was {}F", filter, (total_temp / 100));
+    println!(
+        "Average temperature for zipcode '{}' was {}F",
+        filter,
+        (total_temp / 100)
+    );
 }
