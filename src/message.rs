@@ -5,7 +5,7 @@ use libc::size_t;
 use std::ffi;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
-use std::{mem, ptr, slice, str};
+use std::{ptr, slice, str};
 
 use super::Result;
 
@@ -25,7 +25,7 @@ pub struct Message {
 
 impl PartialEq for Message {
     fn eq(&self, other: &Message) -> bool {
-        &self[..] == &other[..]
+        self[..] == other[..]
     }
 }
 
@@ -51,14 +51,14 @@ impl Message {
     pub fn new() -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(unsafe { zmq_sys::zmq_msg_init(&mut msg) });
-        Ok(Message { msg: msg })
+        Ok(Message { msg })
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(zmq_sys::zmq_msg_init_size(&mut msg, len as size_t));
-        Ok(Message { msg: msg })
+        Ok(Message { msg })
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
@@ -115,7 +115,7 @@ impl Deref for Message {
             let ptr = &self.msg as *const _ as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            slice::from_raw_parts(mem::transmute(data), len)
+            slice::from_raw_parts(data as *mut u8, len)
         }
     }
 }
@@ -127,7 +127,7 @@ impl DerefMut for Message {
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
-            slice::from_raw_parts_mut(mem::transmute(data), len)
+            slice::from_raw_parts_mut(data as *mut u8, len)
         }
     }
 }

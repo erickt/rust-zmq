@@ -9,11 +9,12 @@
 extern crate zmq;
 
 use std::env;
+use std::f64;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::thread;
 use std::time::{Duration, Instant};
 
-fn server(pull_socket: zmq::Socket, push_socket: zmq::Socket, mut workers: u64) {
+fn server(pull_socket: &zmq::Socket, push_socket: &zmq::Socket, mut workers: u64) {
     let mut count = 0;
     let mut msg = zmq::Message::new().unwrap();
 
@@ -48,7 +49,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
         // Wait until we need to start.
         start_rx.recv().unwrap();
 
-        server(pull_socket, push_socket, workers);
+        server(&pull_socket, &push_socket, workers);
     });
 
     // Wait for the server to start.
@@ -57,7 +58,7 @@ fn spawn_server(ctx: &mut zmq::Context, workers: u64) -> Sender<()> {
     start_tx
 }
 
-fn worker(push_socket: zmq::Socket, count: u64) {
+fn worker(push_socket: &zmq::Socket, count: u64) {
     for _ in 0..count {
         push_socket.send_str(&100.to_string(), 0).unwrap();
     }
@@ -78,7 +79,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
         // Let the main thread we're ready.
         tx.send(()).unwrap();
 
-        worker(push_socket, count);
+        worker(&push_socket, count);
 
         tx.send(()).unwrap();
     });
@@ -90,7 +91,7 @@ fn spawn_worker(ctx: &mut zmq::Context, count: u64) -> Receiver<()> {
 }
 
 fn seconds(d: &Duration) -> f64 {
-    d.as_secs() as f64 + (d.subsec_nanos() as f64 / 1e9)
+    d.as_secs() as f64 + (f64::from(d.subsec_nanos()) / 1e9)
 }
 
 fn run(ctx: &mut zmq::Context, size: u64, workers: u64) {

@@ -7,7 +7,7 @@ use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 
-use rand::distributions::{IndependentSample, Range};
+use rand::distributions::{Distribution, Range};
 
 fn main() {
     let context = zmq::Context::new();
@@ -39,7 +39,7 @@ fn main() {
         sleep(Duration::from_millis(1000));
         publisher
             .send_str(
-                &format!("{:03}", topic_range.ind_sample(&mut rng)),
+                &format!("{:03}", topic_range.sample(&mut rng)),
                 zmq::SNDMORE,
             ).unwrap();
         publisher.send_str("Off with his head!", 0).unwrap();

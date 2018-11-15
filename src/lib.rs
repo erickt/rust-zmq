@@ -1,9 +1,7 @@
 //! Module: zmq
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(trivial_numeric_casts)]
-#![cfg_attr(feature = "clippy", allow(needless_lifetimes))]
 
 #[macro_use]
 extern crate log;
@@ -84,6 +82,8 @@ pub enum SocketEvent {
 impl Copy for SocketEvent {}
 
 impl SocketEvent {
+    // FIXME: switch this to copy when doing a major version bump.
+    #![cfg_attr(feature = "cargo-clippy", allow(clippy::trivially_copy_pass_by_ref))]
     pub fn to_raw(&self) -> u16 {
         *self as u16
     }
@@ -181,8 +181,8 @@ pub enum Constants {
 impl Copy for Constants {}
 
 impl Constants {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    fn to_raw(self) -> i32 {
+        self as i32
     }
 
     pub fn from_raw(raw: i32) -> Option<Constants> {
@@ -303,12 +303,15 @@ pub enum Error {
 impl Copy for Error {}
 
 impl Error {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    // FIXME: switch this to copy when doing a major version bump.
+    #![cfg_attr(feature = "cargo-clippy", allow(clippy::trivially_copy_pass_by_ref))]
+    pub fn to_raw(self) -> i32 {
+        self as i32
     }
 
     pub fn from_raw(raw: i32) -> Error {
-        #![cfg_attr(feature = "clippy", allow(match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
         match raw {
             errno::EACCES => Error::EACCES,
             errno::EADDRINUSE => Error::EADDRINUSE,
@@ -334,18 +337,18 @@ impl Error {
             errno::ENETDOWN => Error::ENETDOWN,
             errno::EADDRNOTAVAIL => Error::EADDRNOTAVAIL,
             errno::EINTR => Error::EINTR,
-            156384714 => Error::EPROTONOSUPPORT,
-            156384715 => Error::ENOBUFS,
-            156384716 => Error::ENETDOWN,
-            156384717 => Error::EADDRINUSE,
-            156384718 => Error::EADDRNOTAVAIL,
-            156384719 => Error::ECONNREFUSED,
-            156384720 => Error::EINPROGRESS,
-            156384721 => Error::ENOTSOCK,
-            156384763 => Error::EFSM,
-            156384764 => Error::ENOCOMPATPROTO,
-            156384765 => Error::ETERM,
-            156384766 => Error::EMTHREAD,
+            156_384_714 => Error::EPROTONOSUPPORT,
+            156_384_715 => Error::ENOBUFS,
+            156_384_716 => Error::ENETDOWN,
+            156_384_717 => Error::EADDRINUSE,
+            156_384_718 => Error::EADDRNOTAVAIL,
+            156_384_719 => Error::ECONNREFUSED,
+            156_384_720 => Error::EINPROGRESS,
+            156_384_721 => Error::ENOTSOCK,
+            156_384_763 => Error::EFSM,
+            156_384_764 => Error::ENOCOMPATPROTO,
+            156_384_765 => Error::ETERM,
+            156_384_766 => Error::EMTHREAD,
 
             x => unsafe {
                 let s = zmq_sys::zmq_strerror(x);
@@ -506,7 +509,7 @@ impl Context {
         }
 
         Ok(Socket {
-            sock: sock,
+            sock,
             context: Some(self.clone()),
             owned: true,
         })
@@ -636,7 +639,7 @@ impl Socket {
     /// when it is dropped. The returned socket will not reference any context.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
-            sock: sock,
+            sock,
             context: None,
             owned: true,
         }
@@ -1000,7 +1003,7 @@ impl Socket {
         PollItem {
             socket: self.sock,
             fd: 0,
-            events: events,
+            events,
             revents: 0,
             marker: PhantomData,
         }
@@ -1053,7 +1056,7 @@ impl<'a> PollItem<'a> {
     pub fn from_fd(fd: RawFd) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
-            fd: fd,
+            fd,
             events: 0,
             revents: 0,
             marker: PhantomData,
@@ -1179,8 +1182,8 @@ impl CurveKeyPair {
         let secret_key = String::from_utf8(ffi_secret_key).expect("key not utf8");
 
         Ok(CurveKeyPair {
-            public_key: public_key,
-            secret_key: secret_key,
+            public_key,
+            secret_key,
         })
     }
 }

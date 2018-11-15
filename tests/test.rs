@@ -183,8 +183,8 @@ test!(test_create_stream_socket, {
 test!(test_getset_maxmsgsize, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_maxmsgsize(512000).unwrap();
-    assert_eq!(sock.get_maxmsgsize().unwrap(), 512000);
+    sock.set_maxmsgsize(512_000).unwrap();
+    assert_eq!(sock.get_maxmsgsize().unwrap(), 512_000);
 });
 
 test!(test_getset_sndhwm, {
@@ -585,8 +585,8 @@ mod compile {
     use std::path::PathBuf;
 
     fn run_mode(mode: &'static str) {
-        let mut config = compiletest::default_config();
-        let cfg_mode = mode.parse().ok().expect("Invalid mode");
+        let mut config = compiletest::Config::default();
+        let cfg_mode = mode.parse().expect("Invalid mode");
 
         config.mode = cfg_mode;
         config.src_base = PathBuf::from(format!("tests/{}", mode));

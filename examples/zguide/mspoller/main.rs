@@ -24,15 +24,11 @@ fn main() {
             subscriber.as_poll_item(zmq::POLLIN),
         ];
         zmq::poll(&mut items, -1).unwrap();
-        if items[0].is_readable() {
-            if receiver.recv(&mut msg, 0).is_ok() {
-                //  Process task
-            }
+        if items[0].is_readable() && receiver.recv(&mut msg, 0).is_ok() {
+            //  Process task
         }
-        if items[1].is_readable() {
-            if subscriber.recv(&mut msg, 0).is_ok() {
-                // Process weather update
-            }
+        if items[1].is_readable() && subscriber.recv(&mut msg, 0).is_ok() {
+            // Process weather update
         }
     }
 }

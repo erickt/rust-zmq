@@ -59,11 +59,11 @@ test!(test_poll_tcp, {
     );
 });
 
-fn send_message(_ctx: zmq::Context, socket: zmq::Socket) {
+fn send_message(_ctx: &zmq::Context, socket: &zmq::Socket) {
     socket.send(b"Message1", 0).unwrap();
 }
 
-fn check_poll(_ctx: zmq::Context, pull_socket: zmq::Socket) {
+fn check_poll(_ctx: &zmq::Context, pull_socket: &zmq::Socket) {
     {
         let mut poll_items = vec![pull_socket.as_poll_item(zmq::POLLIN)];
         assert_eq!(zmq::poll(&mut poll_items, 1000).unwrap(), 1);
@@ -74,7 +74,7 @@ fn check_poll(_ctx: zmq::Context, pull_socket: zmq::Socket) {
     assert_eq!(&msg[..], b"Message1");
 }
 
-fn check_recv(_ctx: zmq::Context, pull_socket: zmq::Socket) {
+fn check_recv(_ctx: &zmq::Context, pull_socket: &zmq::Socket) {
     let msg = pull_socket.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"Message1");
 }
@@ -90,8 +90,8 @@ pub fn with_connection<F, G>(
     child_type: zmq::SocketType,
     child: G,
 ) where
-    F: Fn(zmq::Context, zmq::Socket) + Send + 'static,
-    G: Fn(zmq::Context, zmq::Socket) + Send + 'static,
+    F: for<'r> Fn(&'r zmq::Context, &zmq::Socket) + Send + 'static,
+    G: for<'r> Fn(&'r zmq::Context, &zmq::Socket) + Send + 'static,
 {
     let ctx = zmq::Context::new();
 
@@ -103,11 +103,11 @@ pub fn with_connection<F, G>(
         let w_ctx = ctx.clone();
         thread::spawn(move || {
             let pull_socket = connect_socket(&w_ctx, child_type, &endpoint).unwrap();
-            child(w_ctx, pull_socket);
+            child(&w_ctx, &pull_socket);
         })
     };
 
-    parent(ctx, push_socket);
+    parent(&ctx, &push_socket);
 
     thread.join().unwrap();
 }

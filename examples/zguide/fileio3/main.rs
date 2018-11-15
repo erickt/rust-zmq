@@ -9,6 +9,7 @@ extern crate rand;
 extern crate tempfile;
 extern crate zmq;
 
+use rand::distributions::Alphanumeric;
 use rand::Rng;
 use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
@@ -16,13 +17,16 @@ use std::thread;
 use tempfile::tempfile;
 use zmq::SNDMORE;
 
-static CHUNK_SIZE: usize = 250000;
+static CHUNK_SIZE: usize = 250_000;
 static CHUNK_SIZE_STR: &'static str = "250000";
 static PIPELINE: usize = 10;
 static PIPELINE_HWM: usize = 20;
 
 fn random_string(length: usize) -> String {
-    rand::thread_rng().gen_ascii_chars().take(length).collect()
+    rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(length)
+        .collect()
 }
 
 fn client_thread(expected_total: usize) {
@@ -126,7 +130,7 @@ fn main() {
         println!("Generating temporary data...");
         let mut file = tempfile().unwrap();
         // Prepare some random test data of appropriate size
-        file.write(random_string(10 * CHUNK_SIZE).as_bytes())
+        file.write_all(random_string(10 * CHUNK_SIZE).as_bytes())
             .unwrap();
 
         // Start server thread
