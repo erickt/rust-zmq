@@ -2,12 +2,13 @@
 
 extern crate zmq;
 use std::str;
+use std::u16;
 
 /// Read one event off the monitor socket; return the SocketEvent value.
 fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent> {
     let mut msg = zmq::Message::new()?;
     monitor.recv(&mut msg, 0)?;
-    let event = ((msg[1] as u16) << 8) | msg[0] as u16;
+    let event = (u16::from(msg[1]) << 8) | u16::from(msg[0]);
 
     assert!(
         monitor.get_rcvmore()?,
@@ -54,7 +55,7 @@ fn bounce(client: &mut zmq::Socket, server: &mut zmq::Socket) {
 }
 
 /// Close the given socket with LINGER set to 0
-fn close_zero_linger(socket: &mut zmq::Socket) {
+fn close_zero_linger(socket: zmq::Socket) {
     socket.set_linger(0).unwrap();
     drop(socket);
 }
@@ -94,8 +95,8 @@ fn main() {
     bounce(&mut client, &mut server);
 
     // Close client and server
-    close_zero_linger(&mut client);
-    close_zero_linger(&mut server);
+    close_zero_linger(client);
+    close_zero_linger(server);
 
     // Now collect and check events from both sockets
     let mut event = get_monitor_event(&mut client_mon).unwrap();
@@ -111,23 +112,23 @@ fn main() {
     println!("got client monitor event {:?}", event);
 
     // This is the flow of server events
-    event = get_monitor_event(&mut server).unwrap();
+    event = get_monitor_event(&mut server_mon).unwrap();
     println!("got server monitor event {:?}", event);
     assert_eq!(zmq::SocketEvent::LISTENING, event);
 
-    event = get_monitor_event(&mut server).unwrap();
+    event = get_monitor_event(&mut server_mon).unwrap();
     println!("got server monitor event {:?}", event);
     assert_eq!(zmq::SocketEvent::ACCEPTED, event);
 
-    event = get_monitor_event(&mut server).unwrap();
+    event = get_monitor_event(&mut server_mon).unwrap();
     println!("got server monitor event {:?}", event);
     assert_eq!(zmq::SocketEvent::CLOSED, event);
 
-    event = get_monitor_event(&mut server).unwrap();
+    event = get_monitor_event(&mut server_mon).unwrap();
     println!("got server monitor event {:?}", event);
     assert_eq!(zmq::SocketEvent::MONITOR_STOPPED, event);
 
     // Close down the sockets
-    close_zero_linger(&mut client_mon);
-    close_zero_linger(&mut server_mon);
+    close_zero_linger(client_mon);
+    close_zero_linger(server_mon);
 }
