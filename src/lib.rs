@@ -85,13 +85,8 @@ pub enum SocketEvent {
 impl Copy for SocketEvent {}
 
 impl SocketEvent {
-    // FIXME: switch this to copy when doing a major version bump.
-    #![cfg_attr(
-        feature = "cargo-clippy",
-        allow(clippy::trivially_copy_pass_by_ref)
-    )]
-    pub fn to_raw(&self) -> u16 {
-        *self as u16
+    pub fn to_raw(self) -> u16 {
+        self as u16
     }
 
     pub fn from_raw(raw: u16) -> SocketEvent {
@@ -242,18 +237,11 @@ pub enum Error {
 impl Copy for Error {}
 
 impl Error {
-    // FIXME: switch this to copy when doing a major version bump.
-    #![cfg_attr(
-        feature = "cargo-clippy",
-        allow(clippy::trivially_copy_pass_by_ref)
-    )]
     pub fn to_raw(self) -> i32 {
         self as i32
     }
 
     pub fn from_raw(raw: i32) -> Error {
-        #![cfg_attr(feature = "cargo-clippy", allow(clippy::match_same_arms))]
-        #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
         match raw {
             errno::EACCES => Error::EACCES,
             errno::EADDRINUSE => Error::EADDRINUSE,
