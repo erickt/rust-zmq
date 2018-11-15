@@ -1,6 +1,6 @@
 use imp::errno as errno;
 
-const ZMQ_HAUSNUMERO: i32 = 156384712;
+const ZMQ_HAUSNUMERO: i32 = 156_384_712;
 
 pub const EACCES:           i32 = errno::EACCES;
 pub const EADDRINUSE:       i32 = errno::EADDRINUSE;

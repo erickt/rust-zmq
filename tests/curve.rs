@@ -14,7 +14,9 @@ fn create_socketpair() -> (Socket, Socket) {
 
     // receiver socket acts as server, will accept connections
     receiver.set_curve_server(true).unwrap();
-    receiver.set_curve_secretkey(&server_pair.secret_key).unwrap();
+    receiver
+        .set_curve_secretkey(&server_pair.secret_key)
+        .unwrap();
 
     // sender socket, acts as client
     sender.set_curve_serverkey(&server_pair.public_key).unwrap();
@@ -29,7 +31,9 @@ fn create_socketpair() -> (Socket, Socket) {
 
 test!(test_curve_messages, {
     let (sender, receiver) = create_socketpair();
-    sender.send_msg(Message::from_slice(b"foo").unwrap(), 0).unwrap();
+    sender
+        .send_msg(Message::from_slice(b"foo").unwrap(), 0)
+        .unwrap();
     let msg = receiver.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"foo");
     assert_eq!(msg.as_str(), Some("foo"));

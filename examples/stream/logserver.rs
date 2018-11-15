@@ -5,7 +5,6 @@
 use std::str;
 extern crate zmq;
 
-
 fn main() {
     println!("Hello, world!");
 
@@ -15,6 +14,10 @@ fn main() {
     socket.bind("tcp://*:8888").unwrap();
     loop {
         let data = socket.recv_multipart(0).unwrap();
-        println!("Identity: {:?} Message : {}", data[0], str::from_utf8(&data[1]).unwrap());
+        println!(
+            "Identity: {:?} Message : {}",
+            data[0],
+            str::from_utf8(&data[1]).unwrap()
+        );
     }
 }

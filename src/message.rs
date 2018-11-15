@@ -1,11 +1,11 @@
 extern crate zmq_sys;
 
-use libc::{size_t};
+use libc::size_t;
 
 use std::ffi;
 use std::fmt;
-use std::{mem, ptr, str, slice};
 use std::ops::{Deref, DerefMut};
+use std::{ptr, slice, str};
 
 use super::Result;
 
@@ -25,7 +25,7 @@ pub struct Message {
 
 impl PartialEq for Message {
     fn eq(&self, other: &Message) -> bool {
-        &self[..] == &other[..]
+        self[..] == other[..]
     }
 }
 
@@ -51,14 +51,14 @@ impl Message {
     pub fn new() -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(unsafe { zmq_sys::zmq_msg_init(&mut msg) });
-        Ok(Message { msg: msg })
+        Ok(Message { msg })
     }
 
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     pub unsafe fn with_capacity_unallocated(len: usize) -> Result<Message> {
         let mut msg = zmq_sys::zmq_msg_t::default();
         zmq_try!(zmq_sys::zmq_msg_init_size(&mut msg, len as size_t));
-        Ok(Message { msg: msg })
+        Ok(Message { msg })
     }
 
     /// Create a `Message` with space for `len` bytes that are initialized to 0.
@@ -87,7 +87,7 @@ impl Message {
     /// Return the `ZMQ_MORE` flag, which indicates if more parts of a multipart
     /// message will follow.
     pub fn get_more(&self) -> bool {
-        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _, ) };
+        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _) };
         rc != 0
     }
 
@@ -95,9 +95,7 @@ impl Message {
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 
-        let value = unsafe {
-            zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr())
-        };
+        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr()) };
 
         if value.is_null() {
             None
@@ -117,7 +115,7 @@ impl Deref for Message {
             let ptr = &self.msg as *const _ as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            slice::from_raw_parts(mem::transmute(data), len)
+            slice::from_raw_parts(data as *mut u8, len)
         }
     }
 }
@@ -129,7 +127,7 @@ impl DerefMut for Message {
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
-            slice::from_raw_parts_mut(mem::transmute(data), len)
+            slice::from_raw_parts_mut(data as *mut u8, len)
         }
     }
 }

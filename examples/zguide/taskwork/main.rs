@@ -5,7 +5,6 @@
 /// Collects workloads from ventilator via that socket
 /// Connects PUSH socket to tcp://localhost:5558
 /// Sends results to sink via that socket
-
 extern crate zmq;
 
 use std::io::{self, Write};
@@ -39,6 +38,5 @@ fn main() {
 
         // Send results to sink
         sender.send(b"", 0).unwrap();
-     }
-
+    }
 }

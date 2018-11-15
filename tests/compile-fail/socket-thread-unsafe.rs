@@ -12,7 +12,7 @@ fn main() {
     let mut context = zmq::Context::new();
     let socket = t!(context.socket(zmq::REP));
     let s = &socket;
-    let t = thread::spawn(move || {  //~ ERROR trait bound
+    let t = thread::spawn(move || {  //~ cannot be shared between threads safely [E0277]
         t!(s.bind("tcp://127.0.0.1:12345"))
     });
     socket.send_str("ABC", 0);

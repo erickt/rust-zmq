@@ -29,7 +29,9 @@ fn create_socketpair() -> (Socket, Socket) {
 
 test!(test_exchanging_messages, {
     let (sender, receiver) = create_socketpair();
-    sender.send_msg(Message::from_slice(b"foo").unwrap(), 0).unwrap();
+    sender
+        .send_msg(Message::from_slice(b"foo").unwrap(), 0)
+        .unwrap();
     let msg = receiver.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"foo");
     assert_eq!(msg.as_str(), Some("foo"));
@@ -48,7 +50,7 @@ test!(test_exchanging_bytes, {
 
     receiver.send(b"a quite long string", 0).unwrap();
     let mut buf = [0_u8; 10];
-    sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
+    sender.recv_into(&mut buf, 0).unwrap(); // this should truncate the message
     assert_eq!(&buf[..], b"a quite lo");
 });
 
@@ -100,10 +102,10 @@ test!(test_raw_roundtrip, {
     let ctx = Context::new();
     let mut sock = ctx.socket(SocketType::REQ).unwrap();
 
-    let ptr = sock.as_mut_ptr();  // doesn't consume the socket
-    // NOTE: the socket will give up its context referecnce, but because we
-    // still hold a reference in `ctx`, we won't get a deadlock.
-    let raw = sock.into_raw();    // consumes the socket
+    let ptr = sock.as_mut_ptr(); // doesn't consume the socket
+                                 // NOTE: the socket will give up its context referecnce, but because we
+                                 // still hold a reference in `ctx`, we won't get a deadlock.
+    let raw = sock.into_raw(); // consumes the socket
     assert_eq!(ptr, raw);
     let _ = unsafe { Socket::from_raw(raw) };
 });
@@ -181,8 +183,8 @@ test!(test_create_stream_socket, {
 test!(test_getset_maxmsgsize, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_maxmsgsize(512000).unwrap();
-    assert_eq!(sock.get_maxmsgsize().unwrap(), 512000);
+    sock.set_maxmsgsize(512_000).unwrap();
+    assert_eq!(sock.get_maxmsgsize().unwrap(), 512_000);
 });
 
 test!(test_getset_sndhwm, {
@@ -319,8 +321,12 @@ test!(test_getset_socks_proxy, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
-    sock.set_socks_proxy(Some("my_socks_server.com:10080")).unwrap();
-    assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "my_socks_server.com:10080");
+    sock.set_socks_proxy(Some("my_socks_server.com:10080"))
+        .unwrap();
+    assert_eq!(
+        sock.get_socks_proxy().unwrap().unwrap(),
+        "my_socks_server.com:10080"
+    );
 
     sock.set_socks_proxy(None).unwrap();
     assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "");
@@ -466,26 +472,37 @@ test!(test_getset_curve_server, {
 test!(test_getset_curve_publickey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_publickey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    assert_eq!(sock.get_curve_publickey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    sock.set_curve_publickey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL")
+        .unwrap();
+    assert_eq!(
+        sock.get_curve_publickey().unwrap().unwrap(),
+        "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL"
+    );
 });
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_secretkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_secretkey("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
-    assert_eq!(sock.get_curve_secretkey().unwrap().unwrap(), "s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS");
+    sock.set_curve_secretkey("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS")
+        .unwrap();
+    assert_eq!(
+        sock.get_curve_secretkey().unwrap().unwrap(),
+        "s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS"
+    );
 });
 
 #[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_serverkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_serverkey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    assert_eq!(sock.get_curve_serverkey().unwrap().unwrap(), "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL");
+    sock.set_curve_serverkey("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL")
+        .unwrap();
+    assert_eq!(
+        sock.get_curve_serverkey().unwrap().unwrap(),
+        "FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL"
+    );
 });
-
 
 test!(test_getset_conflate, {
     let ctx = Context::new();
@@ -501,13 +518,21 @@ test!(test_disconnect, {
     let ep = receiver.get_last_endpoint().unwrap().unwrap();
     sender.disconnect(&ep).unwrap();
     // And check that the message can no longer be sent
-    assert_eq!(Error::EAGAIN, sender.send_msg(Message::from_slice(b"foo").unwrap(), DONTWAIT).unwrap_err());
+    assert_eq!(
+        Error::EAGAIN,
+        sender
+            .send_msg(Message::from_slice(b"foo").unwrap(), DONTWAIT)
+            .unwrap_err()
+    );
 });
 
 test!(test_disconnect_err, {
     let (sender, _) = create_socketpair();
     // Check that disconnect propagates errors. The endpoint is not connected.
-    assert_eq!(Error::ENOENT, sender.disconnect("tcp://192.0.2.1:2233").unwrap_err());
+    assert_eq!(
+        Error::ENOENT,
+        sender.disconnect("tcp://192.0.2.1:2233").unwrap_err()
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -531,7 +556,10 @@ test!(test_getset_gssapi_service_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_service_principal("principal").unwrap();
-    assert_eq!(sock.get_gssapi_service_principal().unwrap().unwrap(), "principal");
+    assert_eq!(
+        sock.get_gssapi_service_principal().unwrap().unwrap(),
+        "principal"
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -557,8 +585,8 @@ mod compile {
     use std::path::PathBuf;
 
     fn run_mode(mode: &'static str) {
-        let mut config = compiletest::default_config();
-        let cfg_mode = mode.parse().ok().expect("Invalid mode");
+        let mut config = compiletest::Config::default();
+        let cfg_mode = mode.parse().expect("Invalid mode");
 
         config.mode = cfg_mode;
         config.src_base = PathBuf::from(format!("tests/{}", mode));

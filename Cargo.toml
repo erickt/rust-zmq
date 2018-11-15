@@ -1,6 +1,6 @@
 [package]
 name = "zmq"
-version = "0.8.2"
+version = "0.8.3"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -81,7 +81,6 @@ unstable = []
 default = ["zmq_has"]
 zmq_has = [] # zmq_has was added in zeromq 4.1.
 unstable-testing = ["compiletest_rs", "unstable"]
-#unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
 [[example]]
 name = "rtdealer"
@@ -93,18 +92,17 @@ path = "examples/zguide/fileio3/main.rs"
 
 [dependencies]
 libc = "0.2.15"
-log = "0.3.6"
+log = "0.4.3"
 zmq-sys = { version = "0.8.2", path = "zmq-sys" }
-compiletest_rs = { version = "0.*", optional = true }
-clippy = { version = "0.*", optional = true }
+compiletest_rs = { version = "0.3", optional = true }
 
 [build-dependencies]
 zmq-sys = { version = "0.8.2", path = "zmq-sys" }
 
 [dev-dependencies]
-env_logger = "0.3"
-quickcheck = "0.4.0"
-rand = "0.3"
-tempfile = "2.1"
+env_logger = "0.5"
+quickcheck = "0.6"
+rand = "0.5"
+tempfile = "3"
 timebomb = "0.1.2"
-nix = "0.7"
+nix = "0.11"

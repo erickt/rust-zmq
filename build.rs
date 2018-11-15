@@ -4,11 +4,11 @@ extern crate zmq_sys as zmq;
 fn main() {
     use std::ffi::CString;
 
-	for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
-		if unsafe { zmq::zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
-			println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has.to_uppercase());
-		}
-	}
+    for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
+        if unsafe { zmq::zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
+            println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has.to_uppercase());
+        }
+    }
 }
 
 #[cfg(not(feature = "zmq_has"))]
@@ -30,13 +30,16 @@ fn main() {
         let ctx = zmq::zmq_ctx_new();
         assert!(!ctx.is_null());
 
-        for &(opt, feature) in &[(ZMQ_CURVE_SERVER, "curve"),
-                                 (ZMQ_GSSAPI_SERVER, "gssapi")] {
+        for &(opt, feature) in &[(ZMQ_CURVE_SERVER, "curve"), (ZMQ_GSSAPI_SERVER, "gssapi")] {
             let sock = zmq::zmq_socket(ctx, ZMQ_REQ);
             assert!(!sock.is_null());
             let mut one: c_int = 1;
-            let rc = zmq::zmq_setsockopt(sock, opt, &mut one as *mut c_int as *mut _,
-                                         size_of::<c_int>());
+            let rc = zmq::zmq_setsockopt(
+                sock,
+                opt,
+                &mut one as *mut c_int as *mut _,
+                size_of::<c_int>(),
+            );
             if rc == -1 {
                 assert!(zmq::zmq_errno() == zmq::errno::EINVAL);
             } else {
