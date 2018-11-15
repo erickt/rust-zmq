@@ -6,7 +6,7 @@ use std::ffi;
 use std::fmt;
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
-use std::{mem, ptr, slice, str};
+use std::{ptr, slice, str};
 
 use super::errno_to_error;
 
@@ -53,7 +53,7 @@ impl Message {
         if rc == -1 {
             panic!(errno_to_error())
         }
-        Message { msg: msg }
+        Message { msg }
     }
 
     /// Create an empty `Message`.
@@ -141,14 +141,14 @@ impl Deref for Message {
             let ptr = &self.msg as *const _ as *mut _;
             let data = zmq_sys::zmq_msg_data(ptr);
             let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            slice::from_raw_parts(mem::transmute(data), len)
+            slice::from_raw_parts(data as *mut u8, len)
         }
     }
 }
 
 impl PartialEq for Message {
     fn eq(&self, other: &Message) -> bool {
-        &self[..] == &other[..]
+        self[..] == other[..]
     }
 }
 
@@ -161,7 +161,7 @@ impl DerefMut for Message {
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
             let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
-            slice::from_raw_parts_mut(mem::transmute(data), len)
+            slice::from_raw_parts_mut(data as *mut u8, len)
         }
     }
 }

@@ -18,11 +18,7 @@ where
 {
     fn arbitrary<G: Gen>(g: &mut G) -> Self {
         let v1 = T::arbitrary(g);
-        let v2 = (0..)
-            .map(|_| T::arbitrary(g))
-            .filter(|v| *v != v1)
-            .next()
-            .unwrap();
+        let v2 = (0..).map(|_| T::arbitrary(g)).find(|v| *v != v1).unwrap();
         NePair(v1, v2)
     }
 }

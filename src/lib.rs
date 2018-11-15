@@ -1,9 +1,7 @@
 //! Module: zmq
 
 #![cfg_attr(feature = "unstable", feature(plugin))]
-#![cfg_attr(feature = "clippy", plugin(clippy))]
 #![allow(trivial_numeric_casts)]
-#![cfg_attr(feature = "clippy", allow(needless_lifetimes))]
 
 #[macro_use]
 extern crate bitflags;
@@ -65,6 +63,55 @@ pub enum SocketType {
 }
 
 impl Copy for SocketType {}
+
+/// Socket Events
+#[allow(non_camel_case_types)]
+#[derive(Clone, Debug, PartialEq)]
+pub enum SocketEvent {
+    CONNECTED = 0x0001,
+    CONNECT_DELAYED = 0x0002,
+    CONNECT_RETRIED = 0x0004,
+    LISTENING = 0x0008,
+    BIND_FAILED = 0x0010,
+    ACCEPTED = 0x0020,
+    ACCEPT_FAILED = 0x0040,
+    CLOSED = 0x0080,
+    CLOSE_FAILED = 0x0100,
+    DISCONNECTED = 0x0200,
+    MONITOR_STOPPED = 0x0400,
+    ALL = 0xFFFF,
+}
+
+impl Copy for SocketEvent {}
+
+impl SocketEvent {
+    // FIXME: switch this to copy when doing a major version bump.
+    #![cfg_attr(
+        feature = "cargo-clippy",
+        allow(clippy::trivially_copy_pass_by_ref)
+    )]
+    pub fn to_raw(&self) -> u16 {
+        *self as u16
+    }
+
+    pub fn from_raw(raw: u16) -> SocketEvent {
+        match raw {
+            0x0001 => SocketEvent::CONNECTED,
+            0x0002 => SocketEvent::CONNECT_DELAYED,
+            0x0004 => SocketEvent::CONNECT_RETRIED,
+            0x0008 => SocketEvent::LISTENING,
+            0x0010 => SocketEvent::BIND_FAILED,
+            0x0020 => SocketEvent::ACCEPTED,
+            0x0040 => SocketEvent::ACCEPT_FAILED,
+            0x0080 => SocketEvent::CLOSED,
+            0x0100 => SocketEvent::CLOSE_FAILED,
+            0x0200 => SocketEvent::DISCONNECTED,
+            0x0400 => SocketEvent::MONITOR_STOPPED,
+            0xFFFF => SocketEvent::ALL,
+            x => panic!("unknown event type {}", x),
+        }
+    }
+}
 
 /// Flag for socket `send` methods that specifies non-blocking mode.
 pub static DONTWAIT: i32 = 1;
@@ -140,8 +187,8 @@ enum Constants {
 impl Copy for Constants {}
 
 impl Constants {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    fn to_raw(self) -> i32 {
+        self as i32
     }
 }
 
@@ -195,12 +242,18 @@ pub enum Error {
 impl Copy for Error {}
 
 impl Error {
-    pub fn to_raw(&self) -> i32 {
-        *self as i32
+    // FIXME: switch this to copy when doing a major version bump.
+    #![cfg_attr(
+        feature = "cargo-clippy",
+        allow(clippy::trivially_copy_pass_by_ref)
+    )]
+    pub fn to_raw(self) -> i32 {
+        self as i32
     }
 
     pub fn from_raw(raw: i32) -> Error {
-        #![cfg_attr(feature = "clippy", allow(match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::match_same_arms))]
+        #![cfg_attr(feature = "cargo-clippy", allow(clippy::unreadable_literal))]
         match raw {
             errno::EACCES => Error::EACCES,
             errno::EADDRINUSE => Error::EADDRINUSE,
@@ -226,18 +279,18 @@ impl Error {
             errno::ENETDOWN => Error::ENETDOWN,
             errno::EADDRNOTAVAIL => Error::EADDRNOTAVAIL,
             errno::EINTR => Error::EINTR,
-            156384714 => Error::EPROTONOSUPPORT,
-            156384715 => Error::ENOBUFS,
-            156384716 => Error::ENETDOWN,
-            156384717 => Error::EADDRINUSE,
-            156384718 => Error::EADDRNOTAVAIL,
-            156384719 => Error::ECONNREFUSED,
-            156384720 => Error::EINPROGRESS,
-            156384721 => Error::ENOTSOCK,
-            156384763 => Error::EFSM,
-            156384764 => Error::ENOCOMPATPROTO,
-            156384765 => Error::ETERM,
-            156384766 => Error::EMTHREAD,
+            156_384_714 => Error::EPROTONOSUPPORT,
+            156_384_715 => Error::ENOBUFS,
+            156_384_716 => Error::ENETDOWN,
+            156_384_717 => Error::EADDRINUSE,
+            156_384_718 => Error::EADDRNOTAVAIL,
+            156_384_719 => Error::ECONNREFUSED,
+            156_384_720 => Error::EINPROGRESS,
+            156_384_721 => Error::ENOTSOCK,
+            156_384_763 => Error::EFSM,
+            156_384_764 => Error::ENOCOMPATPROTO,
+            156_384_765 => Error::ETERM,
+            156_384_766 => Error::EMTHREAD,
 
             x => unsafe {
                 let s = zmq_sys::zmq_strerror(x);
@@ -398,7 +451,7 @@ impl Context {
         }
 
         Ok(Socket {
-            sock: sock,
+            sock,
             context: Some(self.clone()),
             owned: true,
         })
@@ -552,7 +605,7 @@ impl Socket {
     /// when it is dropped. The returned socket will not reference any context.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
-            sock: sock,
+            sock,
             context: None,
             owned: true,
         }
@@ -585,6 +638,15 @@ impl Socket {
     pub fn disconnect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
         zmq_try!(unsafe { zmq_sys::zmq_disconnect(self.sock, c_str.as_ptr()) });
+        Ok(())
+    }
+
+    /// Configure the socket for monitoring
+    pub fn monitor(&self, monitor_endpoint: &str, events: i32) -> Result<()> {
+        let c_str = ffi::CString::new(monitor_endpoint.as_bytes()).unwrap();
+        zmq_try!(unsafe {
+            zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int)
+        });
         Ok(())
     }
 
@@ -981,7 +1043,7 @@ impl<'a> PollItem<'a> {
     pub fn from_fd(fd: RawFd, events: PollEvents) -> PollItem<'a> {
         PollItem {
             socket: ptr::null_mut(),
-            fd: fd,
+            fd,
             events: events.bits(),
             revents: 0,
             marker: PhantomData,

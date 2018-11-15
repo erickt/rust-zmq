@@ -5,5 +5,5 @@ fn main() {
     let _poll_item = {
         let socket = context.socket(zmq::PAIR).unwrap();
         socket.as_poll_item(zmq::POLLIN)
-    }; //~ ERROR `socket` does not live long enough
+    }; //~^ ERROR `socket` does not live long enough [E0597]
 }

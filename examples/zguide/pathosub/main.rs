@@ -1,5 +1,6 @@
-// Pathological subscriber
-// Subscribes to one random topic and prints received messages
+//! Pathological subscriber
+//! Subscribes to one random topic and prints received messages
+
 extern crate rand;
 extern crate zmq;
 

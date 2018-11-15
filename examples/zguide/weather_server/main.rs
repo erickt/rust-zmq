@@ -1,8 +1,9 @@
 #![crate_name = "weather_server"]
 
-/// Weather update server
-/// Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
-/// Publishes random weather updates
+//! Weather update server
+//! Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
+//! Publishes random weather updates
+
 extern crate rand;
 extern crate zmq;
 
@@ -20,7 +21,7 @@ fn main() {
     let mut rng = SmallRng::from_entropy();
 
     loop {
-        let zipcode = rng.gen_range(0, 100000);
+        let zipcode = rng.gen_range(0, 100_000);
         let temperature = rng.gen_range(-80, 135);
         let relhumidity = rng.gen_range(10, 60);
 
