@@ -83,7 +83,10 @@ impl Copy for SocketEvent {}
 
 impl SocketEvent {
     // FIXME: switch this to copy when doing a major version bump.
-    #![cfg_attr(feature = "cargo-clippy", allow(clippy::trivially_copy_pass_by_ref))]
+    #![cfg_attr(
+        feature = "cargo-clippy",
+        allow(clippy::trivially_copy_pass_by_ref)
+    )]
     pub fn to_raw(&self) -> u16 {
         *self as u16
     }
@@ -304,7 +307,10 @@ impl Copy for Error {}
 
 impl Error {
     // FIXME: switch this to copy when doing a major version bump.
-    #![cfg_attr(feature = "cargo-clippy", allow(clippy::trivially_copy_pass_by_ref))]
+    #![cfg_attr(
+        feature = "cargo-clippy",
+        allow(clippy::trivially_copy_pass_by_ref)
+    )]
     pub fn to_raw(self) -> i32 {
         self as i32
     }
