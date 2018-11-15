@@ -21,6 +21,10 @@ name = "helloworld_server"
 path = "examples/zguide/helloworld_server/main.rs"
 
 [[example]]
+name = "monitor"
+path = "examples/zguide/monitor/main.rs"
+
+[[example]]
 name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
@@ -77,7 +81,6 @@ unstable = []
 default = ["zmq_has"]
 zmq_has = [] # zmq_has was added in zeromq 4.1.
 unstable-testing = ["compiletest_rs", "unstable"]
-#unstable-testing = ["clippy", "compiletest_rs", "unstable"]
 
 [[example]]
 name = "rtdealer"
@@ -155,8 +158,7 @@ path="examples/zguide/asyncsrv/main.rs"
 libc = "0.2.15"
 log = "0.4.3"
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
-compiletest_rs = { version = "0.*", optional = true }
-clippy = { version = "0.*", optional = true }
+compiletest_rs = { version = "0.3", optional = true }
 bitflags = "0.7"
 
 [build-dependencies]
@@ -164,8 +166,8 @@ zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 
 [dev-dependencies]
 env_logger = "0.5"
-quickcheck = "0.6.2"
+quickcheck = "0.6"
 rand = "0.5"
-tempfile = "3.0"
+tempfile = "3"
 timebomb = "0.1.2"
 nix = "0.11"

@@ -5,8 +5,8 @@
 
 extern crate zmq;
 
-use std::time::Duration;
 use std::thread;
+use std::time::Duration;
 
 fn main() {
     let context = zmq::Context::new();
@@ -20,7 +20,6 @@ fn main() {
     assert!(subscriber.connect("tcp://localhost:5556").is_ok());
     let filter = b"10001";
     assert!(subscriber.set_subscribe(filter).is_ok());
-
 
     // Process messages from both sockets
     // We prioritize traffic from the task ventilator

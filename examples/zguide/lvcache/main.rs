@@ -2,15 +2,19 @@
 
 extern crate zmq;
 
-use std::str::from_utf8;
 use std::collections::HashMap;
+use std::str::from_utf8;
 
 fn main() {
     let context = zmq::Context::new();
     let frontend = context.socket(zmq::SUB).unwrap();
-    frontend.connect("tcp://localhost:5557").expect("could not connect to frontend");
+    frontend
+        .connect("tcp://localhost:5557")
+        .expect("could not connect to frontend");
     let backend = context.socket(zmq::XPUB).unwrap();
-    backend.bind("tcp://*:5558").expect("could not bind backend socket");
+    backend
+        .bind("tcp://*:5558")
+        .expect("could not bind backend socket");
 
     //  Subscribe to every single topic from publisher
     frontend.set_subscribe(b"").unwrap();
@@ -23,7 +27,7 @@ fn main() {
             backend.as_poll_item(zmq::POLLIN),
         ];
         if zmq::poll(&mut items, 1000).is_err() {
-            break;              //  Interrupted
+            break; //  Interrupted
         }
         if items[0].is_readable() {
             let topic = frontend.recv_msg(0).unwrap();

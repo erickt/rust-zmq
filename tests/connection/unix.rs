@@ -7,28 +7,40 @@
 extern crate nix;
 extern crate zmq;
 
-use super::with_connection;
 use self::nix::poll;
+use super::with_connection;
 
 test!(test_external_poll_inproc, {
-    with_connection("inproc://test-poll",
-                    zmq::REQ, poll_client,
-                    zmq::REP, poll_worker);
+    with_connection(
+        "inproc://test-poll",
+        zmq::REQ,
+        poll_client,
+        zmq::REP,
+        poll_worker,
+    );
 });
 
 test!(test_external_poll_ipc, {
-    with_connection("ipc:///tmp/zmq-tokio-test",
-                    zmq::REQ, poll_client,
-                    zmq::REP, poll_worker);
+    with_connection(
+        "ipc:///tmp/zmq-tokio-test",
+        zmq::REQ,
+        poll_client,
+        zmq::REP,
+        poll_worker,
+    );
 });
 
 test!(test_external_poll_tcp, {
-    with_connection("tcp://127.0.0.1:*",
-                    zmq::REQ, poll_client,
-                    zmq::REP, poll_worker);
+    with_connection(
+        "tcp://127.0.0.1:*",
+        zmq::REQ,
+        poll_client,
+        zmq::REP,
+        poll_worker,
+    );
 });
 
-fn poll_client(_ctx: zmq::Context, socket: zmq::Socket) {
+fn poll_client(_ctx: &zmq::Context, socket: &zmq::Socket) {
     // TODO: we should use `poll::poll()` here as well.
     for i in 0..10 {
         let payload = format!("message {}", i);
@@ -52,7 +64,7 @@ impl<'a> PollState<'a> {
     fn new(socket: &'a zmq::Socket) -> Self {
         let fd = socket.get_fd().unwrap();
         PollState {
-            socket: socket,
+            socket,
             fds: [poll::PollFd::new(fd, poll::EventFlags::POLLIN)],
         }
     }
@@ -69,7 +81,7 @@ impl<'a> PollState<'a> {
                     if !events.contains(poll::EventFlags::POLLIN) {
                         continue;
                     }
-                },
+                }
                 _ => continue,
             }
         }
@@ -80,7 +92,7 @@ impl<'a> PollState<'a> {
     }
 }
 
-fn poll_worker(_ctx: zmq::Context, socket: zmq::Socket) {
+fn poll_worker(_ctx: &zmq::Context, socket: &zmq::Socket) {
     let mut reply = None;
     let mut state = PollState::new(&socket);
     loop {
@@ -89,7 +101,7 @@ fn poll_worker(_ctx: zmq::Context, socket: zmq::Socket) {
                 state.wait(zmq::POLLIN);
                 let msg = socket.recv_msg(zmq::DONTWAIT).unwrap();
                 reply = Some(msg);
-            },
+            }
             Some(msg) => {
                 state.wait(zmq::POLLOUT);
                 let done = msg.len() == 0;
@@ -97,7 +109,7 @@ fn poll_worker(_ctx: zmq::Context, socket: zmq::Socket) {
                 if done {
                     break;
                 }
-            },
+            }
         }
     }
 }

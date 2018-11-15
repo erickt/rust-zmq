@@ -7,8 +7,12 @@ fn main() {
     let frontend = context.socket(zmq::ROUTER).unwrap();
     let backend = context.socket(zmq::DEALER).unwrap();
 
-    frontend.bind("tcp://*:5559").expect("failed binding frontend");
-    backend.bind("tcp://*:5560").expect("failed binding backend");
+    frontend
+        .bind("tcp://*:5559")
+        .expect("failed binding frontend");
+    backend
+        .bind("tcp://*:5560")
+        .expect("failed binding backend");
 
     loop {
         let mut items = [
@@ -21,7 +25,9 @@ fn main() {
             loop {
                 let message = frontend.recv_msg(0).unwrap();
                 let more = message.get_more();
-                backend.send(message, if more { zmq::SNDMORE } else { 0 }).unwrap();
+                backend
+                    .send(message, if more { zmq::SNDMORE } else { 0 })
+                    .unwrap();
                 if !more {
                     break;
                 }
@@ -31,7 +37,9 @@ fn main() {
             loop {
                 let message = backend.recv_msg(0).unwrap();
                 let more = message.get_more();
-                frontend.send(message, if more { zmq::SNDMORE } else { 0 }).unwrap();
+                frontend
+                    .send(message, if more { zmq::SNDMORE } else { 0 })
+                    .unwrap();
                 if !more {
                     break;
                 }
