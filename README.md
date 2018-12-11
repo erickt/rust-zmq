@@ -14,7 +14,7 @@ Rust ZeroMQ bindings.
 
 # Installation
 
-Currently, rust-zmq requires ZeroMQ 3.2 or newer. For example, on
+Currently, rust-zmq requires ZeroMQ 4.1 or newer. For example, on
 recent Debian-based distributions, you can use the following command
 to get the prerequiste headers and library installed:
 
