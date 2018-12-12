@@ -1,9 +1,11 @@
-# 0.9.0 (unreleased)
+# 0.9.0
 
 This release will focus on API corrections and improving
 documentation.
 
 ## Incompatible API changes
+
+- Requires ZeroMQ 4.1+.
 
 - The deprecated `Constants` enum has been removed from the API.
 
@@ -19,6 +21,8 @@ documentation.
 
 - `Message::send()` now works on `Into<Message>` types, obsoleting
   `send_msg()` and `send_str()`.
+
+- Added support for connection timeouts and heartbeats.
 
 ## Deprecations
 
