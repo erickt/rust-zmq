@@ -22,7 +22,7 @@ documentation.
 - `Message::send()` now works on `Into<Message>` types, obsoleting
   `send_msg()` and `send_str()`.
 
-- Added support for connection timeouts and heartbeats.
+- Added support for connection timeouts, heartbeats, and xpub welcome messages.
 
 ## Deprecations
 
