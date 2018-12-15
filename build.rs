@@ -3,12 +3,13 @@ extern crate zmq_sys as zmq;
 #[cfg(feature = "zmq_has")]
 fn main() {
     use std::ffi::CString;
+    println!("cargo:rustc-cfg=ZMQ_HAS_ZMQ_HAS");
 
-	for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
-		if unsafe { zmq::zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
-			println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has.to_uppercase());
-		}
-	}
+    for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
+        if unsafe { zmq::zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
+            println!("cargo:rustc-cfg=ZMQ_HAS_{}=\"1\"", has.to_uppercase());
+        }
+    }
 }
 
 #[cfg(not(feature = "zmq_has"))]
@@ -50,7 +51,7 @@ fn main() {
         let mut _patch = 0;
         zmq::zmq_version(&mut major, &mut minor, &mut _patch);
         if major >= 4 && minor >= 1 {
-            println!("cargo:rust-cfg=ZMQ_HAS_ZMQ_HAS=\"1\"");
+            println!("cargo:rustc-cfg=ZMQ_HAS_ZMQ_HAS");
         }
     }
 }
