@@ -16,7 +16,9 @@ links = "zmq"
 libc = "0.2.15"
 
 [build-dependencies]
+cmake = "0.1"
 metadeps = "1"
+glob = "0.2.11"
 
 [package.metadata.pkg-config]
 libzmq = "4.1"

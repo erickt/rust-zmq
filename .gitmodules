@@ -1,0 +1,3 @@
+[submodule "zmq-sys/libzmq"]
+	path = zmq-sys/libzmq
+	url = https://github.com/zeromq/libzmq
