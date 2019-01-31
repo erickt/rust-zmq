@@ -1,60 +1,93 @@
-#[cfg(windows)]
 extern crate cmake;
-#[cfg(windows)]
-use cmake::Config;
-
-#[cfg(windows)]
 extern crate glob;
-#[cfg(windows)]
-use glob::glob;
-
-#[cfg(not(windows))]
 extern crate metadeps;
-#[cfg(not(windows))]
-use std::env;
 
+use cmake::Config;
+use glob::glob;
+use std::env;
 use std::path::Path;
 use std::process::Command;
 
-#[cfg(windows)]
-fn main() {
+fn build_static_libzmq() {
+    let target = env::var("TARGET").unwrap();
+
     if !Path::new("libzmq/.git").exists() {
         let _ = Command::new("git")
             .args(&["submodule", "update", "--init"])
             .status();
     }
 
-    let dst = Config::new("libzmq").build();
+    let mut cmake = Config::new("libzmq");
 
-    // Everything expects to link to zmq.lib, but the windows
-    // build outputs a bunch of libs depending on runtime,
-    // so we need to copy the one we want to the expected name.
-    //
-    // We use a glob pattern here so we don't have to worry about
-    // the actual Visual Studio or zmq versions.
-    let pattern = format!("{}\\libzmq-v???-mt-sgd-*.lib", dst.join("lib").display());
-    let found_path = glob(&pattern)
-        .expect("Failed to read file glob pattern.")
-        .next()
-        .expect("No appropriate file created by libzmq build. Build script is likely out of date.")
-        .unwrap();
+    if target.contains("msvc") {
+        // We need to explicitly disable `/GL` flag, otherwise
+        // we get linkage error.
+        cmake.cxxflag("/GL-");
+        // Fix warning C4530: "C++ exception handler used, but unwind
+        // semantics are not enabled. Specify /EHsc"
+        cmake.cxxflag("/EHsc");
+    }
 
-    let expected_path = dst.join("lib\\zmq.lib");
-    std::fs::copy(&found_path, &expected_path).expect(&format!(
-        "Unable to copy '{}' to '{}'",
-        found_path.display(),
-        expected_path.display()
-    ));
+    let dst = cmake
+        // When compiled on 64bit system then default libdir is `lib64`, with
+        // this we ensure that libdir will be `lib` on all systems.
+        .define("CMAKE_INSTALL_LIBDIR", "lib")
+        .define("ENABLE_DRAFTS", "OFF")
+        .define("BUILD_SHARED", "OFF")
+        .define("BUILD_STATIC", "ON")
+        .build();
+
+    if target.contains("msvc") {
+        // Everything expects to link to zmq.lib, but the windows
+        // build outputs a bunch of libs depending on runtime,
+        // so we need to copy the one we want to the expected name.
+        //
+        // We use a glob pattern here so we don't have to worry about
+        // the actual Visual Studio or zmq versions.
+        let file_pattern = match env::var("PROFILE").unwrap().as_str() {
+            "debug" => "libzmq-v*-mt-sgd-*.lib",
+            "release" | "bench" => "libzmq-v*-mt-s-*.lib",
+            unknown => {
+                // cmake crate defaults to release if profile is unknown
+                eprintln!(
+                    "Warning: unknown Rust profile={}; assuming release",
+                    unknown
+                );
+                "libzmq-v*-mt-s-*.lib"
+            }
+        };
+
+        let pattern = format!("{}", dst.join("lib").join(file_pattern).display());
+
+        let found_path = glob(&pattern)
+            .expect("Failed to read file glob pattern.")
+            .next()
+            .expect(
+                "No appropriate file created by libzmq build. Build script is likely out of date.",
+            )
+            .unwrap();
+
+        let expected_path = dst.join("lib").join("zmq.lib");
+        std::fs::copy(&found_path, &expected_path).expect(&format!(
+            "Unable to copy '{}' to '{}'",
+            found_path.display(),
+            expected_path.display()
+        ));
+    }
 
     println!(
         "cargo:rustc-link-search=native={}",
         dst.join("lib").display()
     );
     println!("cargo:rustc-link-lib=static=zmq");
-    println!("cargo:rustc-link-lib=dylib=iphlpapi");
+
+    if target.contains("msvc") {
+        println!("cargo:rustc-link-lib=dylib=iphlpapi");
+    } else {
+        println!("cargo:rustc-link-lib=dylib=stdc++");
+    }
 }
 
-#[cfg(not(windows))]
 fn prefix_dir(env_name: &str, dir: &str) -> Option<String> {
     env::var(env_name).ok().or_else(|| {
         env::var("LIBZMQ_PREFIX")
@@ -64,8 +97,11 @@ fn prefix_dir(env_name: &str, dir: &str) -> Option<String> {
     })
 }
 
-#[cfg(not(windows))]
 fn main() {
+    if cfg!(feature = "static-libzmq") {
+        return build_static_libzmq();
+    }
+
     let lib_path = prefix_dir("LIBZMQ_LIB_DIR", "lib");
     let include = prefix_dir("LIBZMQ_INCLUDE_DIR", "include");
 

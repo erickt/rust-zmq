@@ -115,3 +115,6 @@ if %ERRORLEVEL% NEQ 0 exit 1
 
 cargo test -vv %CARGO_MODE%
 if %ERRORLEVEL% NEQ 0 exit 1
+
+cargo test -vv --features static-libzmq %CARGO_MODE%
+if %ERRORLEVEL% NEQ 0 exit 1
