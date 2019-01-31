@@ -22,3 +22,6 @@ glob = "0.2.11"
 
 [package.metadata.pkg-config]
 libzmq = "4.1"
+
+[features]
+static-libzmq = []
