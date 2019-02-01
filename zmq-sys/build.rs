@@ -37,6 +37,9 @@ fn build_static_libzmq() {
         .define("BUILD_STATIC", "ON")
         .build();
 
+    let lib_path = dst.join("lib");
+    let include_path = dst.join("include");
+
     if target.contains("msvc") {
         // Everything expects to link to zmq.lib, but the windows
         // build outputs a bunch of libs depending on runtime,
@@ -57,8 +60,7 @@ fn build_static_libzmq() {
             }
         };
 
-        let pattern = format!("{}", dst.join("lib").join(file_pattern).display());
-
+        let pattern = format!("{}", lib_path.join(file_pattern).display());
         let found_path = glob(&pattern)
             .expect("Failed to read file glob pattern.")
             .next()
@@ -67,7 +69,7 @@ fn build_static_libzmq() {
             )
             .unwrap();
 
-        let expected_path = dst.join("lib").join("zmq.lib");
+        let expected_path = lib_path.join("zmq.lib");
         std::fs::copy(&found_path, &expected_path).expect(&format!(
             "Unable to copy '{}' to '{}'",
             found_path.display(),
@@ -75,10 +77,9 @@ fn build_static_libzmq() {
         ));
     }
 
-    println!(
-        "cargo:rustc-link-search=native={}",
-        dst.join("lib").display()
-    );
+    println!("cargo:root={}", dst.display());
+    println!("cargo:include={}", include_path.display());
+    println!("cargo:rustc-link-search=native={}", lib_path.display());
     println!("cargo:rustc-link-lib=static=zmq");
 
     if target.contains("msvc") {
