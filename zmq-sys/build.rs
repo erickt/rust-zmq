@@ -32,6 +32,11 @@ fn build_static_libzmq() {
         // When compiled on 64bit system then default libdir is `lib64`, with
         // this we ensure that libdir will be `lib` on all systems.
         .define("CMAKE_INSTALL_LIBDIR", "lib")
+        // libzmq is using C99 standard but they do not specify it in their
+        // cmake. This is needed when user has an older C compiler which the
+        // default standard is lower than C99.
+        // One valid scenario is cross-compilation for Linux embedded systems.
+        .define("CMAKE_C_STANDARD", "99")
         .define("ENABLE_DRAFTS", "OFF")
         .define("BUILD_SHARED", "OFF")
         .define("BUILD_STATIC", "ON")
