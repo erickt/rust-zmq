@@ -1143,6 +1143,37 @@ pub fn proxy_with_capture(
     Ok(())
 }
 
+/// Start a 0MQ proxy in the current thread, with a control socket.
+///
+/// If PAUSE is received on the control socket, the proxy suspends its activities. If RESUME is received,
+/// it goes on. If TERMINATE is received, it terminates smoothly. At start, the proxy runs normally
+/// as if `proxy` was used.
+pub fn proxy_steerable(
+    frontend: &mut Socket,
+    backend: &mut Socket,
+    control: &mut Socket,
+) -> Result<()> {
+    zmq_try!(unsafe {
+        zmq_sys::zmq_proxy_steerable(frontend.sock, backend.sock, ptr::null_mut(), control.sock)
+    });
+    Ok(())
+}
+
+/// Start a 0MQ proxy in the current thread, with capture and control sockets.
+///
+/// Provides a steerable proxy with a capture socket. See `proxy_with_capture`
+pub fn proxy_steerable_with_capture(
+    frontend: &mut Socket,
+    backend: &mut Socket,
+    capture: &mut Socket,
+    control: &mut Socket,
+) -> Result<()> {
+    zmq_try!(unsafe {
+        zmq_sys::zmq_proxy_steerable(frontend.sock, backend.sock, capture.sock, control.sock)
+    });
+    Ok(())
+}
+
 /// Return true if the used 0MQ library has the given capability.
 ///
 /// For older versions of 0MQ that don't have the wrapped `zmq_has` function,
