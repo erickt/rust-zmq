@@ -987,6 +987,7 @@ impl Socket {
         (_, set_plain_password) => ZMQ_PLAIN_PASSWORD as Option<&str>,
         (_, set_zap_domain) => ZMQ_ZAP_DOMAIN as &str,
         (_, set_xpub_welcome_msg) => ZMQ_XPUB_WELCOME_MSG as Option<&str>,
+        (_, set_xpub_verbose) => ZMQ_XPUB_VERBOSE as bool,
 
         if ZMQ_HAS_CURVE {
             (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],

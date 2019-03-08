@@ -427,6 +427,24 @@ test!(test_getset_plain_password, {
     assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
 });
 
+test!(test_zmq_set_xpub_verbose, {
+    let ctx = Context::new();
+    let xpub = ctx.socket(XPUB).unwrap();
+    let sub = ctx.socket(SUB).unwrap();
+
+    xpub.bind("inproc://set_xpub_verbose").unwrap();
+    xpub.set_xpub_verbose(true).unwrap();
+
+    sub.connect("inproc://set_xpub_verbose").unwrap();
+    for _ in 0..2 {
+        sub.set_subscribe(b"topic").unwrap();
+
+        let event = xpub.recv_msg(0).unwrap();
+        assert_eq!(event[0], 1);
+        assert_eq!(&event[1..], b"topic");
+    }
+});
+
 test!(test_zmq_xpub_welcome_msg, {
     let ctx = Context::new();
     let xpub = ctx.socket(XPUB).unwrap();
