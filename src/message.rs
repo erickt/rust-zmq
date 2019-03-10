@@ -102,6 +102,11 @@ impl Message {
         }
     }
 
+    /// Return the message content as a byte slice.
+    pub fn as_slice(&self) -> &[u8] {
+        self
+    }
+
     /// Return the message content as a string slice if it is valid UTF-8.
     pub fn as_str(&self) -> Option<&str> {
         str::from_utf8(self).ok()
