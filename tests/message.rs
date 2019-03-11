@@ -24,6 +24,10 @@ where
 }
 
 quickcheck! {
+    fn msg_as_slice_eq(input: Vec<u8>) -> bool {
+        Message::from_slice(&input).as_slice() == input.as_slice()
+    }
+
     fn msg_cmp_eq(input: Vec<u8>) -> bool {
         Message::from_slice(&input) == Message::from_slice(&input)
     }
