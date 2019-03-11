@@ -36,5 +36,4 @@ fn main() {
         thread::spawn(move || worker_routine(&ctx));
     }
     zmq::proxy(&clients, &workers).expect("failed proxying");
-
 }

@@ -1,9 +1,11 @@
-# 0.9.0 (unreleased)
+# 0.9.0
 
 This release will focus on API corrections and improving
 documentation.
 
 ## Incompatible API changes
+
+- Requires ZeroMQ 4.1+.
 
 - The deprecated `Constants` enum has been removed from the API.
 
@@ -20,10 +22,20 @@ documentation.
 - `Message::send()` now works on `Into<Message>` types, obsoleting
   `send_msg()` and `send_str()`.
 
+- Added support for connection timeouts, heartbeats, and xpub welcome messages.
+
 ## Deprecations
 
 - `Message::send_msg()` and `send_str()` are deprecated in favor of
   `Message::send()`.
+
+# 0.8.3
+
+## New and improved functionality
+
+- Support for the `zmq_socket_monitor` API.
+- Added `PollItem::set_events`, which allows for constructing a `PollItem` from
+  arbitrary file descriptors.
 
 # 0.8.2
 

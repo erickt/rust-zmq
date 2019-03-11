@@ -5,11 +5,11 @@
 //  context and conceptually acts as a separate process.
 #![crate_name = "asyncsrv"]
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 use rand::{thread_rng, Rng};
-use std::{str, thread};
 use std::time::Duration;
+use std::{str, thread};
 
 fn client_task() {
     let context = zmq::Context::new();
@@ -32,7 +32,7 @@ fn client_task() {
                 println!("{}", str::from_utf8(&msg[msg.len() - 1]).unwrap());
             }
         }
-        request_nbr = request_nbr + 1;
+        request_nbr += 1;
         let request = format!("request #{}", request_nbr);
         client
             .send(&request, 0)
@@ -87,9 +87,9 @@ fn server_worker(context: &zmq::Context) {
 }
 
 fn main() {
-    thread::spawn(|| client_task());
-    thread::spawn(|| client_task());
-    thread::spawn(|| client_task());
-    thread::spawn(|| server_task());
+    thread::spawn(client_task);
+    thread::spawn(client_task);
+    thread::spawn(client_task);
+    thread::spawn(server_task);
     thread::sleep(Duration::from_secs(5));
 }

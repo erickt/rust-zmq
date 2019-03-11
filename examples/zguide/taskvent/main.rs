@@ -4,11 +4,11 @@
 //! Binds PUSH socket to tcp://localhost:5557
 //! Sends batch of tasks to workers via that socket
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 
-use std::io::{self, BufRead};
 use rand::Rng;
+use std::io::{self, BufRead};
 
 fn main() {
     let context = zmq::Context::new();
@@ -41,7 +41,7 @@ fn main() {
 
         let workload_str = format!("{}", workload);
         sender.send(&workload_str, 0).unwrap();
-     }
+    }
 
     println!("Total expected cost: {} msec", total_msec)
 }

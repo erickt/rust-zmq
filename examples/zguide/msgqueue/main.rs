@@ -7,8 +7,12 @@ fn main() {
     let frontend = context.socket(zmq::ROUTER).unwrap();
     let backend = context.socket(zmq::DEALER).unwrap();
 
-    frontend.bind("tcp://*:5559").expect("failed binding frontend");
-    backend.bind("tcp://*:5560").expect("failed binding backend");
+    frontend
+        .bind("tcp://*:5559")
+        .expect("failed binding frontend");
+    backend
+        .bind("tcp://*:5560")
+        .expect("failed binding backend");
 
     zmq::proxy(&frontend, &backend).expect("failed to proxy");
 }

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
-pub extern crate timebomb;
 extern crate env_logger;
+pub extern crate timebomb;
 
 use std::sync::{Once, ONCE_INIT};
 
@@ -13,13 +13,11 @@ macro_rules! test {
         #[test]
         fn $name() {
             $crate::common::ensure_env_logger_initialized();
-            $crate::common::timebomb::timeout_ms(|| {
-                $block
-            }, 10000);
+            $crate::common::timebomb::timeout_ms(|| $block, 10000);
         }
-    }
+    };
 }
 
 pub fn ensure_env_logger_initialized() {
-    LOGGER_INIT.call_once(|| env_logger::init());
+    LOGGER_INIT.call_once(env_logger::init);
 }

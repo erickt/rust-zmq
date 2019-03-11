@@ -8,9 +8,7 @@ fn main() {
     subscriber
         .connect("tcp://localhost:5563")
         .expect("failed connecting subscriber");
-    subscriber
-        .set_subscribe("B".as_bytes())
-        .expect("failed subscribing");
+    subscriber.set_subscribe(b"B").expect("failed subscribing");
 
     loop {
         let envelope = subscriber

@@ -8,6 +8,11 @@ use std::io;
 use std::net::TcpStream;
 use zmq::*;
 
+fn version_ge_4_2() -> bool {
+    let (major, minor, _) = version();
+    (major > 4) || (major == 4 && minor >= 2)
+}
+
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
 
@@ -17,6 +22,9 @@ fn create_socketpair() -> (Socket, Socket) {
     // Don't block forever
     sender.set_sndtimeo(1000).unwrap();
     sender.set_rcvtimeo(1000).unwrap();
+    if version_ge_4_2() {
+        sender.set_connect_timeout(1000).unwrap();
+    }
     receiver.set_sndtimeo(1000).unwrap();
     receiver.set_rcvtimeo(1000).unwrap();
 
@@ -48,7 +56,7 @@ test!(test_exchanging_bytes, {
 
     receiver.send("a quite long string", 0).unwrap();
     let mut buf = [0_u8; 10];
-    sender.recv_into(&mut buf, 0).unwrap();  // this should truncate the message
+    sender.recv_into(&mut buf, 0).unwrap(); // this should truncate the message
     assert_eq!(&buf[..], b"a quite lo");
 });
 
@@ -100,10 +108,10 @@ test!(test_raw_roundtrip, {
     let ctx = Context::new();
     let mut sock = ctx.socket(SocketType::REQ).unwrap();
 
-    let ptr = sock.as_mut_ptr();  // doesn't consume the socket
-    // NOTE: the socket will give up its context referecnce, but because we
-    // still hold a reference in `ctx`, we won't get a deadlock.
-    let raw = sock.into_raw();    // consumes the socket
+    let ptr = sock.as_mut_ptr(); // doesn't consume the socket
+                                 // NOTE: the socket will give up its context referecnce, but because we
+                                 // still hold a reference in `ctx`, we won't get a deadlock.
+    let raw = sock.into_raw(); // consumes the socket
     assert_eq!(ptr, raw);
     let _ = unsafe { Socket::from_raw(raw) };
 });
@@ -181,8 +189,8 @@ test!(test_create_stream_socket, {
 test!(test_getset_maxmsgsize, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
-    sock.set_maxmsgsize(512000).unwrap();
-    assert_eq!(sock.get_maxmsgsize().unwrap(), 512000);
+    sock.set_maxmsgsize(512_000).unwrap();
+    assert_eq!(sock.get_maxmsgsize().unwrap(), 512_000);
 });
 
 test!(test_getset_sndhwm, {
@@ -319,8 +327,12 @@ test!(test_getset_socks_proxy, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
 
-    sock.set_socks_proxy(Some("my_socks_server.com:10080")).unwrap();
-    assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "my_socks_server.com:10080");
+    sock.set_socks_proxy(Some("my_socks_server.com:10080"))
+        .unwrap();
+    assert_eq!(
+        sock.get_socks_proxy().unwrap().unwrap(),
+        "my_socks_server.com:10080"
+    );
 
     sock.set_socks_proxy(None).unwrap();
     assert_eq!(sock.get_socks_proxy().unwrap().unwrap(), "");
@@ -419,6 +431,24 @@ test!(test_getset_plain_password, {
     assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
 });
 
+test!(test_zmq_xpub_welcome_msg, {
+    let ctx = Context::new();
+    let xpub = ctx.socket(XPUB).unwrap();
+
+    xpub.bind("inproc://xpub_welcome_msg").unwrap();
+    xpub.set_xpub_welcome_msg(Some("welcome")).unwrap();
+
+    let sub = ctx.socket(SUB).unwrap();
+    sub.set_subscribe(b"").unwrap();
+    sub.connect("inproc://xpub_welcome_msg").unwrap();
+
+    let from_pub = xpub.recv_bytes(0).unwrap();
+    assert_eq!(from_pub, b"\x01");
+
+    let from_xsub = sub.recv_bytes(0).unwrap();
+    assert_eq!(from_xsub, b"welcome");
+});
+
 test!(test_getset_zap_domain, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -489,7 +519,6 @@ test!(test_getset_curve_serverkey, {
     assert_eq!(sock.get_curve_serverkey().unwrap(), key);
 });
 
-
 test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -510,7 +539,10 @@ test!(test_disconnect, {
 test!(test_disconnect_err, {
     let (sender, _) = create_socketpair();
     // Check that disconnect propagates errors. The endpoint is not connected.
-    assert_eq!(Error::ENOENT, sender.disconnect("tcp://192.0.2.1:2233").unwrap_err());
+    assert_eq!(
+        Error::ENOENT,
+        sender.disconnect("tcp://192.0.2.1:2233").unwrap_err()
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -534,7 +566,10 @@ test!(test_getset_gssapi_service_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_gssapi_service_principal("principal").unwrap();
-    assert_eq!(sock.get_gssapi_service_principal().unwrap().unwrap(), "principal");
+    assert_eq!(
+        sock.get_gssapi_service_principal().unwrap().unwrap(),
+        "principal"
+    );
 });
 
 #[cfg(ZMQ_HAS_GSSAPI = "1")]
@@ -553,6 +588,15 @@ test!(test_getset_handshake_ivl, {
     assert_eq!(sock.get_handshake_ivl().unwrap(), 50000);
 });
 
+test!(test_getset_connect_timeout, {
+    if version_ge_4_2() {
+        let ctx = Context::new();
+        let sock = ctx.socket(REQ).unwrap();
+        sock.set_connect_timeout(5000).unwrap();
+        assert_eq!(sock.get_connect_timeout().unwrap(), 5000);
+    }
+});
+
 #[cfg(feature = "compiletest_rs")]
 mod compile {
     extern crate compiletest_rs as compiletest;
@@ -560,8 +604,8 @@ mod compile {
     use std::path::PathBuf;
 
     fn run_mode(mode: &'static str) {
-        let mut config = compiletest::default_config();
-        let cfg_mode = mode.parse().ok().expect("Invalid mode");
+        let mut config = compiletest::Config::default();
+        let cfg_mode = mode.parse().expect("Invalid mode");
 
         config.mode = cfg_mode;
         config.src_base = PathBuf::from(format!("tests/{}", mode));

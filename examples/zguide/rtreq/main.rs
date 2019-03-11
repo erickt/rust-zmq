@@ -2,13 +2,13 @@
 
 //! Router-to-request example
 
-extern crate zmq;
 extern crate rand;
+extern crate zmq;
 
-use zmq::SNDMORE;
 use rand::Rng;
-use std::time::{Duration, Instant};
 use std::thread;
+use std::time::{Duration, Instant};
+use zmq::SNDMORE;
 
 // Inefficient but terse base16 encoder
 fn hex(bytes: &[u8]) -> String {
@@ -45,7 +45,6 @@ fn worker_task() {
     }
 }
 
-
 fn main() {
     let worker_pool_size = 10;
     let allowed_duration = Duration::new(5, 0);
@@ -58,7 +57,9 @@ fn main() {
     // context and conceptually acts as a separate process.
     let mut thread_pool = Vec::new();
     for _ in 0..worker_pool_size {
-        let child = thread::spawn(move || { worker_task(); });
+        let child = thread::spawn(move || {
+            worker_task();
+        });
         thread_pool.push(child);
     }
 
