@@ -72,7 +72,6 @@ pub use ffi::{
 #[allow(non_camel_case_types)]
 mod ffi {
     use libc::{
-        uint8_t,
         size_t,
     };
 
