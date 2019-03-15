@@ -146,7 +146,6 @@ test!(test_into_io_error, {
     assert!(e.kind() == io::ErrorKind::NotFound);
 });
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_curve_keypair, {
     let keypair = CurveKeyPair::new().unwrap();
     assert!(keypair.public_key.len() == 32);
@@ -484,7 +483,6 @@ test!(test_ctx_nohang, {
     assert_eq!(sock.get_socket_type(), Ok(REQ));
 });
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_server, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -492,7 +490,6 @@ test!(test_getset_curve_server, {
     assert_eq!(sock.is_curve_server().unwrap(), true);
 });
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_publickey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -501,7 +498,6 @@ test!(test_getset_curve_publickey, {
     assert_eq!(sock.get_curve_publickey().unwrap(), key);
 });
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_secretkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -510,7 +506,6 @@ test!(test_getset_curve_secretkey, {
     assert_eq!(sock.get_curve_secretkey().unwrap(), key);
 });
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 test!(test_getset_curve_serverkey, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -545,7 +540,6 @@ test!(test_disconnect_err, {
     );
 });
 
-#[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_gssapi_server, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -553,7 +547,6 @@ test!(test_getset_gssapi_server, {
     assert_eq!(sock.is_gssapi_server().unwrap(), true);
 });
 
-#[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_gssapi_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -561,7 +554,6 @@ test!(test_getset_gssapi_principal, {
     assert_eq!(sock.get_gssapi_principal().unwrap().unwrap(), "principal");
 });
 
-#[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_gssapi_service_principal, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -572,7 +564,6 @@ test!(test_getset_gssapi_service_principal, {
     );
 });
 
-#[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_gssapi_plaintext, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -580,7 +571,6 @@ test!(test_getset_gssapi_plaintext, {
     assert_eq!(sock.is_gssapi_plaintext().unwrap(), true);
 });
 
-#[cfg(ZMQ_HAS_GSSAPI = "1")]
 test!(test_getset_handshake_ivl, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();

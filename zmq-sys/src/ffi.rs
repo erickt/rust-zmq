@@ -138,8 +138,6 @@ extern "C" {
                                capture: *mut ::std::os::raw::c_void,
                                control: *mut ::std::os::raw::c_void)
      -> ::std::os::raw::c_int;
-    pub fn zmq_has(capability: *const ::std::os::raw::c_char)
-     -> ::std::os::raw::c_int;
     pub fn zmq_device(_type: ::std::os::raw::c_int,
                       frontend: *mut ::std::os::raw::c_void,
                       backend: *mut ::std::os::raw::c_void)
@@ -148,15 +146,6 @@ extern "C" {
                        flags: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
     pub fn zmq_recvmsg(s: *mut ::std::os::raw::c_void, msg: *mut zmq_msg_t,
                        flags: ::std::os::raw::c_int) -> ::std::os::raw::c_int;
-    pub fn zmq_z85_encode(dest: *mut ::std::os::raw::c_char,
-                          data: *const uint8_t, size: size_t)
-     -> *mut ::std::os::raw::c_char;
-    pub fn zmq_z85_decode(dest: *mut uint8_t,
-                          string: *const ::std::os::raw::c_char)
-     -> *mut uint8_t;
-    pub fn zmq_curve_keypair(z85_public_key: *mut ::std::os::raw::c_char,
-                             z85_secret_key: *mut ::std::os::raw::c_char)
-     -> ::std::os::raw::c_int;
     pub fn zmq_sendiov(s: *mut ::std::os::raw::c_void, iov: *mut Struct_iovec,
                        count: size_t, flags: ::std::os::raw::c_int)
      -> ::std::os::raw::c_int;

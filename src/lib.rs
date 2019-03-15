@@ -9,6 +9,9 @@ extern crate bitflags;
 #[macro_use]
 extern crate log;
 
+#[macro_use]
+mod dlsym;
+
 extern crate libc;
 extern crate zmq_sys;
 
@@ -767,13 +770,9 @@ impl Socket {
         (is_probe_router, set_probe_router) => ZMQ_PROBE_ROUTER as bool,
         (is_router_mandatory, set_router_mandatory) => ZMQ_ROUTER_MANDATORY as bool,
         (is_router_handover, set_router_handover) => ZMQ_ROUTER_HANDOVER as bool,
-        if ZMQ_HAS_CURVE {
-            (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
-        },
-        if ZMQ_HAS_GSSAPI {
-            (is_gssapi_server, set_gssapi_server) => ZMQ_GSSAPI_SERVER as bool,
-            (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
-        },
+        (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
+        (is_gssapi_server, set_gssapi_server) => ZMQ_GSSAPI_SERVER as bool,
+        (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
     }
 
     /// Return the type of this socket.
@@ -927,7 +926,6 @@ impl Socket {
         )
     }
 
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     /// Set the `ZMQ_CURVE_PUBLICKEY` option value.
     ///
     /// The key is returned as raw bytes. Use `z85_encode` on the
@@ -937,7 +935,6 @@ impl Socket {
         sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 32)
     }
 
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     /// Get the `ZMQ_CURVE_SECRETKEY` option value.
     ///
     /// The key is returned as raw bytes. Use `z85_encode` on the
@@ -952,13 +949,11 @@ impl Socket {
     /// Note that the key is returned as raw bytes, as a 32-byte
     /// vector. Use `z85_encode()` explicitly to obtain the
     /// Z85-encoded string variant.
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     pub fn get_curve_serverkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
         sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 32)
     }
 
-    #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
@@ -969,7 +964,6 @@ impl Socket {
         )
     }
 
-    #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
@@ -986,16 +980,11 @@ impl Socket {
         (_, set_plain_password) => ZMQ_PLAIN_PASSWORD as Option<&str>,
         (_, set_zap_domain) => ZMQ_ZAP_DOMAIN as &str,
         (_, set_xpub_welcome_msg) => ZMQ_XPUB_WELCOME_MSG as Option<&str>,
-
-        if ZMQ_HAS_CURVE {
-            (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
-            (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
-            (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
-        },
-        if ZMQ_HAS_GSSAPI {
-            (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
-            (_, set_gssapi_service_principal) => ZMQ_GSSAPI_SERVICE_PRINCIPAL as &str,
-        },
+        (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
+        (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
+        (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
+        (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
+        (_, set_gssapi_service_principal) => ZMQ_GSSAPI_SERVICE_PRINCIPAL as &str,
     }
 
     /// Create a `PollItem` from the socket.
@@ -1137,16 +1126,16 @@ pub fn proxy_with_capture(
 
 /// Return true if the used 0MQ library has the given capability.
 ///
-/// For older versions of 0MQ that don't have the wrapped `zmq_has` function,
-/// returns `None`.
-///
+/// This function dynamically checks for the zmq_has symbol in the
+/// currently loaded libzmq.  For older versions of 0MQ that don't 
+/// have the wrapped `zmq_has` function, returns `None`.
+/// 
 /// For a list of capabilities, please consult the `zmq_has` manual page.
 pub fn has(capability: &str) -> Option<bool> {
-    if cfg!(ZMQ_HAS_ZMQ_HAS) {
-        let c_str = ffi::CString::new(capability).unwrap();
-        unsafe { Some(zmq_sys::zmq_has(c_str.as_ptr()) == 1) }
-    } else {
-        None
+    let c_str = ffi::CString::new(capability).unwrap();
+    dlsym!(fn zmq_has(*const ::std::os::raw::c_char) -> ::std::os::raw::c_int);
+    unsafe {
+        zmq_has.get().map(|f| f(c_str.as_ptr()) == 1)
     }
 }
 
@@ -1155,14 +1144,12 @@ pub fn has(capability: &str) -> Option<bool> {
 /// Note that for API consistency reasons, since version 0.9, the key
 /// pair is represented in the binary form. This is in contrast to
 /// libzmq, which returns the z85-encoded representation.
-#[cfg(ZMQ_HAS_CURVE = "1")]
 #[derive(Debug)]
 pub struct CurveKeyPair {
     pub public_key: [u8; 32],
     pub secret_key: [u8; 32],
 }
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 impl CurveKeyPair {
     /// Create a new key pair.
     pub fn new() -> Result<CurveKeyPair> {
@@ -1170,28 +1157,36 @@ impl CurveKeyPair {
         let mut ffi_public_key = [0u8; 41];
         let mut ffi_secret_key = [0u8; 41];
 
-        zmq_try!(unsafe {
-            zmq_sys::zmq_curve_keypair(
-                ffi_public_key.as_mut_ptr() as *mut libc::c_char,
-                ffi_secret_key.as_mut_ptr() as *mut libc::c_char,
-            )
-        });
+        dlsym!(fn zmq_curve_keypair(*mut ::std::os::raw::c_char, *mut ::std::os::raw::c_char) -> ::std::os::raw::c_int);
+        zmq_try!(
+            zmq_curve_keypair.get().map_or(errno::ENOTSUP, |curve_keypair| unsafe {
+                curve_keypair(
+                    ffi_public_key.as_mut_ptr() as *mut libc::c_char,
+                    ffi_secret_key.as_mut_ptr() as *mut libc::c_char,
+                )
+            })
+        );
 
         let mut pair = CurveKeyPair {
             public_key: [0; 32],
             secret_key: [0; 32],
         };
-        unsafe {
-            // No need to check return code here, as zmq_curve_keypair
-            // is supposed to generate valid z85-encoded keys
-            zmq_sys::zmq_z85_decode(
-                pair.public_key.as_mut_ptr(),
-                ffi_public_key.as_ptr() as *mut libc::c_char,
-            );
-            zmq_sys::zmq_z85_decode(
-                pair.secret_key.as_mut_ptr(),
-                ffi_secret_key.as_ptr() as *mut libc::c_char,
-            );
+
+        dlsym!(fn zmq_z85_decode(*mut libc::uint8_t, *const ::std::os::raw::c_char) -> *mut libc::uint8_t);
+        match zmq_z85_decode.get() {
+            Some(z85_decode) => unsafe {
+                // No need to check return code here, as zmq_curve_keypair
+                // is supposed to generate valid z85-encoded keys
+                z85_decode(
+                    pair.public_key.as_mut_ptr(),
+                    ffi_public_key.as_ptr() as *mut libc::c_char,
+                );
+                z85_decode(
+                    pair.secret_key.as_mut_ptr(),
+                    ffi_secret_key.as_ptr() as *mut libc::c_char,
+                );
+            },
+            None => return Err(Error::ENOTSUP)
         }
 
         Ok(pair)
@@ -1203,6 +1198,8 @@ impl CurveKeyPair {
 pub enum EncodeError {
     BadLength,
     FromUtf8Error(FromUtf8Error),
+    /// The function isn't supported by the zmq library
+    NotSupported,
 }
 
 impl From<FromUtf8Error> for EncodeError {
@@ -1216,6 +1213,7 @@ impl fmt::Display for EncodeError {
         match *self {
             EncodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 4."),
             EncodeError::FromUtf8Error(ref e) => write!(f, "UTF8 conversion error: {}", e),
+            EncodeError::NotSupported => write!(f, "Operation not supported."),
         }
     }
 }
@@ -1225,6 +1223,7 @@ impl std::error::Error for EncodeError {
         match *self {
             EncodeError::BadLength => "invalid data length",
             EncodeError::FromUtf8Error(ref e) => e.description(),
+            EncodeError::NotSupported => "not supported",
         }
     }
 }
@@ -1243,12 +1242,19 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     let len = data.len() * 5 / 4 + 1;
     let mut dest = vec![0u8; len];
 
-    unsafe {
-        zmq_sys::zmq_z85_encode(
-            dest.as_mut_ptr() as *mut libc::c_char,
-            data.as_ptr(),
-            data.len(),
-        );
+    dlsym!(fn zmq_z85_encode(*mut ::std::os::raw::c_char, *const libc::uint8_t, libc::size_t) -> *mut ::std::os::raw::c_char);
+
+    match zmq_z85_encode.get() {
+        Some(z85_encode) => {
+            unsafe {
+                z85_encode(
+                    dest.as_mut_ptr() as *mut libc::c_char,
+                    data.as_ptr(),
+                    data.len(),
+                );
+            }
+        }
+        None => return Err(EncodeError::NotSupported),
     }
 
     dest.truncate(len - 1);
@@ -1262,6 +1268,8 @@ pub enum DecodeError {
     BadLength,
     /// The input string slice had embedded NUL bytes.
     NulError(ffi::NulError),
+    /// The function isn't supported by the zmq library
+    NotSupported,
 }
 
 impl From<ffi::NulError> for DecodeError {
@@ -1275,6 +1283,7 @@ impl fmt::Display for DecodeError {
         match *self {
             DecodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 5."),
             DecodeError::NulError(ref e) => write!(f, "Nul byte error: {}", e),
+            DecodeError::NotSupported => write!(f, "Operation not supported."),
         }
     }
 }
@@ -1284,6 +1293,7 @@ impl std::error::Error for DecodeError {
         match *self {
             DecodeError::BadLength => "invalid data length",
             DecodeError::NulError(ref e) => e.description(),
+            DecodeError::NotSupported => "not supported",
         }
     }
 }
@@ -1304,8 +1314,12 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
 
     let c_str = try!(ffi::CString::new(data));
 
-    unsafe {
-        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());
+    dlsym!(fn zmq_z85_decode(*mut libc::uint8_t, *const ::std::os::raw::c_char) -> *mut libc::uint8_t);
+    match zmq_z85_decode.get() {
+        Some(z85_decode) => unsafe {
+            z85_decode(dest.as_mut_ptr(), c_str.into_raw());
+        },
+        None => return Err(DecodeError::NotSupported),
     }
 
     Ok(dest)
