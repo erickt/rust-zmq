@@ -81,6 +81,7 @@ if %ERRORLEVEL% NEQ 0 (
 
 set LIBZMQ_INCLUDE_DIR=%LIBZMQ_SOURCEDIR%\include
 set LIBZMQ_LIB_DIR=%LIBZMQ_BUILDDIR%\lib\%Configuration%
+set LIBZMQ_BIN_DIR=%LIBZMQ_BUILDDIR%\bin\%Configuration%
 move "%LIBZMQ_LIB_DIR%\libzmq-*lib" "%LIBZMQ_LIB_DIR%\zmq.lib"
 set PATH=%LIBZMQ_BUILDDIR%\bin\%Configuration%;%PATH%
 if %ERRORLEVEL% NEQ 0 exit 1
