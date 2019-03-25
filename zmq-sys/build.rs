@@ -3,6 +3,27 @@ extern crate metadeps;
 use std::env;
 use std::path::Path;
 
+fn verify_windows_build_environment() {
+    let target = env::var("TARGET").ok().unwrap();
+    println!("cargo:target={:?}", target);
+    if target.contains("x86_64-pc-windows") {
+        let dll_path = prefix_dir("LIBZMQ_BIN_DIR", "include");
+        match &dll_path {
+            Some(dll_path) => {
+                println!("cargo:dll_path={}", &dll_path);
+            }
+            None => {
+                panic!("Windows environment error, unable to locate libzmq dll_path (LIBZMQ_BIN_DIR environment variable missing).\n")
+            }
+        }
+        let user_path = env::var("PATH").ok().unwrap();
+        if !user_path.contains(&dll_path.unwrap()) {
+            println!("cargo:dll_path (LIBZMQ_BIN_DIR) NOT contained in user_path\n");
+            panic!("Windows environment not setup correctly!");
+        }
+    }
+}
+
 fn prefix_dir(env_name: &str, dir: &str) -> Option<String> {
     env::var(env_name).ok().or_else(|| {
         env::var("LIBZMQ_PREFIX").ok()
@@ -28,8 +49,10 @@ fn main() {
         }
         (None, None) => {
             if let Err(e) = metadeps::probe() {
-                panic!("Unable to locate libzmq:\n{}", e);
+                panic!("Unable to locate libzmq include and library directory:\n{}", e);
             }
         }
     }
+
+    verify_windows_build_environment();
 }

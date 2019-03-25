@@ -42,6 +42,18 @@ location. If that is not available, the environment variable
 `LIBZMQ_INCLUDE_DIR`) can be defined to avoid the invocation of
 `pkg-config`.
 
+Note for Windows users (re. dynamic linking of ZeroMQ):
+
+- When building `libzmq` from sources, the dynamic link library 
+  must be renamed to `zmq.lib` from the auto named `libzmq.dll`, 
+  `libzmq-v***-mt-gd-*_*_*.dll`, `libzmq-mt-*_*_*.lib`, etc. based 
+  on make and your compiler.
+
+- The `*.dll` referred to by `zmq.lib` must be accessible via the 
+  session path.
+- See helper functions `win_*.bat` in 
+  `https://github.com/erickt/rust-zmq/tree/master/zmq-sys`
+
 Usage
 -----
 
