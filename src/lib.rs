@@ -78,6 +78,10 @@ pub enum SocketEvent {
     CLOSE_FAILED = 0x0100,
     DISCONNECTED = 0x0200,
     MONITOR_STOPPED = 0x0400,
+    HANDSHAKE_FAILED_NO_DETAIL = 0x0800,
+    HANDSHAKE_SUCCEEDED = 0x1000,
+    HANDSHAKE_FAILED_PROTOCOL = 0x2000,
+    HANDSHAKE_FAILED_AUTH = 0x4000,
     ALL = 0xFFFF,
 }
 
@@ -101,6 +105,10 @@ impl SocketEvent {
             0x0100 => SocketEvent::CLOSE_FAILED,
             0x0200 => SocketEvent::DISCONNECTED,
             0x0400 => SocketEvent::MONITOR_STOPPED,
+            0x0800 => SocketEvent::HANDSHAKE_FAILED_NO_DETAIL,
+            0x1000 => SocketEvent::HANDSHAKE_SUCCEEDED,
+            0x2000 => SocketEvent::HANDSHAKE_FAILED_PROTOCOL,
+            0x4000 => SocketEvent::HANDSHAKE_FAILED_AUTH,
             0xFFFF => SocketEvent::ALL,
             x => panic!("unknown event type {}", x),
         }
