@@ -71,16 +71,12 @@ fn main() {
         .expect_err("Socket monitoring only works over inproc://");
     assert_eq!(zmq::Error::EPROTONOSUPPORT, err);
 
-    assert!(
-        client
-            .monitor("inproc://monitor-client", zmq::SocketEvent::ALL as i32)
-            .is_ok()
-    );
-    assert!(
-        server
-            .monitor("inproc://monitor-server", zmq::SocketEvent::ALL as i32)
-            .is_ok()
-    );
+    assert!(client
+        .monitor("inproc://monitor-client", zmq::SocketEvent::ALL as i32)
+        .is_ok());
+    assert!(server
+        .monitor("inproc://monitor-server", zmq::SocketEvent::ALL as i32)
+        .is_ok());
 
     let mut client_mon = ctx.socket(zmq::PAIR).unwrap();
     let mut server_mon = ctx.socket(zmq::PAIR).unwrap();
