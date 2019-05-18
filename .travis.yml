@@ -29,8 +29,6 @@ matrix:
     - rust: nightly
       script:
         - cargo test --verbose --all-targets
-        - cargo clean # needed due to compiletests-rs issues
-        - cargo test --verbose --features unstable-testing
 
     - rust: nightly
       env: CLIPPY

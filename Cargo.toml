@@ -77,10 +77,8 @@ name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
 
 [features]
-unstable = []
 default = ["zmq_has"]
 zmq_has = [] # zmq_has was added in zeromq 4.1.
-unstable-testing = ["compiletest_rs", "unstable"]
 
 [[example]]
 name = "rtdealer"
@@ -158,16 +156,16 @@ path="examples/zguide/asyncsrv/main.rs"
 libc = "0.2.15"
 log = "0.4.3"
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
-compiletest_rs = { version = "0.3", optional = true }
-bitflags = "0.7"
+bitflags = "1.0"
 
 [build-dependencies]
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 
 [dev-dependencies]
-env_logger = "0.5"
-quickcheck = "0.6"
-rand = "0.5"
+env_logger = "0.6"
+quickcheck = "0.8"
+rand = "0.6"
 tempfile = "3"
 timebomb = "0.1.2"
-nix = "0.11"
+nix = "0.13"
+compiletest_rs = { version = "0.3.10", features = ["stable"] }

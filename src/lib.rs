@@ -1,6 +1,5 @@
 //! Module: zmq
 
-#![cfg_attr(feature = "unstable", feature(plugin))]
 #![allow(trivial_numeric_casts)]
 
 #[macro_use]
@@ -1020,19 +1019,31 @@ impl Socket {
 
 bitflags! {
     /// Type representing pending socket events.
-    pub flags PollEvents: i16 {
+    pub struct PollEvents: i16 {
         /// For `poll()`, specifies to signal when a message/some data
         /// can be read from a socket.
-        const POLLIN = 1,
+        const POLLIN = 1;
         /// For `poll()`, specifies to signal when a message/some data
         /// can be written to a socket.
-        const POLLOUT = 2,
+        const POLLOUT = 2;
         /// For `poll()`, specifies to signal when an error condition
         /// is present on a socket.  This only applies to non-0MQ
         /// sockets.
-        const POLLERR = 4,
+        const POLLERR = 4;
     }
 }
+
+/// For `poll()`, specifies to signal when a message/some data can be
+/// read from a socket.
+pub const POLLIN: PollEvents = PollEvents::POLLIN;
+
+/// For `poll()`, specifies to signal when a message/some data can be
+/// written to a socket.
+pub const POLLOUT: PollEvents = PollEvents::POLLOUT;
+
+/// For `poll()`, specifies to signal when an error condition is
+/// present on a socket.  This only applies to non-0MQ sockets.
+pub const POLLERR: PollEvents = PollEvents::POLLERR;
 
 /// Represents a handle that can be `poll()`ed.
 ///
