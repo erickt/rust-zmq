@@ -120,7 +120,8 @@ fn main() {
         let rc = zmq::poll(
             &mut items[0..if worker_queue.is_empty() { 1 } else { 2 }],
             -1,
-        ).unwrap();
+        )
+        .unwrap();
 
         if rc == -1 {
             break;

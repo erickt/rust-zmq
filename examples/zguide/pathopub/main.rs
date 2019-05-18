@@ -41,7 +41,8 @@ fn main() {
             .send(
                 &format!("{:03}", topic_range.sample(&mut rng)),
                 zmq::SNDMORE,
-            ).unwrap();
+            )
+            .unwrap();
         publisher.send("Off with his head!", 0).unwrap();
     }
 }
