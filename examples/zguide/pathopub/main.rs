@@ -7,7 +7,7 @@ use std::env;
 use std::thread::sleep;
 use std::time::Duration;
 
-use rand::distributions::{Distribution, Range};
+use rand::distributions::{Distribution, Uniform};
 
 fn main() {
     let context = zmq::Context::new();
@@ -34,7 +34,7 @@ fn main() {
     }
     // Send one random update per second
     let mut rng = rand::thread_rng();
-    let topic_range = Range::new(0, 1000);
+    let topic_range = Uniform::new(0, 1000);
     loop {
         sleep(Duration::from_millis(1000));
         publisher

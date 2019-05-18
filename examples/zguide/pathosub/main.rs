@@ -6,7 +6,7 @@ extern crate zmq;
 
 use std::env;
 
-use rand::distributions::{Distribution, Range};
+use rand::distributions::{Distribution, Uniform};
 
 fn main() {
     let context = zmq::Context::new();
@@ -23,7 +23,7 @@ fn main() {
         .expect("could not connect to publisher");
 
     let mut rng = rand::thread_rng();
-    let topic_range = Range::new(0, 1000);
+    let topic_range = Uniform::new(0, 1000);
     let subscription = format!("{:03}", topic_range.sample(&mut rng)).into_bytes();
     subscriber.set_subscribe(&subscription).unwrap();
 
