@@ -6,6 +6,10 @@
 - Added `PollItem::set_events`, which allows for constructing a `PollItem` from
   arbitrary file descriptors.
 
+## Bug fixes
+
+- Fix feature detection for `zmq_has` (issue #207).
+
 # 0.8.2
 
 ## New and improved functionality
