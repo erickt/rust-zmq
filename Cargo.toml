@@ -13,6 +13,29 @@ readme = "README.md"
 build = "build.rs"
 edition = "2018"
 
+[features]
+default = ["zmq_has"]
+zmq_has = [] # zmq_has was added in zeromq 4.1.
+vendored = ['zmq-sys/vendored']
+
+[dependencies]
+libc = "0.2.15"
+log = "0.4.3"
+zmq-sys = { version = "0.9.0", path = "zmq-sys" }
+bitflags = "1.0"
+
+[build-dependencies]
+zmq-sys = { version = "0.9.0", path = "zmq-sys" }
+
+[dev-dependencies]
+env_logger = "0.6"
+quickcheck = "0.8"
+rand = "0.6"
+tempfile = "3"
+timebomb = "0.1.2"
+nix = "0.13"
+compiletest_rs = { version = "0.3.10", features = ["stable"] }
+
 [[example]]
 name = "helloworld_client"
 path = "examples/zguide/helloworld_client/main.rs"
@@ -76,10 +99,6 @@ path = "examples/zguide/weather_client/main.rs"
 [[example]]
 name = "weather_server"
 path = "examples/zguide/weather_server/main.rs"
-
-[features]
-default = ["zmq_has"]
-zmq_has = [] # zmq_has was added in zeromq 4.1.
 
 [[example]]
 name = "rtdealer"
@@ -152,21 +171,3 @@ path="examples/zguide/lbbroker/main.rs"
 [[example]]
 name="asyncsrv"
 path="examples/zguide/asyncsrv/main.rs"
-
-[dependencies]
-libc = "0.2.15"
-log = "0.4.3"
-zmq-sys = { version = "0.9.0", path = "zmq-sys" }
-bitflags = "1.0"
-
-[build-dependencies]
-zmq-sys = { version = "0.9.0", path = "zmq-sys" }
-
-[dev-dependencies]
-env_logger = "0.6"
-quickcheck = "0.8"
-rand = "0.6"
-tempfile = "3"
-timebomb = "0.1.2"
-nix = "0.13"
-compiletest_rs = { version = "0.3.10", features = ["stable"] }

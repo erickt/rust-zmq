@@ -9,14 +9,21 @@ license = "MIT/Apache-2.0"
 description = "Low-level bindings to the zeromq library"
 keywords = ["ffi", "bindings"]
 repository = "https://github.com/erickt/rust-zmq"
-build = "build.rs"
+build = "build/main.rs"
 links = "zmq"
+
+[features]
+# Build libzmq from source.
+vendored = ['zeromq-src']
+# Build and link the vendored lib statically.
+static = []
 
 [dependencies]
 libc = "0.2.15"
 
 [build-dependencies]
 metadeps = "1"
+zeromq-src = { version = "0.1.1", optional = true }
 
 [package.metadata.pkg-config]
 libzmq = "4.1"
