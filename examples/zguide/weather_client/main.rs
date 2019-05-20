@@ -6,8 +6,6 @@
  * Collects weather updates and find avg temp in zipcode
  */
 
-extern crate zmq;
-
 use std::env;
 
 fn atoi(s: &str) -> i64 {

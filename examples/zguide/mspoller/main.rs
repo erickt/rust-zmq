@@ -1,8 +1,6 @@
 //  Reading from multiple sockets
 //  This version uses zmq::poll()
 
-extern crate zmq;
-
 fn main() {
     let context = zmq::Context::new();
 

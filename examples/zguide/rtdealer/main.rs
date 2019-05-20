@@ -2,9 +2,6 @@
 
 //! Router-to-dealer example
 
-extern crate rand;
-extern crate zmq;
-
 use rand::Rng;
 use std::thread;
 use std::time::{Duration, Instant};

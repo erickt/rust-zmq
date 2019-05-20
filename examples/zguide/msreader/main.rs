@@ -3,8 +3,6 @@
 //! Reading from multiple sockets
 //! This version uses a simple recv loop
 
-extern crate zmq;
-
 use std::thread;
 use std::time::Duration;
 

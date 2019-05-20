@@ -2,16 +2,10 @@
 
 #![allow(trivial_numeric_casts)]
 
-#[macro_use]
-extern crate bitflags;
-
-#[macro_use]
-extern crate log;
-
-extern crate libc;
-extern crate zmq_sys;
-
+use bitflags::bitflags;
 use libc::{c_int, c_long, c_short};
+use log::debug;
+
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
@@ -27,7 +21,7 @@ macro_rules! zmq_try {
     ($($tt:tt)*) => {{
         let rc = $($tt)*;
         if rc == -1 {
-            return Err(::errno_to_error());
+            return Err(crate::errno_to_error());
         }
         rc
     }}
@@ -36,9 +30,9 @@ macro_rules! zmq_try {
 mod message;
 mod sockopt;
 
-use message::msg_ptr;
-pub use message::Message;
-pub use SocketType::*;
+use crate::message::msg_ptr;
+pub use crate::message::Message;
+pub use crate::SocketType::*;
 
 /// `zmq`-specific Result type.
 pub type Result<T> = result::Result<T, Error>;
@@ -694,7 +688,7 @@ impl Socket {
         for part in iter {
             let maybe_last = last_part.take();
             if let Some(last) = maybe_last {
-                try!(self.send(last.into(), flags | SNDMORE));
+                self.send(last.into(), flags | SNDMORE)?;
             }
             last_part = Some(part);
         }
@@ -740,7 +734,7 @@ impl Socket {
     /// Vec in the `Err` part of the inner result.
     pub fn recv_string(&self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
         self.recv_bytes(flags)
-            .map(|bytes| String::from_utf8(bytes).map_err(|e| e.into_bytes()))
+            .map(|bytes| String::from_utf8(bytes).map_err(FromUtf8Error::into_bytes))
     }
 
     /// Receive a multipart message from the socket.
@@ -751,10 +745,10 @@ impl Socket {
     pub fn recv_multipart(&self, flags: i32) -> Result<Vec<Vec<u8>>> {
         let mut parts: Vec<Vec<u8>> = vec![];
         loop {
-            let part = try!(self.recv_bytes(flags));
+            let part = self.recv_bytes(flags)?;
             parts.push(part);
 
-            let more_parts = try!(self.get_rcvmore());
+            let more_parts = self.get_rcvmore()?;
             if !more_parts {
                 break;
             }
@@ -1321,7 +1315,7 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     let len = data.len() * 4 / 5;
     let mut dest = vec![0u8; len];
 
-    let c_str = try!(ffi::CString::new(data));
+    let c_str = ffi::CString::new(data)?;
 
     unsafe {
         zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());

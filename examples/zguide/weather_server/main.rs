@@ -4,9 +4,6 @@
 //! Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
 //! Publishes random weather updates
 
-extern crate rand;
-extern crate zmq;
-
 use rand::rngs::SmallRng;
 use rand::FromEntropy;
 use rand::Rng;

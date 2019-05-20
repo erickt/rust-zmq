@@ -3,7 +3,7 @@ extern crate libc;
 #[cfg(unix)]
 mod unix;
 #[cfg(unix)]
-pub use unix::RawFd;
+pub use crate::unix::RawFd;
 
 #[cfg(windows)]
 mod windows;
@@ -13,7 +13,7 @@ pub use windows::RawFd;
 pub mod errno;
 
 
-pub use ffi::{
+pub use crate::ffi::{
     zmq_msg_t,
     zmq_free_fn,
     zmq_pollitem_t,

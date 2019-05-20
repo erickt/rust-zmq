@@ -3,9 +3,6 @@
 //! load balancing broker
 //! clients and workers here are shown in process
 
-extern crate rand;
-extern crate zmq;
-
 use zmq::SNDMORE;
 //use std::time::;
 use std::thread;

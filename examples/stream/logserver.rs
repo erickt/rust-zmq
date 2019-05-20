@@ -3,7 +3,6 @@
 // ZMQ_STREAM socket will prepend socket identity on message, that's why we use recv_multipart here
 
 use std::str;
-extern crate zmq;
 
 fn main() {
     println!("Hello, world!");
