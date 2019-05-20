@@ -1,7 +1,5 @@
 // Pathological publisher
 // Sends out 1,000 topics and then one random update per second
-extern crate rand;
-extern crate zmq;
 
 use std::env;
 use std::thread::sleep;

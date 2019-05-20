@@ -1,6 +1,5 @@
 #![allow(dead_code)]
 
-extern crate env_logger;
 pub extern crate timebomb;
 
 use std::sync::{Once, ONCE_INIT};

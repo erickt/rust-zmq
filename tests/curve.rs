@@ -1,5 +1,3 @@
-extern crate zmq;
-
 #[macro_use]
 mod common;
 

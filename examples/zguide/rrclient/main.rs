@@ -1,7 +1,5 @@
 #![crate_name = "rrclient"]
 
-extern crate zmq;
-
 fn main() {
     let context = zmq::Context::new();
     let requester = context.socket(zmq::REQ).unwrap();

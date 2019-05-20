@@ -6,8 +6,6 @@
 
 #![crate_name = "msgsend"]
 
-extern crate zmq;
-
 use std::env;
 use std::f64;
 use std::sync::mpsc::{channel, Receiver, Sender};

@@ -1,10 +1,7 @@
 // Test whether `zmq::poll()` works with `PollItem`s constructed from
 // arbitrary FDs.
 
-extern crate nix;
-extern crate zmq;
-
-use self::nix::unistd;
+use nix::unistd;
 use std::os::unix::io::RawFd;
 use std::thread;
 

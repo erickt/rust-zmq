@@ -1,6 +1,5 @@
 #![crate_name = "rrworker"]
 
-extern crate zmq;
 use std::thread;
 use std::time::Duration;
 

@@ -1,14 +1,8 @@
-extern crate rand;
-extern crate zmq;
-
-#[macro_use]
-extern crate quickcheck;
-
-use std::iter;
-
-use quickcheck::{Arbitrary, Gen};
+use quickcheck::{quickcheck, Arbitrary, Gen};
 use rand::Rng;
 use zmq::{z85_decode, z85_encode, DecodeError, EncodeError};
+
+use std::iter;
 
 #[test]
 fn test_z85() {

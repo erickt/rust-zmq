@@ -1,6 +1,5 @@
 #![crate_name = "syncsub"]
 
-extern crate zmq;
 use std::thread;
 use std::time::Duration;
 

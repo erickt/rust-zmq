@@ -1,6 +1,3 @@
-extern crate timebomb;
-extern crate zmq;
-
 #[macro_use]
 mod common;
 

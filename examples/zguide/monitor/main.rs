@@ -1,6 +1,5 @@
 #![crate_name = "monitor"]
 
-extern crate zmq;
 use std::str;
 use std::u16;
 

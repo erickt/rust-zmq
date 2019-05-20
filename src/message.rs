@@ -1,5 +1,3 @@
-extern crate zmq_sys;
-
 use libc::size_t;
 
 use std::ffi;

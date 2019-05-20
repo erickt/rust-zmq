@@ -1,6 +1,3 @@
-extern crate zmq;
-extern crate zmq_sys;
-
 use zmq::*;
 use zmq_sys::errno;
 

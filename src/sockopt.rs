@@ -1,8 +1,7 @@
-extern crate zmq_sys;
-
 use libc::{c_int, c_uint, int64_t, size_t, uint64_t};
 use std::os::raw::c_void;
 use std::result;
+use std::string::FromUtf8Error;
 use std::{mem, ptr, str};
 
 use super::{PollEvents, Result};
@@ -65,12 +64,12 @@ pub fn get_string(
     size: size_t,
     remove_nulbyte: bool,
 ) -> Result<result::Result<String, Vec<u8>>> {
-    let mut value = try!(get_bytes(sock, opt, size));
+    let mut value = get_bytes(sock, opt, size)?;
 
     if remove_nulbyte {
         value.pop();
     }
-    Ok(String::from_utf8(value).map_err(|e| e.into_bytes()))
+    Ok(String::from_utf8(value).map_err(FromUtf8Error::into_bytes))
 }
 
 macro_rules! setsockopt_num(
@@ -120,7 +119,7 @@ impl<'a> Setter for Option<&'a str> {
 
 impl Getter for bool {
     fn get(sock: *mut c_void, opt: c_int) -> Result<Self> {
-        let result: i32 = try!(get(sock, opt));
+        let result: i32 = get(sock, opt)?;
         Ok(result == 1)
     }
 }

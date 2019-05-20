@@ -1,11 +1,7 @@
-extern crate zmq;
-#[macro_use]
-extern crate quickcheck;
-
 #[macro_use]
 mod common;
 
-use quickcheck::{Arbitrary, Gen};
+use quickcheck::{quickcheck, Arbitrary, Gen};
 use zmq::Message;
 
 // A pair which contains two non-equal values

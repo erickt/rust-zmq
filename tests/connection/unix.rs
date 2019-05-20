@@ -4,10 +4,9 @@
 // `Socket::get_events()` to integrate with Unix `poll(2)` to check
 // the basis for integration with external event loops works.
 
-extern crate nix;
-extern crate zmq;
+use log::debug;
+use nix::poll;
 
-use self::nix::poll;
 use super::with_connection;
 
 test!(test_external_poll_inproc, {

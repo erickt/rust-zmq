@@ -42,8 +42,6 @@ location. If that is not available, the environment variable
 `rust-zmq` is a pretty straight forward port of the C API into Rust:
 
 ```rust
-extern crate zmq;
-
 fn main() {
     let ctx = zmq::Context::new();
 
