@@ -7,7 +7,7 @@ fn verify_windows_build_environment() {
     let target = env::var("TARGET").ok().unwrap();
     println!("cargo:target={:?}", target);
     if target.contains("x86_64-pc-windows") {
-        let dll_path = prefix_dir("LIBZMQ_BIN_DIR", "include");
+        let dll_path = prefix_dir("LIBZMQ_BIN_DIR", "bin");
         match &dll_path {
             Some(dll_path) => {
                 println!("cargo:dll_path={}", &dll_path);
