@@ -44,15 +44,18 @@ location. If that is not available, the environment variable
 
 Note for Windows users (re. dynamic linking of ZeroMQ):
 
-- When building `libzmq` from sources, the dynamic link library 
-  must be renamed to `zmq.lib` from the auto named `libzmq.dll`, 
-  `libzmq-v***-mt-gd-*_*_*.dll`, `libzmq-mt-*_*_*.lib`, etc. based 
-  on make and your compiler.
-
-- The `*.dll` referred to by `zmq.lib` must be accessible via the 
-  session path.
-- See helper functions `win_*.bat` in 
-  `https://github.com/erickt/rust-zmq/tree/master/zmq-sys`
+- When building `libzmq` from sources, the library must be renamed 
+  to `zmq.lib` from the auto named `libzmq-v***-mt-gd-*_*_*.lib`, 
+  `libzmq.lib`, `libzmq-mt-*_*_*.lib`, etc. 
+- The `LIBZMQ_BIN_DIR` environment variable must be defined and must 
+  point to the folder containing the `*.dll` (dynamic link library) 
+  referred to by `zmq.lib`. It must also be accessible via the 
+  path for the session that invokes the Rust compiler. 
+- The name of the `*.dll` in question depends on the build system 
+  used for `libzmq` and can usually be seen when opening `zmq.lib` 
+  in a text editor.
+- See example helper functions [win_set_environment_vars_rust_zmq.bat](https://gist.github.com/hansieodendaal/a3811c33382476d15999088466fcfe29) 
+  and [win_source_dll_path_rust_zmq.bat](https://gist.github.com/hansieodendaal/8cf5920e8bafa099334ad929c79062b7) (use at own risk!).
 
 Usage
 -----
