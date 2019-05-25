@@ -1,6 +1,13 @@
+use std::env;
+
 #[cfg(feature = "zmq_has")]
 fn main() {
     use std::ffi::CString;
+
+    println!(
+        "cargo:rustc-env=BUILD_PROFILE={}",
+        env::var("PROFILE").unwrap()
+    );
 
     for has in ["ipc", "pgm", "tipc", "norm", "curve", "gssapi"].into_iter() {
         if unsafe { zmq_sys::zmq_has(CString::new(has.as_bytes()).unwrap().as_ptr()) } == 1 {
@@ -13,6 +20,11 @@ fn main() {
 fn main() {
     use std::mem::size_of;
     use std::os::raw::c_int;
+
+    println!(
+        "cargo:rustc-env=BUILD_PROFILE={}",
+        env::var("PROFILE").unwrap()
+    );
 
     const ZMQ_CURVE_SERVER: c_int = 47;
     const ZMQ_GSSAPI_SERVER: c_int = 62;
