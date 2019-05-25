@@ -35,6 +35,13 @@ matrix:
     - stage: check # do a pre-screen to make sure this is even worth testing
       script: cargo check --all-targets
       rust: stable
+    - stage: test
+      script:
+        - cargo test --all
+        # Now test with the vendored crate. Clean to prevent duplicate zmq link.
+        - cargo clean
+        - cargo test --all --all-features
+        - cargo test --all --release --all-features
     - stage: lint
       name: "Rust: rustfmt"
       install:

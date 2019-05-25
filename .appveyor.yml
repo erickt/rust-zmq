@@ -3,7 +3,7 @@ os:
 clone_depth: 1
 configuration:
   - Debug
-    #  - Release
+  - Release
 platform:
   #- Win32
   - x64

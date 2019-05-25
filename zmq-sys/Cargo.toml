@@ -21,7 +21,7 @@ libc = "0.2.15"
 
 [build-dependencies]
 metadeps = "1"
-zeromq-src = { version = "0.1.5", optional = true }
+zeromq-src = { version = "0.1.6", optional = true }
 
 [package.metadata.pkg-config]
 libzmq = "4.1"
