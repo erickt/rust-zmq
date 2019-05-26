@@ -41,8 +41,7 @@ test!(test_exchanging_messages, {
     assert_eq!(format!("{:?}", msg), "[102, 111, 111]");
 
     receiver.send("bar", 0).unwrap();
-    let mut msg = Message::with_capacity(1);
-    sender.recv(&mut msg, 0).unwrap();
+    let msg = sender.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"bar");
 });
 
