@@ -1,7 +1,7 @@
 #[macro_use]
 mod common;
 
-use zmq::{Context, CurveKeyPair, Message, Socket};
+use zmq::{Context, CurveKeyPair, Socket};
 
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
@@ -36,7 +36,6 @@ test!(test_curve_messages, {
     println!("this is it {0}", msg.as_str().unwrap());
     assert_eq!(format!("{:?}", msg), "[102, 111, 111]");
     receiver.send("bar", 0).unwrap();
-    let mut msg = Message::with_capacity(1);
-    sender.recv(&mut msg, 0).unwrap();
+    let msg = sender.recv_msg(0).unwrap();
     assert_eq!(&msg[..], b"bar");
 });
