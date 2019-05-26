@@ -79,7 +79,10 @@ path = "examples/zguide/weather_server/main.rs"
 
 [features]
 default = ["zmq_has"]
-zmq_has = [] # zmq_has was added in zeromq 4.1.
+# zmq_has was added in zeromq 4.1. As we now require 4.1 or newer,
+# this feature is a no-op and only present for backward-compatibility;
+# it will be removed in the next API-breaking release.
+zmq_has = []
 
 [[example]]
 name = "rtdealer"
