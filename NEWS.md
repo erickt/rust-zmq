@@ -1,3 +1,11 @@
+# 0.9.1
+
+## New and improved functionality
+
+- Added `vendored` feature which build `libzmq` from source via [`zeromq-src`].
+
+[`zeromq-src`]: https://github.com/jean-airoldie/zeromq-src-rs
+
 # 0.9.0
 
 This release will focus on API corrections and improving
