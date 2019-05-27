@@ -27,9 +27,6 @@ log = "0.4.3"
 zmq-sys = { version = "0.9.0", path = "zmq-sys" }
 bitflags = "1.0"
 
-[build-dependencies]
-zmq-sys = { version = "0.9.0", path = "zmq-sys" }
-
 [dev-dependencies]
 env_logger = "0.6"
 quickcheck = "0.8"
