@@ -768,13 +768,9 @@ impl Socket {
         (is_probe_router, set_probe_router) => ZMQ_PROBE_ROUTER as bool,
         (is_router_mandatory, set_router_mandatory) => ZMQ_ROUTER_MANDATORY as bool,
         (is_router_handover, set_router_handover) => ZMQ_ROUTER_HANDOVER as bool,
-        if ZMQ_HAS_CURVE {
-            (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
-        },
-        if ZMQ_HAS_GSSAPI {
-            (is_gssapi_server, set_gssapi_server) => ZMQ_GSSAPI_SERVER as bool,
-            (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
-        },
+        (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
+        (is_gssapi_server, set_gssapi_server) => ZMQ_GSSAPI_SERVER as bool,
+        (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
     }
 
     /// Return the type of this socket.
@@ -928,7 +924,6 @@ impl Socket {
         )
     }
 
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     /// Set the `ZMQ_CURVE_PUBLICKEY` option value.
     ///
     /// The key is returned as raw bytes. Use `z85_encode` on the
@@ -938,7 +933,6 @@ impl Socket {
         sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 32)
     }
 
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     /// Get the `ZMQ_CURVE_SECRETKEY` option value.
     ///
     /// The key is returned as raw bytes. Use `z85_encode` on the
@@ -953,13 +947,11 @@ impl Socket {
     /// Note that the key is returned as raw bytes, as a 32-byte
     /// vector. Use `z85_encode()` explicitly to obtain the
     /// Z85-encoded string variant.
-    #[cfg(ZMQ_HAS_CURVE = "1")]
     pub fn get_curve_serverkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
         sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 32)
     }
 
-    #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
@@ -970,7 +962,6 @@ impl Socket {
         )
     }
 
-    #[cfg(ZMQ_HAS_GSSAPI = "1")]
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
@@ -989,15 +980,11 @@ impl Socket {
         (_, set_xpub_welcome_msg) => ZMQ_XPUB_WELCOME_MSG as Option<&str>,
         (_, set_xpub_verbose) => ZMQ_XPUB_VERBOSE as bool,
 
-        if ZMQ_HAS_CURVE {
-            (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
-            (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
-            (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
-        },
-        if ZMQ_HAS_GSSAPI {
-            (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
-            (_, set_gssapi_service_principal) => ZMQ_GSSAPI_SERVICE_PRINCIPAL as &str,
-        },
+        (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
+        (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
+        (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
+        (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
+        (_, set_gssapi_service_principal) => ZMQ_GSSAPI_SERVICE_PRINCIPAL as &str,
     }
 
     /// Create a `PollItem` from the socket.
@@ -1174,14 +1161,12 @@ pub fn has(capability: &str) -> Option<bool> {
 /// Note that for API consistency reasons, since version 0.9, the key
 /// pair is represented in the binary form. This is in contrast to
 /// libzmq, which returns the z85-encoded representation.
-#[cfg(ZMQ_HAS_CURVE = "1")]
 #[derive(Debug)]
 pub struct CurveKeyPair {
     pub public_key: [u8; 32],
     pub secret_key: [u8; 32],
 }
 
-#[cfg(ZMQ_HAS_CURVE = "1")]
 impl CurveKeyPair {
     /// Create a new key pair.
     pub fn new() -> Result<CurveKeyPair> {
