@@ -76,6 +76,23 @@ using a dedicated feature flag:
 vendored-zmq = ['zmq/vendored']
 ```
 
+## Cross-compilation
+
+When you have a cross-compiled version of `libzmq` installed, you
+should be able to cross-compile rust-zmq, assuming a platform
+supporting `pkg-config`. For example, assuming you have `libzmq`
+compiled for the `i686-pc-windows-gnu` target installed in
+`~/.local-w32`, the following should work:
+
+```sh
+PKG_CONFIG_PATH=$HOME/.local-w32/lib/pkgconfig \
+PKG_CONFIG_ALLOW_CROSS=1 \
+cargo build --target=i686-pc-windows-gnu --verbose
+```
+
+Cross compilation without `pkg-config` should work as well, but you
+need set `LIBZMQ_PREFIX` as described above.
+
 # Usage
 
 `rust-zmq` is a pretty straight forward port of the C API into Rust:
