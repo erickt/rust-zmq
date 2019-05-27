@@ -14,22 +14,33 @@ Rust ZeroMQ bindings.
 
 # Installation
 
-Currently, rust-zmq requires ZeroMQ 4.1 or newer. For example, on
-recent Debian-based distributions, you can use the following command
-to get the prerequiste headers and library installed:
+rust-zmq is available from [crates.io](https://crates.io). Users
+should add this to their `Cargo.toml` file:
 
-    apt install libzmq3-dev
+```toml
+[dependencies]
+zmq = "0.9"
+```
+
+As rust-zmq is a wrapper around `libzmq`, you need a build of `libzmq`
+version 4.1 or newer, before attempting to build the `zmq`
+crate. There are several options available:
+
+## Dynamic linking using `pkg-config`
+
+This is probably the preferred method when you are running a recent
+Unix-like OS that has support for `pkg-config`. For example, on recent
+Debian-based distributions, you can use the following command to get
+the prerequiste headers and library installed:
+
+```sh
+apt install libzmq3-dev
+```
 
 If your OS of choice does not provide packages of a new-enough libzmq,
-you will first have to install it from source; see
-<https://github.com/zeromq/libzmq/releases>.
-
-
-rust-zmq uses [cargo](https://crates.io) to install. Users should add this to
-their `Cargo.toml` file:
-
-    [dependencies]
-    zmq = "0.8"
+you can install it from source; see
+<https://github.com/zeromq/libzmq/releases>, although in this case,
+you may prefer a `vendored` build, which automates that, see below.
 
 The build normally uses `pkg-config` to find out about libzmq's
 location. If that is not available, the environment variable
@@ -37,7 +48,10 @@ location. If that is not available, the environment variable
 `LIBZMQ_INCLUDE_DIR`) can be defined to avoid the invocation of
 `pkg-config`.
 
-Note for Windows users (regarding dynamic linking of ZeroMQ):
+## Windows build
+
+When building on Windows, using the MSCV toolchain, consider the
+following when trying to link dynamically against `libzmq`:
 
 - When building `libzmq` from sources, the library must be renamed
   to `zmq.lib` from the auto named `libzmq-v***-mt-gd-*_*_*.lib`,
@@ -49,6 +63,19 @@ Note for Windows users (regarding dynamic linking of ZeroMQ):
   used for `libzmq` and can usually be seen when opening `zmq.lib`
   in a text editor.
 
+## Vendored build
+
+Starting with the upcoming release `0.9.1` (or when building from
+current `master`), you can enable the `vendored` feature flag to have
+`libzmq` be built for you and statically linked into your binary
+crate. In your `Cargo.toml`, you can give users the option to do so
+using a dedicated feature flag:
+
+```toml
+[features]
+vendored-zmq = ['zmq/vendored']
+```
+
 # Usage
 
 `rust-zmq` is a pretty straight forward port of the C API into Rust:
@@ -59,7 +86,7 @@ fn main() {
 
     let mut socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("tcp://127.0.0.1:1234").unwrap();
-    socket.send_str("hello world!", 0).unwrap();
+    socket.send("hello world!", 0).unwrap();
 }
 ```
 
@@ -68,29 +95,13 @@ https://github.com/erickt/rust-zmq/tree/master/examples.
 
 # Contributing
 
-Install for contributing to rust-zmq:
+Unless you explicitly state otherwise, any contribution intentionally
+submitted for inclusion in the work by you, as defined in the
+Apache-2.0 license, shall be dual licensed under the terms of both the
+Apache License, Version 2.0 and the MIT license without any additional
+terms or conditions.
 
-    % git clone https://github.com/erickt/rust-zmq
-    % cd rust-zmq
-    % cargo build
+See the [contribution guidelines] for what to watch out for when
+submitting a pull request.
 
-Note that the `master` branch is currently in API-breaking mode while
-we try to make the API more ergomic and flexible for the `0.9` release
-series.
-
-__This means that pull requests (e.g. bugfixes), which do not need to
-break API should be submitted for the `release/v0.8` branch__. This
-also applies to new features, if they can be implemented in an
-API-compatible way, the pull request should also aim for
-`release/v0.8`. Please submit an issue for missing features before you
-start coding, so the suitable branch and other potential questions can
-be clarified up-front.
-
-The reason for using branches, and thus increasing overhead a bit for
-all involved, is that it's not yet clear how long it will take to
-reach a point in `master` that we feel comfortable with releasing as
-0.9.0, as we'd like to have the core part of the API more-or-less
-fixed by then. Using the `release/v0.8` branch we can deliver bugfixes
-and smaller features in the meantime without forcing users to follow
-master's changing API and to continuously adjust their code to API
-changes.
+[contribution guidelines]: ./CONTRIBUTING.md
