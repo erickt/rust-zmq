@@ -525,12 +525,6 @@ macro_rules! sockopt_setter {
 
 macro_rules! sockopt_seq {
     ( META { $($meta:meta)* }, ) => ();
-    ( META { $($meta:meta)* }, if $feature:ident { $($inner:tt)* },
-      $($rest:tt)*
-    ) => {
-        sockopt_seq!(META { cfg($feature = "1") $($meta)* }, $($inner)*);
-        sockopt_seq!(META { $($meta)* }, $($rest)*);
-    };
     ( META { $($meta:meta)* }, $(#[$item_meta:meta])* (_, $setter:ident) => $constant_name:ident as $ty:ty,
       $($rest:tt)*
     ) => {
