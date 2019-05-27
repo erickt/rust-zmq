@@ -100,34 +100,7 @@ impl Message {
     /// This is equivalent to using the `From<&[u8]>` trait.
     #[deprecated(since = "0.9.1", note = "Use the `From` trait instead.")]
     pub fn from_slice(data: &[u8]) -> Message {
-        Self::from_slice_(data)
-    }
-
-    fn from_slice_(data: &[u8]) -> Message {
-        unsafe {
-            let mut msg = Message::with_size_uninit(data.len());
-            ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
-            msg
-        }
-    }
-
-    fn from_box(data: Box<[u8]>) -> Message {
-        let n = data.len();
-        if n == 0 {
-            return Message::new();
-        }
-        let raw = Box::into_raw(data);
-        unsafe {
-            Self::alloc(|msg| {
-                zmq_sys::zmq_msg_init_data(
-                    msg,
-                    raw as *mut c_void,
-                    n,
-                    drop_msg_content_box as *mut zmq_sys::zmq_free_fn,
-                    ptr::null_mut(),
-                )
-            })
-        }
+        Self::from(data)
     }
 
     /// Return the message content as a string slice if it is valid UTF-8.
@@ -192,30 +165,56 @@ impl DerefMut for Message {
 }
 
 impl<'a> From<&'a [u8]> for Message {
-    /// Construct from a byte slice by copying the data.
-    fn from(msg: &'a [u8]) -> Self {
-        Message::from_slice_(msg)
+    /// Construct a message from a byte slice by copying the data.
+    fn from(data: &'a [u8]) -> Self {
+        unsafe {
+            let mut msg = Message::with_size_uninit(data.len());
+            ptr::copy_nonoverlapping(data.as_ptr(), msg.as_mut_ptr(), data.len());
+            msg
+        }
     }
 }
 
 impl From<Vec<u8>> for Message {
-    /// Construct from a byte vector without copying the data.
+    /// Construct a message from a byte vector without copying the data.
     fn from(msg: Vec<u8>) -> Self {
-        Message::from_box(msg.into_boxed_slice())
+        Message::from(msg.into_boxed_slice())
+    }
+}
+
+impl From<Box<[u8]>> for Message {
+    /// Construct a message from a boxed slice without copying the data.
+    fn from(data: Box<[u8]>) -> Self {
+        let n = data.len();
+        if n == 0 {
+            return Message::new();
+        }
+        let raw = Box::into_raw(data);
+        unsafe {
+            Self::alloc(|msg| {
+                zmq_sys::zmq_msg_init_data(
+                    msg,
+                    raw as *mut c_void,
+                    n,
+                    drop_msg_content_box as *mut zmq_sys::zmq_free_fn,
+                    ptr::null_mut(),
+                )
+            })
+        }
     }
 }
 
 impl<'a> From<&'a str> for Message {
-    /// Construct from a string slice by copying the UTF-8 data.
+    /// Construct a message from a string slice by copying the UTF-8 data.
     fn from(msg: &str) -> Self {
-        Message::from_slice_(msg.as_bytes())
+        Message::from(msg.as_bytes())
     }
 }
 
 impl<'a> From<&'a String> for Message {
-    /// Construct from a string slice by copying the UTF-8 data.
+    /// Construct a message from a string slice by copying the UTF-8 data.
     fn from(msg: &String) -> Self {
-        Message::from_slice_(msg.as_bytes())
+        Message::from(msg.as_bytes())
     }
 }
 
