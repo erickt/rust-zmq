@@ -1,15 +1,21 @@
-# 0.9.1
+# 0.9.1 (unreleased)
 
 ## New and improved functionality
 
-- Added `vendored` feature which build `libzmq` from source via [`zeromq-src`].
+- Added `vendored` feature which build `libzmq` from source via
+  [`zeromq-src`], see the [`README`] for details.
+- The `Message` data type now implements `From<Box<[u8]>`.
 
+[`README`]: ./README.md
 [`zeromq-src`]: https://github.com/jean-airoldie/zeromq-src-rs
 
-# 0.9.0
+## Deprecations
 
-This release will focus on API corrections and improving
-documentation.
+- The `Message` constructors `with_capacity_unallocated`,
+  `with_capacity` and `from_slice` methods are deprecated, the first
+  one without a planned alternative.
+
+# 0.9.0
 
 ## Incompatible API changes
 
