@@ -5,6 +5,8 @@
 - Added `vendored` feature which build `libzmq` from source via
   [`zeromq-src`], see the [`README`] for details.
 - The `Message` data type now implements `From<Box<[u8]>`.
+- New functions `proxy_steerable` and `proxy_steerable_with_capture`,
+  which wrap the `zmq_proxy_steerable` C function.
 
 [`README`]: ./README.md
 [`zeromq-src`]: https://github.com/jean-airoldie/zeromq-src-rs
