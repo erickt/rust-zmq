@@ -1,13 +1,19 @@
-#![crate_name = "monitor"]
+#[macro_use]
+mod common;
 
 use std::str;
 use std::u16;
 
+fn version_ge_4_3() -> bool {
+    let (major, minor, _) = zmq::version();
+    (major > 4) || (major == 4 && minor >= 3)
+}
+
 /// Read one event off the monitor socket; return the SocketEvent value.
 fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent> {
-    let mut msg = zmq::Message::new();
-    monitor.recv(&mut msg, 0)?;
-    let event = (u16::from(msg[1]) << 8) | u16::from(msg[0]);
+    let msg = monitor.recv_msg(0)?;
+    // TODO: could be simplified by using `TryInto` (since 1.34)
+    let event = u16::from_ne_bytes([msg[0], msg[1]]);
 
     assert!(
         monitor.get_rcvmore()?,
@@ -15,9 +21,14 @@ fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent>
     );
 
     // the address, we'll ignore it
-    monitor.recv(&mut msg, 0)?;
+    let _ = monitor.recv_msg(0)?;
 
     Ok(zmq::SocketEvent::from_raw(event))
+}
+
+fn expect_event(mon: &mut zmq::Socket, expected: zmq::SocketEvent) {
+    let event = get_monitor_event(mon).unwrap();
+    assert_eq!(expected, event);
 }
 
 /// Send a series of pings between the client and the server.
@@ -59,7 +70,7 @@ fn close_zero_linger(socket: zmq::Socket) {
     drop(socket);
 }
 
-fn main() {
+test!(test_monitor_events, {
     let ctx = zmq::Context::new();
 
     let mut client = ctx.socket(zmq::DEALER).unwrap();
@@ -95,35 +106,28 @@ fn main() {
 
     // Now collect and check events from both sockets
     let mut event = get_monitor_event(&mut client_mon).unwrap();
-    println!("got client monitor event {:?}", event);
     if event == zmq::SocketEvent::CONNECT_DELAYED {
         event = get_monitor_event(&mut client_mon).unwrap();
-        println!("got client monitor event {:?}", event);
     }
     assert_eq!(zmq::SocketEvent::CONNECTED, event);
 
-    event = get_monitor_event(&mut client_mon).unwrap();
-    assert_eq!(zmq::SocketEvent::MONITOR_STOPPED, event);
-    println!("got client monitor event {:?}", event);
+    if version_ge_4_3() {
+        expect_event(&mut client_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
+    }
+
+    expect_event(&mut client_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
     // This is the flow of server events
-    event = get_monitor_event(&mut server_mon).unwrap();
-    println!("got server monitor event {:?}", event);
-    assert_eq!(zmq::SocketEvent::LISTENING, event);
+    expect_event(&mut server_mon, zmq::SocketEvent::LISTENING);
+    expect_event(&mut server_mon, zmq::SocketEvent::ACCEPTED);
 
-    event = get_monitor_event(&mut server_mon).unwrap();
-    println!("got server monitor event {:?}", event);
-    assert_eq!(zmq::SocketEvent::ACCEPTED, event);
-
-    event = get_monitor_event(&mut server_mon).unwrap();
-    println!("got server monitor event {:?}", event);
-    assert_eq!(zmq::SocketEvent::CLOSED, event);
-
-    event = get_monitor_event(&mut server_mon).unwrap();
-    println!("got server monitor event {:?}", event);
-    assert_eq!(zmq::SocketEvent::MONITOR_STOPPED, event);
+    if version_ge_4_3() {
+        expect_event(&mut server_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
+    }
+    expect_event(&mut server_mon, zmq::SocketEvent::CLOSED);
+    expect_event(&mut server_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
     // Close down the sockets
     close_zero_linger(client_mon);
     close_zero_linger(server_mon);
-}
+});
