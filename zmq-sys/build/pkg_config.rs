@@ -15,6 +15,7 @@ pub fn configure() {
 
     match (lib_path, include) {
         (Some(lib_path), Some(include)) => {
+            println!("cargo:rustc-link-lib=zmq");
             println!("cargo:rustc-link-search=native={}", lib_path);
             println!("cargo:include={}", include);
         }

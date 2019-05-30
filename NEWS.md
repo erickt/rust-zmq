@@ -1,3 +1,17 @@
+# 0.9.2 (unreleased)
+
+## Compatibility
+
+- `SocketType`, `Mechanism`, and `Error` can not longer be cast to an
+  integer type and expected to get the corresponding `libzmq` C-level
+  value. The ability to cast to integers and get the C enum values was
+  never a documented part of the API, so I don't consider this as a
+  breaking change.
+
+  Unfortunately, the `SocketEvent` can not be future-proofed in this
+  way; the monitoring API needs breaking changes to gain a reasonable
+  level of type-safety.
+
 # 0.9.1
 
 ## New and improved functionality

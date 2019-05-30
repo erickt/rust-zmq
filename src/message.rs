@@ -111,7 +111,7 @@ impl Message {
     /// Return the `ZMQ_MORE` flag, which indicates if more parts of a multipart
     /// message will follow.
     pub fn get_more(&self) -> bool {
-        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg as *const _ as *mut _) };
+        let rc = unsafe { zmq_sys::zmq_msg_more(&self.msg) };
         rc != 0
     }
 
@@ -119,7 +119,7 @@ impl Message {
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 
-        let value = unsafe { zmq_sys::zmq_msg_gets(&mut self.msg, c_str.as_ptr()) };
+        let value = unsafe { zmq_sys::zmq_msg_gets(&self.msg, c_str.as_ptr()) };
 
         if value.is_null() {
             None
@@ -158,7 +158,7 @@ impl DerefMut for Message {
         // this message.
         unsafe {
             let data = zmq_sys::zmq_msg_data(&mut self.msg);
-            let len = zmq_sys::zmq_msg_size(&mut self.msg) as usize;
+            let len = zmq_sys::zmq_msg_size(&self.msg) as usize;
             slice::from_raw_parts_mut(data as *mut u8, len)
         }
     }
@@ -196,7 +196,7 @@ impl From<Box<[u8]>> for Message {
                     msg,
                     raw as *mut c_void,
                     n,
-                    drop_msg_content_box as *mut zmq_sys::zmq_free_fn,
+                    Some(drop_msg_content_box),
                     ptr::null_mut(),
                 )
             })
