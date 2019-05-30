@@ -142,12 +142,6 @@ test!(test_into_io_error, {
     assert!(e.kind() == io::ErrorKind::NotFound);
 });
 
-test_capability!(test_curve_keypair, "curve", {
-    let keypair = CurveKeyPair::new().unwrap();
-    assert!(keypair.public_key.len() == 32);
-    assert!(keypair.secret_key.len() == 32);
-});
-
 test!(test_get_socket_type, {
     let ctx = Context::new();
 
@@ -497,37 +491,6 @@ test!(test_ctx_nohang, {
     assert_eq!(sock.get_socket_type(), Ok(REQ));
 });
 
-test_capability!(test_getset_curve_server, "curve", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    sock.set_curve_server(true).unwrap();
-    assert_eq!(sock.is_curve_server().unwrap(), true);
-});
-
-test_capability!(test_getset_curve_publickey, "curve", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    sock.set_curve_publickey(&key).unwrap();
-    assert_eq!(sock.get_curve_publickey().unwrap(), key);
-});
-
-test_capability!(test_getset_curve_secretkey, "curve", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    let key = z85_decode("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
-    sock.set_curve_secretkey(&key).unwrap();
-    assert_eq!(sock.get_curve_secretkey().unwrap(), key);
-});
-
-test_capability!(test_getset_curve_serverkey, "curve", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
-    sock.set_curve_serverkey(&key).unwrap();
-    assert_eq!(sock.get_curve_serverkey().unwrap(), key);
-});
-
 test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
@@ -552,37 +515,6 @@ test!(test_disconnect_err, {
         Error::ENOENT,
         sender.disconnect("tcp://192.0.2.1:2233").unwrap_err()
     );
-});
-
-test_capability!(test_getset_gssapi_server, "gssapi", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    sock.set_gssapi_server(true).unwrap();
-    assert_eq!(sock.is_gssapi_server().unwrap(), true);
-});
-
-test_capability!(test_getset_gssapi_principal, "gssapi", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    sock.set_gssapi_principal("principal").unwrap();
-    assert_eq!(sock.get_gssapi_principal().unwrap().unwrap(), "principal");
-});
-
-test_capability!(test_getset_gssapi_service_principal, "gssapi", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    sock.set_gssapi_service_principal("principal").unwrap();
-    assert_eq!(
-        sock.get_gssapi_service_principal().unwrap().unwrap(),
-        "principal"
-    );
-});
-
-test_capability!(test_getset_gssapi_plaintext, "gssapi", {
-    let ctx = Context::new();
-    let sock = ctx.socket(REQ).unwrap();
-    sock.set_gssapi_plaintext(true).unwrap();
-    assert_eq!(sock.is_gssapi_plaintext().unwrap(), true);
 });
 
 test!(test_getset_handshake_ivl, {
