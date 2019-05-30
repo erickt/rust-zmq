@@ -39,225 +39,197 @@ pub type Result<T> = result::Result<T, Error>;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SocketType {
-    PAIR = 0,
-    PUB = 1,
-    SUB = 2,
-    REQ = 3,
-    REP = 4,
-    DEALER = 5,
-    ROUTER = 6,
-    PULL = 7,
-    PUSH = 8,
-    XPUB = 9,
-    XSUB = 10,
-    STREAM = 11,
+    PAIR,
+    PUB,
+    SUB,
+    REQ,
+    REP,
+    DEALER,
+    ROUTER,
+    PULL,
+    PUSH,
+    XPUB,
+    XSUB,
+    STREAM,
 }
 
-impl Copy for SocketType {}
+impl SocketType {
+    fn to_raw(self) -> c_int {
+        let raw = match self {
+            PAIR => zmq_sys::ZMQ_PAIR,
+            PUB => zmq_sys::ZMQ_PUB,
+            SUB => zmq_sys::ZMQ_SUB,
+            REQ => zmq_sys::ZMQ_REQ,
+            REP => zmq_sys::ZMQ_REP,
+            DEALER => zmq_sys::ZMQ_DEALER,
+            ROUTER => zmq_sys::ZMQ_ROUTER,
+            PULL => zmq_sys::ZMQ_PULL,
+            PUSH => zmq_sys::ZMQ_PUSH,
+            XPUB => zmq_sys::ZMQ_XPUB,
+            XSUB => zmq_sys::ZMQ_XSUB,
+            STREAM => zmq_sys::ZMQ_STREAM,
+        };
+        raw as c_int
+    }
+    fn from_raw(raw: c_int) -> SocketType {
+        match raw as u32 {
+            zmq_sys::ZMQ_PAIR => PAIR,
+            zmq_sys::ZMQ_PUB => PUB,
+            zmq_sys::ZMQ_SUB => SUB,
+            zmq_sys::ZMQ_REQ => REQ,
+            zmq_sys::ZMQ_REP => REP,
+            zmq_sys::ZMQ_DEALER => DEALER,
+            zmq_sys::ZMQ_ROUTER => ROUTER,
+            zmq_sys::ZMQ_PULL => PULL,
+            zmq_sys::ZMQ_PUSH => PUSH,
+            zmq_sys::ZMQ_XPUB => XPUB,
+            zmq_sys::ZMQ_XSUB => XSUB,
+            zmq_sys::ZMQ_STREAM => STREAM,
+            _ => panic!("socket type is out of range!"),
+        }
+    }
+}
 
 /// Socket Events
 #[allow(non_camel_case_types)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SocketEvent {
-    CONNECTED = 0x0001,
-    CONNECT_DELAYED = 0x0002,
-    CONNECT_RETRIED = 0x0004,
-    LISTENING = 0x0008,
-    BIND_FAILED = 0x0010,
-    ACCEPTED = 0x0020,
-    ACCEPT_FAILED = 0x0040,
-    CLOSED = 0x0080,
-    CLOSE_FAILED = 0x0100,
-    DISCONNECTED = 0x0200,
-    MONITOR_STOPPED = 0x0400,
-    HANDSHAKE_FAILED_NO_DETAIL = 0x0800,
-    HANDSHAKE_SUCCEEDED = 0x1000,
-    HANDSHAKE_FAILED_PROTOCOL = 0x2000,
-    HANDSHAKE_FAILED_AUTH = 0x4000,
-    ALL = 0xFFFF,
+    // TODO: This should become a proper enum, including the data.
+    CONNECTED = zmq_sys::ZMQ_EVENT_CONNECTED as isize,
+    CONNECT_DELAYED = zmq_sys::ZMQ_EVENT_CONNECT_DELAYED as isize,
+    CONNECT_RETRIED = zmq_sys::ZMQ_EVENT_CONNECT_RETRIED as isize,
+    LISTENING = zmq_sys::ZMQ_EVENT_LISTENING as isize,
+    BIND_FAILED = zmq_sys::ZMQ_EVENT_BIND_FAILED as isize,
+    ACCEPTED = zmq_sys::ZMQ_EVENT_ACCEPTED as isize,
+    ACCEPT_FAILED = zmq_sys::ZMQ_EVENT_ACCEPT_FAILED as isize,
+    CLOSED = zmq_sys::ZMQ_EVENT_CLOSED as isize,
+    CLOSE_FAILED = zmq_sys::ZMQ_EVENT_CLOSE_FAILED as isize,
+    DISCONNECTED = zmq_sys::ZMQ_EVENT_DISCONNECTED as isize,
+    MONITOR_STOPPED = zmq_sys::ZMQ_EVENT_MONITOR_STOPPED as isize,
+    HANDSHAKE_FAILED_NO_DETAIL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL as isize,
+    HANDSHAKE_SUCCEEDED = zmq_sys::ZMQ_EVENT_HANDSHAKE_SUCCEEDED as isize,
+    HANDSHAKE_FAILED_PROTOCOL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL as isize,
+    HANDSHAKE_FAILED_AUTH = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH as isize,
+    ALL = zmq_sys::ZMQ_EVENT_ALL as isize,
 }
-
-impl Copy for SocketEvent {}
 
 impl SocketEvent {
     pub fn to_raw(self) -> u16 {
         self as u16
     }
 
+    // TODO: this should not need to be public
     pub fn from_raw(raw: u16) -> SocketEvent {
-        match raw {
-            0x0001 => SocketEvent::CONNECTED,
-            0x0002 => SocketEvent::CONNECT_DELAYED,
-            0x0004 => SocketEvent::CONNECT_RETRIED,
-            0x0008 => SocketEvent::LISTENING,
-            0x0010 => SocketEvent::BIND_FAILED,
-            0x0020 => SocketEvent::ACCEPTED,
-            0x0040 => SocketEvent::ACCEPT_FAILED,
-            0x0080 => SocketEvent::CLOSED,
-            0x0100 => SocketEvent::CLOSE_FAILED,
-            0x0200 => SocketEvent::DISCONNECTED,
-            0x0400 => SocketEvent::MONITOR_STOPPED,
-            0x0800 => SocketEvent::HANDSHAKE_FAILED_NO_DETAIL,
-            0x1000 => SocketEvent::HANDSHAKE_SUCCEEDED,
-            0x2000 => SocketEvent::HANDSHAKE_FAILED_PROTOCOL,
-            0x4000 => SocketEvent::HANDSHAKE_FAILED_AUTH,
-            0xFFFF => SocketEvent::ALL,
+        use SocketEvent::*;
+        match u32::from(raw) {
+            zmq_sys::ZMQ_EVENT_CONNECTED => CONNECTED,
+            zmq_sys::ZMQ_EVENT_CONNECT_DELAYED => CONNECT_DELAYED,
+            zmq_sys::ZMQ_EVENT_CONNECT_RETRIED => CONNECT_RETRIED,
+            zmq_sys::ZMQ_EVENT_LISTENING => LISTENING,
+            zmq_sys::ZMQ_EVENT_BIND_FAILED => BIND_FAILED,
+            zmq_sys::ZMQ_EVENT_ACCEPTED => ACCEPTED,
+            zmq_sys::ZMQ_EVENT_ACCEPT_FAILED => ACCEPT_FAILED,
+            zmq_sys::ZMQ_EVENT_CLOSED => CLOSED,
+            zmq_sys::ZMQ_EVENT_CLOSE_FAILED => CLOSE_FAILED,
+            zmq_sys::ZMQ_EVENT_DISCONNECTED => DISCONNECTED,
+            zmq_sys::ZMQ_EVENT_MONITOR_STOPPED => MONITOR_STOPPED,
+            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL => HANDSHAKE_FAILED_NO_DETAIL,
+            zmq_sys::ZMQ_EVENT_HANDSHAKE_SUCCEEDED => HANDSHAKE_SUCCEEDED,
+            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL => HANDSHAKE_FAILED_PROTOCOL,
+            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH => HANDSHAKE_FAILED_AUTH,
+            zmq_sys::ZMQ_EVENT_ALL => ALL,
             x => panic!("unknown event type {}", x),
         }
     }
 }
 
 /// Flag for socket `send` methods that specifies non-blocking mode.
-pub static DONTWAIT: i32 = 1;
+pub static DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
 /// Flag for socket `send` methods that specifies that more frames of a
 /// multipart message will follow.
-pub static SNDMORE: i32 = 2;
-
-/// Raw 0MQ socket option constants.
-#[allow(non_camel_case_types, dead_code)]
-#[derive(Clone, Debug, PartialEq)]
-enum Constants {
-    ZMQ_AFFINITY = 4,
-    ZMQ_IDENTITY = 5,
-    ZMQ_SUBSCRIBE = 6,
-    ZMQ_UNSUBSCRIBE = 7,
-    ZMQ_RATE = 8,
-    ZMQ_RECOVERY_IVL = 9,
-    ZMQ_SNDBUF = 11,
-    ZMQ_RCVBUF = 12,
-    ZMQ_RCVMORE = 13,
-    ZMQ_FD = 14,
-    ZMQ_EVENTS = 15,
-    ZMQ_TYPE = 16,
-    ZMQ_LINGER = 17,
-    ZMQ_RECONNECT_IVL = 18,
-    ZMQ_BACKLOG = 19,
-    ZMQ_RECONNECT_IVL_MAX = 21,
-    ZMQ_MAXMSGSIZE = 22,
-    ZMQ_SNDHWM = 23,
-    ZMQ_RCVHWM = 24,
-    ZMQ_MULTICAST_HOPS = 25,
-    ZMQ_RCVTIMEO = 27,
-    ZMQ_SNDTIMEO = 28,
-    ZMQ_LAST_ENDPOINT = 32,
-    ZMQ_ROUTER_MANDATORY = 33,
-    ZMQ_TCP_KEEPALIVE = 34,
-    ZMQ_TCP_KEEPALIVE_CNT = 35,
-    ZMQ_TCP_KEEPALIVE_IDLE = 36,
-    ZMQ_TCP_KEEPALIVE_INTVL = 37,
-    ZMQ_IMMEDIATE = 39,
-    ZMQ_XPUB_VERBOSE = 40,
-    ZMQ_ROUTER_RAW = 41,
-    ZMQ_IPV6 = 42,
-    ZMQ_MECHANISM = 43,
-    ZMQ_PLAIN_SERVER = 44,
-    ZMQ_PLAIN_USERNAME = 45,
-    ZMQ_PLAIN_PASSWORD = 46,
-    ZMQ_CURVE_SERVER = 47,
-    ZMQ_CURVE_PUBLICKEY = 48,
-    ZMQ_CURVE_SECRETKEY = 49,
-    ZMQ_CURVE_SERVERKEY = 50,
-    ZMQ_PROBE_ROUTER = 51,
-    ZMQ_REQ_CORRELATE = 52,
-    ZMQ_REQ_RELAXED = 53,
-    ZMQ_CONFLATE = 54,
-    ZMQ_ZAP_DOMAIN = 55,
-    ZMQ_ROUTER_HANDOVER = 56,
-    ZMQ_TOS = 57,
-    ZMQ_CONNECT_RID = 61,
-    ZMQ_GSSAPI_SERVER = 62,
-    ZMQ_GSSAPI_PRINCIPAL = 63,
-    ZMQ_GSSAPI_SERVICE_PRINCIPAL = 64,
-    ZMQ_GSSAPI_PLAINTEXT = 65,
-    ZMQ_HANDSHAKE_IVL = 66,
-    ZMQ_SOCKS_PROXY = 68,
-    ZMQ_XPUB_NODROP = 69,
-    ZMQ_BLOCKY = 70,
-    ZMQ_XPUB_MANUAL = 71,
-    ZMQ_XPUB_WELCOME_MSG = 72,
-    ZMQ_STREAM_NOTIFY = 73,
-    ZMQ_INVERT_MATCHING = 74,
-    ZMQ_HEARTBEAT_IVL = 75,
-    ZMQ_HEARTBEAT_TTL = 76,
-    ZMQ_HEARTBEAT_TIMEOUT = 77,
-    ZMQ_XPUB_VERBOSER = 78,
-    ZMQ_CONNECT_TIMEOUT = 79,
-    ZMQ_TCP_MAXRT = 80,
-    ZMQ_THREAD_SAFE = 81,
-    ZMQ_MULTICAST_MAXTPDU = 84,
-    ZMQ_VMCI_BUFFER_SIZE = 85,
-    ZMQ_VMCI_BUFFER_MIN_SIZE = 86,
-    ZMQ_VMCI_BUFFER_MAX_SIZE = 87,
-    ZMQ_VMCI_CONNECT_TIMEOUT = 88,
-    ZMQ_USE_FD = 89,
-
-    ZMQ_MSG_MORE = 1,
-    ZMQ_MSG_SHARED = 128,
-    ZMQ_MSG_MASK = 129,
-}
-
-impl Copy for Constants {}
-
-impl Constants {
-    fn to_raw(self) -> i32 {
-        self as i32
-    }
-}
+pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Mechanism {
-    ZMQ_NULL = 0,
-    ZMQ_PLAIN = 1,
-    ZMQ_CURVE = 2,
-    ZMQ_GSSAPI = 3,
+    // TODO: Fix the naming
+    ZMQ_NULL,
+    ZMQ_PLAIN,
+    ZMQ_CURVE,
+    ZMQ_GSSAPI,
 }
-
-impl Copy for Mechanism {}
 
 /// An error returned by a 0MQ API function.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Error {
-    EACCES = errno::EACCES as isize,
-    EADDRINUSE = errno::EADDRINUSE as isize,
-    EAGAIN = errno::EAGAIN as isize,
-    EBUSY = errno::EBUSY as isize,
-    ECONNREFUSED = errno::ECONNREFUSED as isize,
-    EFAULT = errno::EFAULT as isize,
-    EINTR = errno::EINTR as isize,
-    EHOSTUNREACH = errno::EHOSTUNREACH as isize,
-    EINPROGRESS = errno::EINPROGRESS as isize,
-    EINVAL = errno::EINVAL as isize,
-    EMFILE = errno::EMFILE as isize,
-    EMSGSIZE = errno::EMSGSIZE as isize,
-    ENAMETOOLONG = errno::ENAMETOOLONG as isize,
-    ENODEV = errno::ENODEV as isize,
-    ENOENT = errno::ENOENT as isize,
-    ENOMEM = errno::ENOMEM as isize,
-    ENOTCONN = errno::ENOTCONN as isize,
-    ENOTSOCK = errno::ENOTSOCK as isize,
-    EPROTO = errno::EPROTO as isize,
-    EPROTONOSUPPORT = errno::EPROTONOSUPPORT as isize,
-    ENOTSUP = errno::ENOTSUP as isize,
-    ENOBUFS = errno::ENOBUFS as isize,
-    ENETDOWN = errno::ENETDOWN as isize,
-    EADDRNOTAVAIL = errno::EADDRNOTAVAIL as isize,
+    EACCES,
+    EADDRINUSE,
+    EAGAIN,
+    EBUSY,
+    ECONNREFUSED,
+    EFAULT,
+    EINTR,
+    EHOSTUNREACH,
+    EINPROGRESS,
+    EINVAL,
+    EMFILE,
+    EMSGSIZE,
+    ENAMETOOLONG,
+    ENODEV,
+    ENOENT,
+    ENOMEM,
+    ENOTCONN,
+    ENOTSOCK,
+    EPROTO,
+    EPROTONOSUPPORT,
+    ENOTSUP,
+    ENOBUFS,
+    ENETDOWN,
+    EADDRNOTAVAIL,
 
     // native zmq error codes
-    EFSM = errno::EFSM as isize,
-    ENOCOMPATPROTO = errno::ENOCOMPATPROTO as isize,
-    ETERM = errno::ETERM as isize,
-    EMTHREAD = errno::EMTHREAD as isize,
+    EFSM,
+    ENOCOMPATPROTO,
+    ETERM,
+    EMTHREAD,
 }
-
-impl Copy for Error {}
 
 impl Error {
     pub fn to_raw(self) -> i32 {
-        self as i32
+        match self {
+            Error::EACCES => errno::EACCES,
+            Error::EADDRINUSE => errno::EADDRINUSE,
+            Error::EAGAIN => errno::EAGAIN,
+            Error::EBUSY => errno::EBUSY,
+            Error::ECONNREFUSED => errno::ECONNREFUSED,
+            Error::EFAULT => errno::EFAULT,
+            Error::EINTR => errno::EINTR,
+            Error::EHOSTUNREACH => errno::EHOSTUNREACH,
+            Error::EINPROGRESS => errno::EINPROGRESS,
+            Error::EINVAL => errno::EINVAL,
+            Error::EMFILE => errno::EMFILE,
+            Error::EMSGSIZE => errno::EMSGSIZE,
+            Error::ENAMETOOLONG => errno::ENAMETOOLONG,
+            Error::ENODEV => errno::ENODEV,
+            Error::ENOENT => errno::ENOENT,
+            Error::ENOMEM => errno::ENOMEM,
+            Error::ENOTCONN => errno::ENOTCONN,
+            Error::ENOTSOCK => errno::ENOTSOCK,
+            Error::EPROTO => errno::EPROTO,
+            Error::EPROTONOSUPPORT => errno::EPROTONOSUPPORT,
+            Error::ENOTSUP => errno::ENOTSUP,
+            Error::ENOBUFS => errno::ENOBUFS,
+            Error::ENETDOWN => errno::ENETDOWN,
+            Error::EADDRNOTAVAIL => errno::EADDRNOTAVAIL,
+
+            Error::EFSM => errno::EFSM,
+            Error::ENOCOMPATPROTO => errno::ENOCOMPATPROTO,
+            Error::ETERM => errno::ETERM,
+            Error::EMTHREAD => errno::EMTHREAD,
+        }
     }
 
     pub fn from_raw(raw: i32) -> Error {
@@ -286,18 +258,37 @@ impl Error {
             errno::ENETDOWN => Error::ENETDOWN,
             errno::EADDRNOTAVAIL => Error::EADDRNOTAVAIL,
             errno::EINTR => Error::EINTR,
-            156_384_714 => Error::EPROTONOSUPPORT,
-            156_384_715 => Error::ENOBUFS,
-            156_384_716 => Error::ENETDOWN,
-            156_384_717 => Error::EADDRINUSE,
-            156_384_718 => Error::EADDRNOTAVAIL,
-            156_384_719 => Error::ECONNREFUSED,
-            156_384_720 => Error::EINPROGRESS,
-            156_384_721 => Error::ENOTSOCK,
-            156_384_763 => Error::EFSM,
-            156_384_764 => Error::ENOCOMPATPROTO,
-            156_384_765 => Error::ETERM,
-            156_384_766 => Error::EMTHREAD,
+
+            // These may turn up on platforms that don't support these
+            // errno codes natively (Windows)
+            errno::ENOTSUP_ALT => Error::ENOTSUP,
+            errno::EPROTONOSUPPORT_ALT => Error::EPROTONOSUPPORT,
+            errno::ENOBUFS_ALT => Error::ENOBUFS,
+            errno::ENETDOWN_ALT => Error::ENETDOWN,
+            errno::EADDRINUSE_ALT => Error::EADDRINUSE,
+            errno::EADDRNOTAVAIL_ALT => Error::EADDRNOTAVAIL,
+            errno::ECONNREFUSED_ALT => Error::ECONNREFUSED,
+            errno::EINPROGRESS_ALT => Error::EINPROGRESS,
+            errno::ENOTSOCK_ALT => Error::ENOTSOCK,
+            errno::EMSGSIZE_ALT => Error::EMSGSIZE,
+
+            // TODO: these are present in `zmq-sys`, but not handled, as that
+            // would break backwards-compatibility for the `Error` enum.
+
+            // errno::EAFNOSUPPORT_ALT => Error::EAFNOSUPPORT,
+            // errno::ENETUNREACH_ALT => Error::ENETUNREACH,
+            // errno::ECONNABORTED_ALT => Error::ECONNABORTED,
+            // errno::ECONNRESET_ALT => Error::ECONNRESET,
+            // errno::ENOTCONN_ALT => Error::ENOTCONN,
+            // errno::ETIMEDOUT_ALT => Error::ETIMEDOUT,
+            // errno::EHOSTUNREACH_ALT => Error::EHOSTUNREACH,
+            // errno::ENETRESET_ALT => Error::ENETRESET,
+
+            // 0MQ native error codes
+            errno::EFSM => Error::EFSM,
+            errno::ENOCOMPATPROTO => Error::ENOCOMPATPROTO,
+            errno::ETERM => Error::ETERM,
+            errno::EMTHREAD => Error::EMTHREAD,
 
             x => unsafe {
                 let s = zmq_sys::zmq_strerror(x);
@@ -314,7 +305,7 @@ impl Error {
 impl std::error::Error for Error {
     fn description(&self) -> &str {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int);
+            let s = zmq_sys::zmq_strerror(self.to_raw());
             let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             str::from_utf8(v).unwrap()
         }
@@ -324,7 +315,7 @@ impl std::error::Error for Error {
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int);
+            let s = zmq_sys::zmq_strerror(self.to_raw());
             let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             write!(f, "{}", str::from_utf8(v).unwrap())
         }
@@ -335,7 +326,7 @@ impl fmt::Debug for Error {
     /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         unsafe {
-            let s = zmq_sys::zmq_strerror(*self as c_int);
+            let s = zmq_sys::zmq_strerror(self.to_raw());
             write!(
                 f,
                 "{}",
@@ -391,8 +382,8 @@ struct RawContext {
 }
 
 impl RawContext {
-    fn destroy(&self) -> Result<()> {
-        zmq_try!(unsafe { zmq_sys::zmq_ctx_destroy(self.ctx) });
+    fn term(&self) -> Result<()> {
+        zmq_try!(unsafe { zmq_sys::zmq_ctx_term(self.ctx) });
         Ok(())
     }
 }
@@ -403,9 +394,9 @@ unsafe impl Sync for RawContext {}
 impl Drop for RawContext {
     fn drop(&mut self) {
         debug!("context dropped");
-        let mut e = self.destroy();
+        let mut e = self.term();
         while e == Err(Error::EINTR) {
-            e = self.destroy();
+            e = self.term();
         }
     }
 }
@@ -451,7 +442,7 @@ impl Context {
     /// the context it was created from, and will keep that context
     /// from being dropped while being live.
     pub fn socket(&self, socket_type: SocketType) -> Result<Socket> {
-        let sock = unsafe { zmq_sys::zmq_socket(self.raw.ctx, socket_type as c_int) };
+        let sock = unsafe { zmq_sys::zmq_socket(self.raw.ctx, socket_type.to_raw()) };
 
         if sock.is_null() {
             return Err(errno_to_error());
@@ -465,9 +456,9 @@ impl Context {
     }
 
     /// Try to destroy the context. This is different than the destructor; the
-    /// destructor will loop when zmq_ctx_destroy returns EINTR.
+    /// destructor will loop when zmq_ctx_term returns EINTR.
     pub fn destroy(&mut self) -> Result<()> {
-        self.raw.destroy()
+        self.raw.term()
     }
 }
 
@@ -507,7 +498,7 @@ macro_rules! sockopt_getter {
     ) => {
         $(#[$meta])*
         pub fn $getter(&self) -> Result<$ty> {
-            <$ty as sockopt::Getter>::get(self.sock, Constants::$constant_name.to_raw())
+            <$ty as sockopt::Getter>::get(self.sock, zmq_sys::$constant_name as c_int)
         }
     };
 }
@@ -518,7 +509,7 @@ macro_rules! sockopt_setter {
     ) => {
         $(#[$meta])*
         pub fn $setter(&self, value: $ty) -> Result<()> {
-            <$ty as sockopt::Setter>::set(self.sock, Constants::$constant_name.to_raw(), value)
+            <$ty as sockopt::Setter>::set(self.sock, zmq_sys::$constant_name as c_int, value)
         }
     };
 }
@@ -769,26 +760,12 @@ impl Socket {
 
     /// Return the type of this socket.
     pub fn get_socket_type(&self) -> Result<SocketType> {
-        sockopt::get(self.sock, Constants::ZMQ_TYPE.to_raw()).map(|ty| match ty {
-            0 => SocketType::PAIR,
-            1 => SocketType::PUB,
-            2 => SocketType::SUB,
-            3 => SocketType::REQ,
-            4 => SocketType::REP,
-            5 => SocketType::DEALER,
-            6 => SocketType::ROUTER,
-            7 => SocketType::PULL,
-            8 => SocketType::PUSH,
-            9 => SocketType::XPUB,
-            10 => SocketType::XSUB,
-            11 => SocketType::STREAM,
-            _ => panic!("socket type is out of range!"),
-        })
+        sockopt::get(self.sock, zmq_sys::ZMQ_TYPE as c_int).map(SocketType::from_raw)
     }
 
     /// Return true if there are more frames of a multipart message to receive.
     pub fn get_rcvmore(&self) -> Result<bool> {
-        sockopt::get(self.sock, Constants::ZMQ_RCVMORE.to_raw()).map(|o: i64| o == 1i64)
+        sockopt::get(self.sock, zmq_sys::ZMQ_RCVMORE as c_int).map(|o: i64| o == 1i64)
     }
 
     sockopts! {
@@ -855,7 +832,8 @@ impl Socket {
         (get_tcp_keepalive_idle, set_tcp_keepalive_idle) => ZMQ_TCP_KEEPALIVE_IDLE as i32,
         (get_tcp_keepalive_intvl, set_tcp_keepalive_intvl) => ZMQ_TCP_KEEPALIVE_INTVL as i32,
         (get_handshake_ivl, set_handshake_ivl) => ZMQ_HANDSHAKE_IVL as i32,
-        (_, set_identity) => ZMQ_IDENTITY as &[u8],
+        // TODO: deprecate to align with ZMQ's preferred naming
+        (_, set_identity) => ZMQ_ROUTING_ID as &[u8],
         (_, set_subscribe) => ZMQ_SUBSCRIBE as &[u8],
         (_, set_unsubscribe) => ZMQ_UNSUBSCRIBE as &[u8],
         (get_heartbeat_ivl, set_heartbeat_ivl) => ZMQ_HEARTBEAT_IVL as i32,
@@ -864,40 +842,41 @@ impl Socket {
         (get_connect_timeout, set_connect_timeout) => ZMQ_CONNECT_TIMEOUT as i32,
     }
 
+    // TODO: deprecate to align with ZMQ's preferred naming
     pub fn get_identity(&self) -> Result<Vec<u8>> {
         // 255 = identity max length
-        sockopt::get_bytes(self.sock, Constants::ZMQ_IDENTITY.to_raw(), 255)
+        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_ROUTING_ID as c_int, 255)
     }
 
     pub fn get_socks_proxy(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = longest allowable domain name is 253 so this should
         // be a reasonable size.
-        sockopt::get_string(self.sock, Constants::ZMQ_SOCKS_PROXY.to_raw(), 255, true)
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_SOCKS_PROXY as c_int, 255, true)
     }
 
     pub fn get_mechanism(&self) -> Result<Mechanism> {
-        sockopt::get(self.sock, Constants::ZMQ_MECHANISM.to_raw()).map(|mech| match mech {
-            0 => Mechanism::ZMQ_NULL,
-            1 => Mechanism::ZMQ_PLAIN,
-            2 => Mechanism::ZMQ_CURVE,
-            3 => Mechanism::ZMQ_GSSAPI,
+        sockopt::get(self.sock, zmq_sys::ZMQ_MECHANISM as c_int).map(|mech| match mech {
+            zmq_sys::ZMQ_NULL => Mechanism::ZMQ_NULL,
+            zmq_sys::ZMQ_PLAIN => Mechanism::ZMQ_PLAIN,
+            zmq_sys::ZMQ_CURVE => Mechanism::ZMQ_CURVE,
+            zmq_sys::ZMQ_GSSAPI => Mechanism::ZMQ_GSSAPI,
             _ => panic!("Mechanism is out of range!"),
         })
     }
 
     pub fn get_plain_username(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = arbitrary size
-        sockopt::get_string(self.sock, Constants::ZMQ_PLAIN_USERNAME.to_raw(), 255, true)
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_USERNAME as c_int, 255, true)
     }
 
     pub fn get_plain_password(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 256 = arbitrary size based on std crypto key size
-        sockopt::get_string(self.sock, Constants::ZMQ_PLAIN_PASSWORD.to_raw(), 256, true)
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_PASSWORD as c_int, 256, true)
     }
 
     pub fn get_zap_domain(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = arbitrary size
-        sockopt::get_string(self.sock, Constants::ZMQ_ZAP_DOMAIN.to_raw(), 255, true)
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_ZAP_DOMAIN as c_int, 255, true)
     }
 
     /// Return the address of the last endpoint this socket was bound to.
@@ -912,7 +891,7 @@ impl Socket {
         // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
         sockopt::get_string(
             self.sock,
-            Constants::ZMQ_LAST_ENDPOINT.to_raw(),
+            zmq_sys::ZMQ_LAST_ENDPOINT as c_int,
             256 + 9 + 1,
             true,
         )
@@ -924,7 +903,7 @@ impl Socket {
     /// resulting data to get the Z85-encoded string representation of
     /// the key.
     pub fn get_curve_publickey(&self) -> Result<Vec<u8>> {
-        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_PUBLICKEY.to_raw(), 32)
+        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_PUBLICKEY as c_int, 32)
     }
 
     /// Get the `ZMQ_CURVE_SECRETKEY` option value.
@@ -933,7 +912,7 @@ impl Socket {
     /// resulting data to get the Z85-encoded string representation of
     /// the key.
     pub fn get_curve_secretkey(&self) -> Result<Vec<u8>> {
-        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SECRETKEY.to_raw(), 32)
+        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_SECRETKEY as c_int, 32)
     }
 
     /// Get `ZMQ_CURVE_SERVERKEY` option value.
@@ -943,24 +922,19 @@ impl Socket {
     /// Z85-encoded string variant.
     pub fn get_curve_serverkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
-        sockopt::get_bytes(self.sock, Constants::ZMQ_CURVE_SERVERKEY.to_raw(), 32)
+        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_SERVERKEY as c_int, 32)
     }
 
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(
-            self.sock,
-            Constants::ZMQ_GSSAPI_PRINCIPAL.to_raw(),
-            260,
-            true,
-        )
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
     }
 
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
             self.sock,
-            Constants::ZMQ_GSSAPI_SERVICE_PRINCIPAL.to_raw(),
+            zmq_sys::ZMQ_GSSAPI_SERVICE_PRINCIPAL as c_int,
             260,
             true,
         )
@@ -1001,19 +975,21 @@ impl Socket {
     }
 }
 
+// TODO: Duplicating the values inside the bitflags struct and on the top level
+// is unfortunate.
 bitflags! {
     /// Type representing pending socket events.
     pub struct PollEvents: i16 {
         /// For `poll()`, specifies to signal when a message/some data
         /// can be read from a socket.
-        const POLLIN = 1;
+        const POLLIN = zmq_sys::ZMQ_POLLIN as i16;
         /// For `poll()`, specifies to signal when a message/some data
         /// can be written to a socket.
-        const POLLOUT = 2;
+        const POLLOUT = zmq_sys::ZMQ_POLLOUT as i16;
         /// For `poll()`, specifies to signal when an error condition
         /// is present on a socket.  This only applies to non-0MQ
         /// sockets.
-        const POLLERR = 4;
+        const POLLERR = zmq_sys::ZMQ_POLLERR as i16;
     }
 }
 
