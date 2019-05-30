@@ -1,12 +1,30 @@
-# 0.9.1 (unreleased)
+# 0.9.1
 
 ## New and improved functionality
 
 - Added `vendored` feature which build `libzmq` from source via
-  [`zeromq-src`], see the [`README`] for details.
+  [`zeromq-src`], see the [`README`] for details; discussed in #257
+  and implemented in #267.
+
+- The installed `libzmq` C library is no longer feature-probed at
+  build time, and all the wrapped API is exposed. Using features
+  unsupported by the installed `libzmq` library will lead to run-time
+  errors, like they would in C.
+
+  This should enable cross-compiling without jumping through
+  additional hoops.
+
+  Implemented in #276.
+
 - The `Message` data type now implements `From<Box<[u8]>`.
+
+- The `Message` data type has gained a new constructor `with_size`,
+  which replaces the now-deprecated, confusingly-named `with_capacity`
+  constructor. Reported in #215 and fixed in #272.
+
 - New functions `proxy_steerable` and `proxy_steerable_with_capture`,
-  which wrap the `zmq_proxy_steerable` C function.
+  which wrap the `zmq_proxy_steerable` C function. Implemented in
+  #242,
 
 [`README`]: ./README.md
 [`zeromq-src`]: https://github.com/jean-airoldie/zeromq-src-rs
@@ -15,7 +33,13 @@
 
 - The `Message` constructors `with_capacity_unallocated`,
   `with_capacity` and `from_slice` methods are deprecated, the first
-  one without a planned alternative.
+  one without a planned alternative (#272).
+
+## Platform requirements
+
+- The codebase has been switched to the Rust 2018 edition and requires
+  `rustc` 1.32.0 or newer. Compatibility back to 1.32.0 is now ensured
+  via CI.
 
 # 0.9.0
 
