@@ -46,10 +46,6 @@ name = "helloworld_server"
 path = "examples/zguide/helloworld_server/main.rs"
 
 [[example]]
-name = "monitor"
-path = "examples/zguide/monitor/main.rs"
-
-[[example]]
 name = "msreader"
 path = "examples/zguide/msreader/main.rs"
 
