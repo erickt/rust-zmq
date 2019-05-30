@@ -8,7 +8,7 @@
 mod common;
 
 #[cfg(unix)]
-#[path = "connection/unix.rs"]
+#[path = "unix/connection.rs"]
 mod unix;
 
 use std::str;
