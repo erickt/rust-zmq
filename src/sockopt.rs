@@ -1,4 +1,4 @@
-use libc::{c_int, c_uint, int64_t, size_t, uint64_t};
+use libc::{c_int, c_uint, size_t};
 use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
@@ -44,8 +44,8 @@ macro_rules! getsockopt_num(
 
 getsockopt_num!(c_int, i32);
 getsockopt_num!(c_uint, u32);
-getsockopt_num!(int64_t, i64);
-getsockopt_num!(uint64_t, u64);
+getsockopt_num!(i64, i64);
+getsockopt_num!(u64, u64);
 
 pub fn get_bytes(sock: *mut c_void, opt: c_int, size: size_t) -> Result<Vec<u8>> {
     let mut size = size;
