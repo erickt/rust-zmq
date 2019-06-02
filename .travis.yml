@@ -44,11 +44,13 @@ matrix:
         - cargo test --all --release --all-features
     - stage: lint
       name: "Rust: rustfmt"
+      rust: stable
       install:
         - rustup component add rustfmt
       script:
         - cargo fmt -v -- --check
     - name: "Rust: clippy"
+      rust: stable
       install:
         - rustup component add clippy
       script:
