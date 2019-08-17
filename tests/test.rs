@@ -217,6 +217,20 @@ test!(test_subscription, {
     assert!(sock.set_unsubscribe(b"/channel").is_ok());
 });
 
+test!(test_set_req_relaxed, {
+    let ctx = Context::new();
+    let sock = ctx.socket(REQ).unwrap();
+    assert!(sock.set_req_relaxed(true).is_ok());
+    assert!(sock.set_req_relaxed(false).is_ok());
+});
+
+test!(test_set_req_correlate, {
+    let ctx = Context::new();
+    let sock = ctx.socket(REQ).unwrap();
+    assert!(sock.set_req_correlate(true).is_ok());
+    assert!(sock.set_req_correlate(false).is_ok());
+});
+
 test!(test_getset_rate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();

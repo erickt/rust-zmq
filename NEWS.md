@@ -1,5 +1,10 @@
 # 0.9.2 (unreleased)
 
+## New and improved functionality
+
+- Support for the `ZMQ_REQ_RELAXED` and `ZMQ_REQ_CORRELATE` socket
+  options.
+
 ## Compatibility
 
 - `SocketType`, `Mechanism`, and `Error` can not longer be cast to an
