@@ -756,6 +756,8 @@ impl Socket {
         (is_curve_server, set_curve_server) => ZMQ_CURVE_SERVER as bool,
         (is_gssapi_server, set_gssapi_server) => ZMQ_GSSAPI_SERVER as bool,
         (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
+        (_, set_req_relaxed) => ZMQ_REQ_RELAXED as bool,
+        (_, set_req_correlate) => ZMQ_REQ_CORRELATE as bool,
     }
 
     /// Return the type of this socket.
