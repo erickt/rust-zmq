@@ -13,7 +13,11 @@ repository = "https://github.com/erickt/rust-zmq"
 readme = "README.md"
 build = "build.rs"
 edition = "2018"
-maintainance = { status = "passively-maintained" }
+
+[badges]
+maintenance = { status = "passively-maintained" }
+travis-ci = { repository = "erickt/rust-zmq" }
+appveyor = { repository = "erickt/rust-zmq" }
 
 [features]
 default = ["zmq_has"]
