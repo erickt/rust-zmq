@@ -2,9 +2,9 @@
 
 pub extern crate timebomb;
 
-use std::sync::{Once, ONCE_INIT};
+use std::sync::Once;
 
-static LOGGER_INIT: Once = ONCE_INIT;
+static LOGGER_INIT: Once = Once::new();
 
 #[macro_export]
 macro_rules! test {
