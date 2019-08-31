@@ -43,7 +43,7 @@
 
 - New functions `proxy_steerable` and `proxy_steerable_with_capture`,
   which wrap the `zmq_proxy_steerable` C function. Implemented in
-  #242,
+  #242.
 
 [`README`]: ./README.md
 [`zeromq-src`]: https://github.com/jean-airoldie/zeromq-src-rs

@@ -12,6 +12,28 @@ Rust ZeroMQ bindings.
 
 [Release Notes](https://github.com/erickt/rust-zmq/tree/master/NEWS.md)
 
+# About
+
+The `zmq` crate provides bindings for the `libzmq` library from the
+[ZeroMQ](https://zeromq.org/) project. The API exposed by `zmq` should
+be safe (in the usual Rust sense), but it follows the C API closely,
+so it is not very idiomatic. Also, support for `libzmq` API in "draft"
+state is considered out-of-scope for this crate; this includes
+currently, as of libzmq 4.3.3:
+
+- Newer, thread-safe socket types, such as `ZMQ_CLIENT` and
+  `ZMQ_SERVER`.
+- The "poller" API.
+
+For a more modern, idiomatic approach to `libzmq` bindings, including
+draft API features, have a look at
+[`libzmq-rs`](https://github.com/jean-airoldie/libzmq-rs).
+
+# Compatibility
+
+The current 0.9 release series requires `libzmq` 4.1 or newer. New
+release series of `zmq` may require newer `libzmq` versions.
+
 # Installation
 
 rust-zmq is available from [crates.io](https://crates.io). Users
