@@ -1,7 +1,7 @@
 use std::env;
 
 pub fn configure() {
-    println!("cargo:rerun-if-changed=build.rs");
+    println!("cargo:rerun-if-changed=build/main.rs");
     println!("cargo:rerun-if-env-changed=PROFILE");
 
     let wants_debug = env::var("PROFILE").unwrap() == "debug";
