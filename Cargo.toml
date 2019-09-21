@@ -35,11 +35,11 @@ bitflags = "1.0"
 
 [dev-dependencies]
 env_logger = "0.6"
-quickcheck = "0.8"
-rand = "0.6"
+quickcheck = "0.9"
+rand = "0.7"
 tempfile = "3"
 timebomb = "0.1.2"
-nix = "0.13"
+nix = "0.15"
 compiletest_rs = { version = "0.3.10", features = ["stable"] }
 
 [[example]]

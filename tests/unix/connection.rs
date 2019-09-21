@@ -5,7 +5,7 @@
 // the basis for integration with external event loops works.
 
 use log::debug;
-use nix::poll;
+use nix::poll::{self, PollFlags};
 
 use super::with_connection;
 
@@ -64,7 +64,7 @@ impl<'a> PollState<'a> {
         let fd = socket.get_fd().unwrap();
         PollState {
             socket,
-            fds: [poll::PollFd::new(fd, poll::EventFlags::POLLIN)],
+            fds: [poll::PollFd::new(fd, PollFlags::POLLIN)],
         }
     }
 
@@ -77,7 +77,7 @@ impl<'a> PollState<'a> {
             debug!("poll done, events: {:?}", fds[0].revents());
             match fds[0].revents() {
                 Some(events) => {
-                    if !events.contains(poll::EventFlags::POLLIN) {
+                    if !events.contains(PollFlags::POLLIN) {
                         continue;
                     }
                 }

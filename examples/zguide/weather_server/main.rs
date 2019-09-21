@@ -4,8 +4,6 @@
 //! Binds PUB socket to tcp://*:5556 and ipc://weather.ipc
 //! Publishes random weather updates
 
-use rand::rngs::SmallRng;
-use rand::FromEntropy;
 use rand::Rng;
 
 fn main() {
@@ -15,7 +13,7 @@ fn main() {
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());
 
-    let mut rng = SmallRng::from_entropy();
+    let mut rng = rand::thread_rng();
 
     loop {
         let zipcode = rng.gen_range(0, 100_000);
