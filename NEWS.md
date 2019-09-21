@@ -1,21 +1,26 @@
-# 0.9.2 (unreleased)
+# 0.9.2
 
 ## New and improved functionality
 
 - Support for the `ZMQ_REQ_RELAXED` and `ZMQ_REQ_CORRELATE` socket
-  options.
+  options, implemented in #285.
 
 ## Compatibility
 
 - `SocketType`, `Mechanism`, and `Error` can not longer be cast to an
   integer type and expected to get the corresponding `libzmq` C-level
   value. The ability to cast to integers and get the C enum values was
-  never a documented part of the API, so I don't consider this as a
+  never a documented part of the API, so this is not considered a
   breaking change.
 
   Unfortunately, the `SocketEvent` can not be future-proofed in this
   way; the monitoring API needs breaking changes to gain a reasonable
   level of type-safety.
+
+## Fixes
+
+- A potential panic in `Message::gets` involving messages with
+  non-UTF8 property values has been fixed; see #288.
 
 # 0.9.1
 
