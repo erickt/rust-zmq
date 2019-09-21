@@ -116,6 +116,17 @@ impl Message {
     }
 
     /// Query a message metadata property.
+    ///
+    /// # Non-UTF8 values
+    ///
+    /// The `zmq_msg_gets` man page notes "The encoding of the property and
+    /// value shall be UTF8". However, this is not actually enforced. For API
+    /// compatibility reasons, this function will return `None` when
+    /// encountering a non-UTF8 value; so a missing and a non-UTF8 value cannot
+    /// currently be distinguished.
+    ///
+    /// This is considered a bug in the bindings, and will be fixed with the
+    /// next API-breaking release.
     pub fn gets<'a>(&'a mut self, property: &str) -> Option<&'a str> {
         let c_str = ffi::CString::new(property.as_bytes()).unwrap();
 
@@ -124,9 +135,6 @@ impl Message {
         if value.is_null() {
             None
         } else {
-            // Note: libzmq` does not do UTF-8 validation, even though its doc
-            // suggest that UTF-8 "shall" be used here. Maybe we should changge
-            // the API to return a bytes slice.
             str::from_utf8(unsafe { ffi::CStr::from_ptr(value) }.to_bytes()).ok()
         }
     }
