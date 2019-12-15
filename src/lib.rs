@@ -1055,6 +1055,16 @@ impl<'a> PollItem<'a> {
     pub fn is_error(&self) -> bool {
         (self.revents & POLLERR.bits()) != 0
     }
+
+    /// Returns true if the polled socket is the given 0MQ socket.
+    pub fn has_socket(&self, socket: &Socket) -> bool {
+        self.socket == socket.sock
+    }
+
+    /// Returns true if the polled socket is the given file descriptor.
+    pub fn has_fd(&self, fd: RawFd) -> bool {
+        self.socket.is_null() && self.fd == fd
+    }
 }
 
 /// Poll for events on multiple sockets.

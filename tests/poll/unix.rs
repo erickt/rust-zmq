@@ -12,6 +12,7 @@ fn test_pipe_poll() {
         pipe_writer(pipe_write);
     });
     let pipe_item = zmq::PollItem::from_fd(pipe_read, zmq::POLLIN);
+    assert!(pipe_item.has_fd(pipe_read));
 
     let mut poll_items = [pipe_item];
     assert_eq!(zmq::poll(&mut poll_items, 1000).unwrap(), 1);

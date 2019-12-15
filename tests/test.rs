@@ -98,6 +98,11 @@ test!(test_polling, {
     let mut poll_items = vec![receiver.as_poll_item(POLLIN)];
     assert_eq!(poll(&mut poll_items, 1000).unwrap(), 1);
     assert_eq!(poll_items[0].get_revents(), POLLIN);
+    assert!(poll_items[0].is_readable());
+    assert!(!poll_items[0].is_writable());
+    assert!(!poll_items[0].is_error());
+    assert!(poll_items[0].has_socket(&receiver));
+    assert!(!poll_items[0].has_fd(0));
 });
 
 test!(test_raw_roundtrip, {
