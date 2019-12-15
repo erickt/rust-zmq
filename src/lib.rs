@@ -4,7 +4,6 @@
 
 use bitflags::bitflags;
 use libc::{c_int, c_long, c_short};
-use log::debug;
 
 use std::ffi;
 use std::fmt;
@@ -393,7 +392,6 @@ unsafe impl Sync for RawContext {}
 
 impl Drop for RawContext {
     fn drop(&mut self) {
-        debug!("context dropped");
         let mut e = self.term();
         while e == Err(Error::EINTR) {
             e = self.term();
@@ -485,8 +483,6 @@ impl Drop for Socket {
         if self.owned {
             if unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
                 panic!(errno_to_error());
-            } else {
-                debug!("socket dropped");
             }
         }
     }
