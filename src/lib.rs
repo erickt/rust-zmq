@@ -480,10 +480,8 @@ unsafe impl Send for Socket {}
 
 impl Drop for Socket {
     fn drop(&mut self) {
-        if self.owned {
-            if unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
-                panic!(errno_to_error());
-            }
+        if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
+            panic!(errno_to_error());
         }
     }
 }
@@ -591,6 +589,13 @@ impl Socket {
     ///
     /// The Socket assumes ownership of the pointer and will close the socket
     /// when it is dropped. The returned socket will not reference any context.
+    ///
+    /// # Safety
+    ///
+    /// The socket pointer must be a socket created via the `into_raw`
+    /// method. The ownership of the socket is transferred the returned Socket,
+    /// so any other pointers to the same socket may only be used until it is
+    /// dropped.
     pub unsafe fn from_raw(sock: *mut c_void) -> Socket {
         Socket {
             sock,
