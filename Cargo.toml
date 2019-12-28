@@ -34,13 +34,13 @@ bitflags = "1.0"
 
 [dev-dependencies]
 log = "0.4.3"
-env_logger = "0.6"
+env_logger = { version = "0.7", default-features = false }
 quickcheck = "0.9"
 rand = "0.7"
 tempfile = "3"
 timebomb = "0.1.2"
-nix = "0.15"
-compiletest_rs = { version = "0.3.10", features = ["stable"] }
+nix = "0.16"
+compiletest_rs = { version = "0.4.0", features = ["stable"] }
 
 [[example]]
 name = "helloworld_client"
