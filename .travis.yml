@@ -1,6 +1,5 @@
 language: rust
 rust:
-  - 1.32.0 # uniform paths
   - stable
   - beta
   - nightly
@@ -42,6 +41,10 @@ matrix:
         - cargo clean
         - cargo test --all --all-features
         - cargo test --all --release --all-features
+    - name: "MSRV (1.32.0) compile check"
+      rust: 1.32.0 # uniform paths
+      script:
+        - cd msrv-test && cargo build
     - stage: lint
       name: "Rust: rustfmt"
       rust: stable

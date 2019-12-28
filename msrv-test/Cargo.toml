@@ -1,0 +1,8 @@
+[package]
+name = "msrv-test"
+version = "0.0.1"
+authors = ["Andreas Rottmann <a.rottmann@gmx.at>"]
+edition = "2018"
+
+[dependencies]
+zmq = { path = ".." }

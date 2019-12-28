@@ -34,6 +34,12 @@ draft API features, have a look at
 The current 0.9 release series requires `libzmq` 4.1 or newer. New
 release series of `zmq` may require newer `libzmq` versions.
 
+Regarding the minimum Rust version required, `zmq` is CI-tested on
+current stable, beta and nightly channels of Rust. Additionally, it is
+made sure that the code still compiles on Rust 1.32.0. However, no
+tests are run for that build, so use `zmq` on older Rust versions on
+your own risk. It is however likely that it will just work anyways.
+
 # Installation
 
 rust-zmq is available from [crates.io](https://crates.io). Users
@@ -123,7 +129,7 @@ need set `LIBZMQ_PREFIX` as described above.
 fn main() {
     let ctx = zmq::Context::new();
 
-    let mut socket = ctx.socket(zmq::REQ).unwrap();
+    let socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("tcp://127.0.0.1:1234").unwrap();
     socket.send("hello world!", 0).unwrap();
 }
