@@ -7,3 +7,4 @@
 *.a
 /target/
 Cargo.lock
+/msrv-test/target/
