@@ -41,8 +41,7 @@ fn main() {
     receiver
         .bind("inproc://step3")
         .expect("failed binding step 3");
-    let ctx = context.clone();
-    thread::spawn(move || step2(&ctx));
+    thread::spawn(move || step2(&context));
     //wait for signal and pass it on
     receiver.recv_msg(0).unwrap();
     println!("Test successful!");

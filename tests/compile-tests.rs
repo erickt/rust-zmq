@@ -1,4 +1,4 @@
-use std::env::var;
+use std::env;
 use std::path::PathBuf;
 
 fn run_mode(mode: &'static str) {
@@ -11,9 +11,8 @@ fn run_mode(mode: &'static str) {
         profile = env!("BUILD_PROFILE")
     ));
 
-    if let Ok(name) = var::<&str>("TESTNAME") {
-        let s: String = name.to_owned();
-        config.filter = Some(s)
+    if let Ok(name) = env::var("TESTNAME") {
+        config.filter = Some(name)
     }
     config.mode = cfg_mode;
     config.src_base = PathBuf::from(format!("tests/{}", mode));

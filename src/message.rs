@@ -65,6 +65,14 @@ impl Message {
     /// function, its use is not recommended, and it will be removed in a future
     /// release. If there is a use-case that cannot be handled efficiently by
     /// the safe message constructors, please file an issue.
+    ///
+    /// # Safety
+    ///
+    /// The returned message contains uninitialized memory, and hence the
+    /// `Deref` and `DerefMut` traits must not be used until the memory has been
+    /// initialized. Since there is no proper API to do so, this function is
+    /// basically not usable safely, unless you happen to invoke C code that
+    /// takes a raw message pointer and initializes its contents.
     #[deprecated(
         since = "0.9.1",
         note = "This method has an unintuitive name, and should not be needed."
