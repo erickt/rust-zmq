@@ -1238,14 +1238,7 @@ impl fmt::Display for EncodeError {
     }
 }
 
-impl std::error::Error for EncodeError {
-    fn description(&self) -> &str {
-        match *self {
-            EncodeError::BadLength => "invalid data length",
-            EncodeError::FromUtf8Error(ref e) => e.description(),
-        }
-    }
-}
+impl std::error::Error for EncodeError {}
 
 /// Encode a binary key as Z85 printable text.
 ///
@@ -1297,14 +1290,7 @@ impl fmt::Display for DecodeError {
     }
 }
 
-impl std::error::Error for DecodeError {
-    fn description(&self) -> &str {
-        match *self {
-            DecodeError::BadLength => "invalid data length",
-            DecodeError::NulError(ref e) => e.description(),
-        }
-    }
-}
+impl std::error::Error for DecodeError {}
 
 /// Decode a binary key from Z85-encoded text.
 ///
