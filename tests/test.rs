@@ -159,8 +159,6 @@ test!(test_version, {
 });
 
 test!(test_zmq_error, {
-    use std::error::Error as StdError;
-
     let ctx = Context::new();
     let sock = ctx.socket(SocketType::REP).unwrap();
 
@@ -171,7 +169,7 @@ test!(test_zmq_error, {
     // ZMQ error strings might not be guaranteed, so we'll not check
     // against specific messages, but still check that formatting does
     // not segfault, for example, and gives the same strings.
-    let desc = err.description();
+    let desc = err.message();
     let display = format!("{}", err);
     let debug = format!("{:?}", err);
     assert_eq!(desc, display);

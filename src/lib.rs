@@ -299,10 +299,9 @@ impl Error {
             },
         }
     }
-}
 
-impl std::error::Error for Error {
-    fn description(&self) -> &str {
+    /// Returns the error message provided by 0MQ.
+    pub fn message(self) -> &'static str {
         unsafe {
             let s = zmq_sys::zmq_strerror(self.to_raw());
             let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
@@ -311,27 +310,22 @@ impl std::error::Error for Error {
     }
 }
 
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        self.message()
+    }
+}
+
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            let s = zmq_sys::zmq_strerror(self.to_raw());
-            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
-            write!(f, "{}", str::from_utf8(v).unwrap())
-        }
+        write!(f, "{}", self.message())
     }
 }
 
 impl fmt::Debug for Error {
-    /// Return the error string for an error.
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        unsafe {
-            let s = zmq_sys::zmq_strerror(self.to_raw());
-            write!(
-                f,
-                "{}",
-                str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
-            )
-        }
+        // FIXME: An unquoted string is not a good `Debug` output.
+        write!(f, "{}", self.message())
     }
 }
 
