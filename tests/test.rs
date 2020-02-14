@@ -117,6 +117,42 @@ test!(test_raw_roundtrip, {
     let _ = unsafe { Socket::from_raw(raw) };
 });
 
+// The `conflate` option limits the buffer size to one; let's see if we can get
+// messages (unreliably) across the connection.
+test!(test_conflating_receiver, {
+    use std::sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc,
+    };
+
+    let ctx = zmq::Context::new();
+    let receiver = ctx.socket(zmq::PULL).unwrap();
+    receiver.bind("tcp://127.0.0.1:*").unwrap();
+    let receiver_endpoint = receiver.get_last_endpoint().unwrap().unwrap();
+
+    let stop = Arc::new(AtomicBool::new(false));
+    let sender_thread = {
+        let stop = Arc::clone(&stop);
+        std::thread::spawn(move || {
+            let sender = ctx.socket(zmq::PUSH).unwrap();
+            sender.connect(&receiver_endpoint).unwrap();
+            while !stop.load(Ordering::SeqCst) {
+                sender.send("bar", 0).expect("send failed");
+            }
+        })
+    };
+
+    receiver
+        .set_conflate(true)
+        .expect("could not set conflate option");
+    for _ in 0..100 {
+        let msg = receiver.recv_bytes(0).unwrap();
+        assert_eq!(&msg[..], b"bar");
+    }
+    stop.store(true, Ordering::SeqCst);
+    sender_thread.join().expect("could not join sender thread");
+});
+
 test!(test_version, {
     let (major, _, _) = version();
     assert!(major == 3 || major == 4);
