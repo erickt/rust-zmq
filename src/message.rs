@@ -59,6 +59,15 @@ impl Message {
         unsafe { Self::alloc(|msg| zmq_sys::zmq_msg_init(msg)) }
     }
 
+    /// Create a `Message` from an initialized `zmq_sys::zmq_msg_t`.
+    ///
+    /// # Safety
+    ///
+    /// `msg` must be initialized.
+    pub unsafe fn from_msg(msg: zmq_sys::zmq_msg_t) -> Self {
+        Message { msg }
+    }
+
     /// Create a `Message` preallocated with `len` uninitialized bytes.
     ///
     /// Since it is very easy to introduce undefined behavior using this
