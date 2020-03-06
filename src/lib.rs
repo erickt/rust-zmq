@@ -614,6 +614,13 @@ impl Socket {
         Ok(())
     }
 
+    /// Stop accepting connections on a socket
+    pub fn unbind(&self, endpoint: &str) -> Result<()> {
+        let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
+        zmq_try!(unsafe { zmq_sys::zmq_unbind(self.sock, c_str.as_ptr()) });
+        Ok(())
+    }
+
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
