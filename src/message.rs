@@ -37,8 +37,8 @@ impl fmt::Debug for Message {
     }
 }
 
-unsafe extern "C" fn drop_msg_content_box(data: *mut c_void, _hint: *mut c_void) {
-    let _ = Box::from_raw(data as *mut u8);
+unsafe extern "C" fn drop_msg_data_box(data: *mut c_void, hint: *mut c_void) {
+    let _ = Box::from_raw(slice::from_raw_parts_mut(data as *mut u8, hint as usize));
 }
 
 impl Message {
@@ -204,8 +204,8 @@ impl From<Vec<u8>> for Message {
 impl From<Box<[u8]>> for Message {
     /// Construct a message from a boxed slice without copying the data.
     fn from(data: Box<[u8]>) -> Self {
-        let n = data.len();
-        if n == 0 {
+        let len = data.len();
+        if len == 0 {
             return Message::new();
         }
         let raw = Box::into_raw(data);
@@ -214,9 +214,9 @@ impl From<Box<[u8]>> for Message {
                 zmq_sys::zmq_msg_init_data(
                     msg,
                     raw as *mut c_void,
-                    n,
-                    Some(drop_msg_content_box),
-                    ptr::null_mut(),
+                    len,
+                    Some(drop_msg_data_box),
+                    len as *mut c_void,
                 )
             })
         }
