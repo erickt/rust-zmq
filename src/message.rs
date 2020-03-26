@@ -41,6 +41,10 @@ unsafe extern "C" fn drop_msg_content_box(data: *mut c_void, _hint: *mut c_void)
     let _ = Box::from_raw(data as *mut u8);
 }
 
+unsafe extern "C" fn drop_msg_hint_box<T>(_data: *mut c_void, hint: *mut c_void) {
+    let _ = Box::from_raw(hint as *mut T);
+}
+
 impl Message {
     unsafe fn alloc<F>(f: F) -> Message
     where
@@ -101,6 +105,45 @@ impl Message {
     )]
     pub fn with_capacity(len: usize) -> Message {
         Self::with_size(len)
+    }
+
+    /// Create a `Message` from a `&[u8]` owned by an `Box` without copying the data.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::mem::drop;
+    /// use std::sync::Arc;
+    /// use zmq::Message;
+    ///
+    /// let arc: Arc<[u8]> = Arc::new([0, 1, 2, 3, 4, 5, 6, 7]);
+    /// let msg = Message::from_box_data(Box::new(arc.clone()), |data| &data[4..]);
+    ///
+    /// assert_eq!(Arc::strong_count(&arc), 2);
+    ///
+    /// assert_eq!(msg.as_ptr(), arc[4..].as_ptr());
+    /// assert_eq!(msg[..], [4, 5, 6, 7]);
+    ///
+    /// drop(msg);
+    /// assert_eq!(Arc::strong_count(&arc), 1);
+    /// ```
+    pub fn from_box_data<T, F>(boxed: Box<T>, data: F) -> Message
+    where
+        T: Send,
+        F: FnOnce(&T) -> &[u8],
+    {
+        unsafe {
+            Self::alloc(|msg| {
+                let data = data(&*boxed);
+                zmq_sys::zmq_msg_init_data(
+                    msg,
+                    data.as_ptr() as *mut c_void,
+                    data.len(),
+                    Some(drop_msg_hint_box::<T>),
+                    Box::into_raw(boxed) as *mut c_void,
+                )
+            })
+        }
     }
 
     /// Create a `Message` from a `&[u8]`. This will copy `data` into the message.
