@@ -9,6 +9,10 @@ use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
 use std::os::raw::c_void;
+#[cfg(unix)]
+use std::os::unix::io::{AsRawFd, RawFd as UnixRawFd};
+#[cfg(windows)]
+use std::os::windows::io::{AsRawSocket, RawSocket};
 use std::result;
 use std::string::FromUtf8Error;
 use std::sync::Arc;
@@ -477,6 +481,20 @@ impl Drop for Socket {
         if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
             panic!(errno_to_error());
         }
+    }
+}
+
+#[cfg(unix)]
+impl AsRawFd for Socket {
+    fn as_raw_fd(&self) -> UnixRawFd {
+        self.get_fd().unwrap() as UnixRawFd
+    }
+}
+
+#[cfg(windows)]
+impl AsRawSocket for Socket {
+    fn as_raw_socket(&self) -> RawSocket {
+        self.get_fd().unwrap() as RawSocket
     }
 }
 
