@@ -11,7 +11,7 @@ use std::marker::PhantomData;
 use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
-use std::sync::Arc;
+use std::sync::{Arc, Weak};
 use std::{mem, ptr, str};
 
 use zmq_sys::{errno, RawFd};
@@ -428,6 +428,19 @@ impl Context {
         }
     }
 
+    pub fn new_from_weak(other: &WeakContext) -> Context {
+        other.upgrade().unwrap_or_else(|| Context::new())
+    }
+
+    /// Create a `WeakContext` from this `Context`. Use this for when you need
+    /// a handle to clone contexts from, which can still be dropped when it is
+    /// not being used any more.
+    pub fn to_weak(&self) -> WeakContext {
+        WeakContext {
+            raw: Arc::downgrade(&self.raw),
+        }
+    }
+
     /// Create a new socket.
     ///
     /// Note that the returned socket keeps a an `Arc` reference to
@@ -457,6 +470,35 @@ impl Context {
 impl Default for Context {
     fn default() -> Self {
         Context::new()
+    }
+}
+
+/// A weak reference wrapper to `Context`. If no instances of `Context` exist any
+/// more then the inner `Context` will be dropped.
+pub struct WeakContext {
+    raw: Weak<RawContext>,
+}
+
+impl WeakContext {
+    /// Create a new `WeakContext`. This can be useful as a placeholder when a
+    /// structure needs to be iniitialized with a `WeakContext`, but there is no
+    /// `Context` yet available.
+    pub fn new() -> WeakContext {
+        WeakContext { raw: Weak::new() }
+    }
+
+    /// Create a `Context` from a `WeakContext`. If the underlying `Context` has
+    /// been dropped already then this will return `None`.
+    pub fn upgrade(&self) -> Option<Context> {
+        Some(Context {
+            raw: self.raw.upgrade()?,
+        })
+    }
+}
+
+impl Default for WeakContext {
+    fn default() -> Self {
+        WeakContext::new()
     }
 }
 
