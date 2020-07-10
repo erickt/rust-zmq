@@ -29,7 +29,7 @@ quickcheck! {
     }
 
     fn msg_vec_roundtrip(input: Vec<u8>) -> bool {
-        let original = Message::from(&input.clone());
+        let original = Message::from(&input);
         Message::from(input) == original
     }
 }
