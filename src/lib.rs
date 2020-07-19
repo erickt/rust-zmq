@@ -427,6 +427,20 @@ impl Context {
             }),
         }
     }
+    
+    /// Create a context from a raw pointer
+    pub unsafe fn from_raw(raw_ctx: *mut c_void) -> Context {
+        Context {
+            raw: Arc::new(RawContext {
+                ctx: raw_ctx,
+            }),
+        }
+    }
+    
+    /// Get the raw pointer to the context
+    pub fn into_raw(self) -> *mut c_void {
+        self.raw.ctx
+    }
 
     /// Create a new socket.
     ///
