@@ -1,5 +1,3 @@
-extern crate zmq;
-
 fn main() {
     let context = zmq::Context::new();
     let _poll_item = {
