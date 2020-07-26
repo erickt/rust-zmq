@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+#  schedule:
+#    - cron: "00 01 * * *"
+
+jobs:
+  ci:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os:
+          - macos-latest
+          - ubuntu-latest
+          #- windows-latest
+        rust:
+          - stable
+            #- beta
+            #- nightly
+            #- "1.32.0"
+    steps:
+      - name: checkout the source code
+        uses: actions/checkout@v1
+        with:
+          fetch-depth: 2
+
+      - name: install dependencies (macos)
+        run: brew update && brew install zmq
+        if: matrix.os == 'macos-latest'
+#
+#      - name: install msys2
+#        uses: eine/setup-msys2@v0
+#        with:
+#          update: true
+
+      - name: install dependencies (ubuntu)
+        run: sudo apt -y install libzmq3-dev libsodium-dev
+        if: matrix.os == 'ubuntu-latest'
+
+      - name: install Rust
+        uses: actions-rs/toolchain/@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+          components: clippy
+
+      - name: Build
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+
+      - name: Run Tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+
+      - name: Generate Docs
+        uses: actions-rs/cargo@v1
+        with:
+          command: doc
+          args: --all-features --no-deps
