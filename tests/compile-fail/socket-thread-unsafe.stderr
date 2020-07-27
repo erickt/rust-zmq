@@ -1,0 +1,10 @@
+error[E0277]: `*mut std::ffi::c_void` cannot be shared between threads safely
+   --> $DIR/socket-thread-unsafe.rs:13:13
+    |
+13  |     let t = thread::spawn(move || {
+    |             ^^^^^^^^^^^^^ `*mut std::ffi::c_void` cannot be shared between threads safely
+    |
+    = help: within `zmq::Socket`, the trait `std::marker::Sync` is not implemented for `*mut std::ffi::c_void`
+    = note: required because it appears within the type `zmq::Socket`
+    = note: required because of the requirements on the impl of `std::marker::Send` for `&zmq::Socket`
+    = note: required because it appears within the type `[closure@$DIR/tests/compile-fail/socket-thread-unsafe.rs:13:27: 15:6 s:&zmq::Socket]`
