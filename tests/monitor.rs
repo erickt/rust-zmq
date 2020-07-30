@@ -100,9 +100,7 @@ test!(test_monitor_events, {
     client.connect("tcp://127.0.0.1:9998").unwrap();
     bounce(&mut client, &mut server);
 
-    // Close client and server
     close_zero_linger(client);
-    close_zero_linger(server);
 
     // Now collect and check events from both sockets
     let mut event = get_monitor_event(&mut client_mon).unwrap();
@@ -114,7 +112,6 @@ test!(test_monitor_events, {
     if version_ge_4_3() {
         expect_event(&mut client_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
     }
-
     expect_event(&mut client_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
     // This is the flow of server events
@@ -124,6 +121,10 @@ test!(test_monitor_events, {
     if version_ge_4_3() {
         expect_event(&mut server_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
     }
+    expect_event(&mut server_mon, zmq::SocketEvent::DISCONNECTED);
+
+    close_zero_linger(server);
+
     expect_event(&mut server_mon, zmq::SocketEvent::CLOSED);
     expect_event(&mut server_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
