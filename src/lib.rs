@@ -432,6 +432,21 @@ impl Context {
         }
     }
 
+    /// Get the size of the ØMQ thread pool to handle I/O operations.
+    pub fn get_io_threads(&self) -> Result<i32> {
+        let rc =
+            zmq_try!(unsafe { zmq_sys::zmq_ctx_get(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _) });
+        Ok(rc as i32)
+    }
+
+    /// Set the size of the ØMQ thread pool to handle I/O operations.
+    pub fn set_io_threads(&self, value: i32) -> Result<()> {
+        zmq_try!(unsafe {
+            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value as i32)
+        });
+        Ok(())
+    }
+
     /// Create a new socket.
     ///
     /// Note that the returned socket keeps a an `Arc` reference to
