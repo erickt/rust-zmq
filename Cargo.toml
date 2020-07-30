@@ -33,7 +33,6 @@ libc = "0.2.15"
 zmq-sys = { version = "0.11.0", path = "zmq-sys" }
 
 [dev-dependencies]
-trybuild = "*" # { version = "0.4.0", features = ["stable"] }
 env_logger = { version = "0.7", default-features = false }
 log = "0.4.3"
 nix = "0.16"
@@ -41,6 +40,7 @@ quickcheck = "0.9"
 rand = "0.7"
 tempfile = "3"
 timebomb = "0.1.2"
+trybuild = "1.0.30"
 
 [[example]]
 name = "helloworld_client"
