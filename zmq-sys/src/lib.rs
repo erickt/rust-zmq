@@ -179,6 +179,11 @@ pub use crate::ffi::{
 
     ZMQ_POLLITEMS_DFLT,
 
+    // device types
+    ZMQ_STREAMER,
+    ZMQ_FORWARDER,
+    ZMQ_QUEUE,
+
     // Undeprecated types.
     zmq_msg_t,
     zmq_free_fn,
