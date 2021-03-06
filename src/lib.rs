@@ -96,7 +96,7 @@ impl SocketType {
     }
 }
 
-/// Socket types
+/// Device types
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum DeviceType {
