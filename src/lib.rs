@@ -119,7 +119,7 @@ impl DeviceType {
             zmq_sys::ZMQ_STREAMER => STREAMER,
             zmq_sys::ZMQ_FORWARDER => FORWARDER,
             zmq_sys::ZMQ_QUEUE => QUEUE,
-            _ => panic!("socket type is out of range!"),
+            _ => panic!("device type is out of range!"),
         }
     }
 }
