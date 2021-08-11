@@ -114,12 +114,14 @@ impl DeviceType {
         };
         raw as c_int
     }
+
     fn from_raw(raw: c_int) -> DeviceType {
         match raw as u32 {
             zmq_sys::ZMQ_STREAMER => STREAMER,
             zmq_sys::ZMQ_FORWARDER => FORWARDER,
             zmq_sys::ZMQ_QUEUE => QUEUE,
-            _ => panic!("device type is out of range!"),
+            // return STREAMER instead of panic
+            _ => STREAMER,
         }
     }
 }
