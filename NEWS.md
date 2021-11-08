@@ -1,3 +1,16 @@
+# 0.9.3
+
+## New and improved functionality
+
+- Support for the `ZMQ_IO_THREADS` context options, implemented in #311
+- Implemented `AsRawFd` trait for sockets in #306
+- Added socket unbinding in #300
+- Added support for `PollItem` associated socket checking in #292
+
+## Fixes
+
+- Fixed broken `Message::from(Box<[u8]>)` in 2b9bb43; see #301
+
 # 0.9.2
 
 ## New and improved functionality
