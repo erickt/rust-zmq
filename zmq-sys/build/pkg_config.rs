@@ -22,9 +22,7 @@ pub fn configure() {
         (Some(_), None) => panic!("Unable to locate libzmq include directory."),
         (None, Some(_)) => panic!("Unable to locate libzmq library directory."),
         (None, None) => {
-            if let Err(e) = metadeps::probe() {
-                panic!("Unable to locate libzmq:\n{}", e);
-            }
+            system_deps::Config::new().probe().unwrap();
         }
     }
 }
