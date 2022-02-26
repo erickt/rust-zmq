@@ -1,6 +1,6 @@
 [package]
-name = "zmq-sys"
-version = "0.11.0"
+name = "zmq-sys2"
+version = "0.1.0"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
