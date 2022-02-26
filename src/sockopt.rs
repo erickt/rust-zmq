@@ -30,7 +30,7 @@ macro_rules! getsockopt_num(
                 let mut size = mem::size_of::<$c_ty>() as size_t;
 
                 zmq_try!(unsafe {
-                    zmq_sys::zmq_getsockopt(
+                    zmq_sys2::zmq_getsockopt(
                         sock,
                         opt,
                         value_ptr as *mut c_void,
@@ -52,7 +52,7 @@ pub fn get_bytes(sock: *mut c_void, opt: c_int, size: size_t) -> Result<Vec<u8>>
     let mut value = vec![0u8; size];
 
     zmq_try!(unsafe {
-        zmq_sys::zmq_getsockopt(sock, opt, value.as_mut_ptr() as *mut c_void, &mut size)
+        zmq_sys2::zmq_getsockopt(sock, opt, value.as_mut_ptr() as *mut c_void, &mut size)
     });
     value.truncate(size);
     Ok(value)
@@ -80,7 +80,7 @@ macro_rules! setsockopt_num(
                 let size = mem::size_of::<$ty>() as size_t;
 
                 zmq_try!(unsafe {
-                    zmq_sys::zmq_setsockopt(
+                    zmq_sys2::zmq_setsockopt(
                         sock,
                         opt,
                         (&value as *const $ty) as *const c_void,
@@ -97,7 +97,7 @@ setsockopt_num!(i64);
 setsockopt_num!(u64);
 
 fn setsockopt_null(sock: *mut c_void, opt: c_int) -> Result<()> {
-    zmq_try!(unsafe { zmq_sys::zmq_setsockopt(sock, opt, ptr::null(), 0) });
+    zmq_try!(unsafe { zmq_sys2::zmq_setsockopt(sock, opt, ptr::null(), 0) });
     Ok(())
 }
 
@@ -133,7 +133,7 @@ impl Setter for bool {
 impl<'a> Setter for &'a [u8] {
     fn set(sock: *mut c_void, opt: c_int, value: &'a [u8]) -> Result<()> {
         zmq_try!(unsafe {
-            zmq_sys::zmq_setsockopt(
+            zmq_sys2::zmq_setsockopt(
                 sock,
                 opt,
                 value.as_ptr() as *const c_void,

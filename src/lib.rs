@@ -18,7 +18,7 @@ use std::string::FromUtf8Error;
 use std::sync::Arc;
 use std::{mem, ptr, str};
 
-use zmq_sys::{errno, RawFd};
+use zmq_sys2::{errno, RawFd};
 
 macro_rules! zmq_try {
     ($($tt:tt)*) => {{
@@ -61,35 +61,35 @@ pub enum SocketType {
 impl SocketType {
     fn to_raw(self) -> c_int {
         let raw = match self {
-            PAIR => zmq_sys::ZMQ_PAIR,
-            PUB => zmq_sys::ZMQ_PUB,
-            SUB => zmq_sys::ZMQ_SUB,
-            REQ => zmq_sys::ZMQ_REQ,
-            REP => zmq_sys::ZMQ_REP,
-            DEALER => zmq_sys::ZMQ_DEALER,
-            ROUTER => zmq_sys::ZMQ_ROUTER,
-            PULL => zmq_sys::ZMQ_PULL,
-            PUSH => zmq_sys::ZMQ_PUSH,
-            XPUB => zmq_sys::ZMQ_XPUB,
-            XSUB => zmq_sys::ZMQ_XSUB,
-            STREAM => zmq_sys::ZMQ_STREAM,
+            PAIR => zmq_sys2::ZMQ_PAIR,
+            PUB => zmq_sys2::ZMQ_PUB,
+            SUB => zmq_sys2::ZMQ_SUB,
+            REQ => zmq_sys2::ZMQ_REQ,
+            REP => zmq_sys2::ZMQ_REP,
+            DEALER => zmq_sys2::ZMQ_DEALER,
+            ROUTER => zmq_sys2::ZMQ_ROUTER,
+            PULL => zmq_sys2::ZMQ_PULL,
+            PUSH => zmq_sys2::ZMQ_PUSH,
+            XPUB => zmq_sys2::ZMQ_XPUB,
+            XSUB => zmq_sys2::ZMQ_XSUB,
+            STREAM => zmq_sys2::ZMQ_STREAM,
         };
         raw as c_int
     }
     fn from_raw(raw: c_int) -> SocketType {
         match raw as u32 {
-            zmq_sys::ZMQ_PAIR => PAIR,
-            zmq_sys::ZMQ_PUB => PUB,
-            zmq_sys::ZMQ_SUB => SUB,
-            zmq_sys::ZMQ_REQ => REQ,
-            zmq_sys::ZMQ_REP => REP,
-            zmq_sys::ZMQ_DEALER => DEALER,
-            zmq_sys::ZMQ_ROUTER => ROUTER,
-            zmq_sys::ZMQ_PULL => PULL,
-            zmq_sys::ZMQ_PUSH => PUSH,
-            zmq_sys::ZMQ_XPUB => XPUB,
-            zmq_sys::ZMQ_XSUB => XSUB,
-            zmq_sys::ZMQ_STREAM => STREAM,
+            zmq_sys2::ZMQ_PAIR => PAIR,
+            zmq_sys2::ZMQ_PUB => PUB,
+            zmq_sys2::ZMQ_SUB => SUB,
+            zmq_sys2::ZMQ_REQ => REQ,
+            zmq_sys2::ZMQ_REP => REP,
+            zmq_sys2::ZMQ_DEALER => DEALER,
+            zmq_sys2::ZMQ_ROUTER => ROUTER,
+            zmq_sys2::ZMQ_PULL => PULL,
+            zmq_sys2::ZMQ_PUSH => PUSH,
+            zmq_sys2::ZMQ_XPUB => XPUB,
+            zmq_sys2::ZMQ_XSUB => XSUB,
+            zmq_sys2::ZMQ_STREAM => STREAM,
             _ => panic!("socket type is out of range!"),
         }
     }
@@ -100,22 +100,22 @@ impl SocketType {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum SocketEvent {
     // TODO: This should become a proper enum, including the data.
-    CONNECTED = zmq_sys::ZMQ_EVENT_CONNECTED as isize,
-    CONNECT_DELAYED = zmq_sys::ZMQ_EVENT_CONNECT_DELAYED as isize,
-    CONNECT_RETRIED = zmq_sys::ZMQ_EVENT_CONNECT_RETRIED as isize,
-    LISTENING = zmq_sys::ZMQ_EVENT_LISTENING as isize,
-    BIND_FAILED = zmq_sys::ZMQ_EVENT_BIND_FAILED as isize,
-    ACCEPTED = zmq_sys::ZMQ_EVENT_ACCEPTED as isize,
-    ACCEPT_FAILED = zmq_sys::ZMQ_EVENT_ACCEPT_FAILED as isize,
-    CLOSED = zmq_sys::ZMQ_EVENT_CLOSED as isize,
-    CLOSE_FAILED = zmq_sys::ZMQ_EVENT_CLOSE_FAILED as isize,
-    DISCONNECTED = zmq_sys::ZMQ_EVENT_DISCONNECTED as isize,
-    MONITOR_STOPPED = zmq_sys::ZMQ_EVENT_MONITOR_STOPPED as isize,
-    HANDSHAKE_FAILED_NO_DETAIL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL as isize,
-    HANDSHAKE_SUCCEEDED = zmq_sys::ZMQ_EVENT_HANDSHAKE_SUCCEEDED as isize,
-    HANDSHAKE_FAILED_PROTOCOL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL as isize,
-    HANDSHAKE_FAILED_AUTH = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH as isize,
-    ALL = zmq_sys::ZMQ_EVENT_ALL as isize,
+    CONNECTED = zmq_sys2::ZMQ_EVENT_CONNECTED as isize,
+    CONNECT_DELAYED = zmq_sys2::ZMQ_EVENT_CONNECT_DELAYED as isize,
+    CONNECT_RETRIED = zmq_sys2::ZMQ_EVENT_CONNECT_RETRIED as isize,
+    LISTENING = zmq_sys2::ZMQ_EVENT_LISTENING as isize,
+    BIND_FAILED = zmq_sys2::ZMQ_EVENT_BIND_FAILED as isize,
+    ACCEPTED = zmq_sys2::ZMQ_EVENT_ACCEPTED as isize,
+    ACCEPT_FAILED = zmq_sys2::ZMQ_EVENT_ACCEPT_FAILED as isize,
+    CLOSED = zmq_sys2::ZMQ_EVENT_CLOSED as isize,
+    CLOSE_FAILED = zmq_sys2::ZMQ_EVENT_CLOSE_FAILED as isize,
+    DISCONNECTED = zmq_sys2::ZMQ_EVENT_DISCONNECTED as isize,
+    MONITOR_STOPPED = zmq_sys2::ZMQ_EVENT_MONITOR_STOPPED as isize,
+    HANDSHAKE_FAILED_NO_DETAIL = zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL as isize,
+    HANDSHAKE_SUCCEEDED = zmq_sys2::ZMQ_EVENT_HANDSHAKE_SUCCEEDED as isize,
+    HANDSHAKE_FAILED_PROTOCOL = zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL as isize,
+    HANDSHAKE_FAILED_AUTH = zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH as isize,
+    ALL = zmq_sys2::ZMQ_EVENT_ALL as isize,
 }
 
 impl SocketEvent {
@@ -127,32 +127,32 @@ impl SocketEvent {
     pub fn from_raw(raw: u16) -> SocketEvent {
         use SocketEvent::*;
         match u32::from(raw) {
-            zmq_sys::ZMQ_EVENT_CONNECTED => CONNECTED,
-            zmq_sys::ZMQ_EVENT_CONNECT_DELAYED => CONNECT_DELAYED,
-            zmq_sys::ZMQ_EVENT_CONNECT_RETRIED => CONNECT_RETRIED,
-            zmq_sys::ZMQ_EVENT_LISTENING => LISTENING,
-            zmq_sys::ZMQ_EVENT_BIND_FAILED => BIND_FAILED,
-            zmq_sys::ZMQ_EVENT_ACCEPTED => ACCEPTED,
-            zmq_sys::ZMQ_EVENT_ACCEPT_FAILED => ACCEPT_FAILED,
-            zmq_sys::ZMQ_EVENT_CLOSED => CLOSED,
-            zmq_sys::ZMQ_EVENT_CLOSE_FAILED => CLOSE_FAILED,
-            zmq_sys::ZMQ_EVENT_DISCONNECTED => DISCONNECTED,
-            zmq_sys::ZMQ_EVENT_MONITOR_STOPPED => MONITOR_STOPPED,
-            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL => HANDSHAKE_FAILED_NO_DETAIL,
-            zmq_sys::ZMQ_EVENT_HANDSHAKE_SUCCEEDED => HANDSHAKE_SUCCEEDED,
-            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL => HANDSHAKE_FAILED_PROTOCOL,
-            zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH => HANDSHAKE_FAILED_AUTH,
-            zmq_sys::ZMQ_EVENT_ALL => ALL,
+            zmq_sys2::ZMQ_EVENT_CONNECTED => CONNECTED,
+            zmq_sys2::ZMQ_EVENT_CONNECT_DELAYED => CONNECT_DELAYED,
+            zmq_sys2::ZMQ_EVENT_CONNECT_RETRIED => CONNECT_RETRIED,
+            zmq_sys2::ZMQ_EVENT_LISTENING => LISTENING,
+            zmq_sys2::ZMQ_EVENT_BIND_FAILED => BIND_FAILED,
+            zmq_sys2::ZMQ_EVENT_ACCEPTED => ACCEPTED,
+            zmq_sys2::ZMQ_EVENT_ACCEPT_FAILED => ACCEPT_FAILED,
+            zmq_sys2::ZMQ_EVENT_CLOSED => CLOSED,
+            zmq_sys2::ZMQ_EVENT_CLOSE_FAILED => CLOSE_FAILED,
+            zmq_sys2::ZMQ_EVENT_DISCONNECTED => DISCONNECTED,
+            zmq_sys2::ZMQ_EVENT_MONITOR_STOPPED => MONITOR_STOPPED,
+            zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL => HANDSHAKE_FAILED_NO_DETAIL,
+            zmq_sys2::ZMQ_EVENT_HANDSHAKE_SUCCEEDED => HANDSHAKE_SUCCEEDED,
+            zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL => HANDSHAKE_FAILED_PROTOCOL,
+            zmq_sys2::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH => HANDSHAKE_FAILED_AUTH,
+            zmq_sys2::ZMQ_EVENT_ALL => ALL,
             x => panic!("unknown event type {}", x),
         }
     }
 }
 
 /// Flag for socket `send` methods that specifies non-blocking mode.
-pub static DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
+pub static DONTWAIT: i32 = zmq_sys2::ZMQ_DONTWAIT as i32;
 /// Flag for socket `send` methods that specifies that more frames of a
 /// multipart message will follow.
-pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
+pub static SNDMORE: i32 = zmq_sys2::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
@@ -294,7 +294,7 @@ impl Error {
             errno::EMTHREAD => Error::EMTHREAD,
 
             x => unsafe {
-                let s = zmq_sys::zmq_strerror(x);
+                let s = zmq_sys2::zmq_strerror(x);
                 panic!(
                     "unknown error [{}]: {}",
                     x,
@@ -307,7 +307,7 @@ impl Error {
     /// Returns the error message provided by 0MQ.
     pub fn message(self) -> &'static str {
         unsafe {
-            let s = zmq_sys::zmq_strerror(self.to_raw());
+            let s = zmq_sys2::zmq_strerror(self.to_raw());
             let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
             str::from_utf8(v).unwrap()
         }
@@ -358,7 +358,7 @@ impl From<Error> for std::io::Error {
 }
 
 fn errno_to_error() -> Error {
-    Error::from_raw(unsafe { zmq_sys::zmq_errno() })
+    Error::from_raw(unsafe { zmq_sys2::zmq_errno() })
 }
 
 /// Return the current zeromq version, as `(major, minor, patch)`.
@@ -368,7 +368,7 @@ pub fn version() -> (i32, i32, i32) {
     let mut patch = 0;
 
     unsafe {
-        zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
+        zmq_sys2::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
     (major as i32, minor as i32, patch as i32)
@@ -380,7 +380,7 @@ struct RawContext {
 
 impl RawContext {
     fn term(&self) -> Result<()> {
-        zmq_try!(unsafe { zmq_sys::zmq_ctx_term(self.ctx) });
+        zmq_try!(unsafe { zmq_sys2::zmq_ctx_term(self.ctx) });
         Ok(())
     }
 }
@@ -427,7 +427,7 @@ impl Context {
     pub fn new() -> Context {
         Context {
             raw: Arc::new(RawContext {
-                ctx: unsafe { zmq_sys::zmq_ctx_new() },
+                ctx: unsafe { zmq_sys2::zmq_ctx_new() },
             }),
         }
     }
@@ -435,14 +435,14 @@ impl Context {
     /// Get the size of the ØMQ thread pool to handle I/O operations.
     pub fn get_io_threads(&self) -> Result<i32> {
         let rc =
-            zmq_try!(unsafe { zmq_sys::zmq_ctx_get(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _) });
+            zmq_try!(unsafe { zmq_sys2::zmq_ctx_get(self.raw.ctx, zmq_sys2::ZMQ_IO_THREADS as _) });
         Ok(rc as i32)
     }
 
     /// Set the size of the ØMQ thread pool to handle I/O operations.
     pub fn set_io_threads(&self, value: i32) -> Result<()> {
         zmq_try!(unsafe {
-            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value as i32)
+            zmq_sys2::zmq_ctx_set(self.raw.ctx, zmq_sys2::ZMQ_IO_THREADS as _, value as i32)
         });
         Ok(())
     }
@@ -453,7 +453,7 @@ impl Context {
     /// the context it was created from, and will keep that context
     /// from being dropped while being live.
     pub fn socket(&self, socket_type: SocketType) -> Result<Socket> {
-        let sock = unsafe { zmq_sys::zmq_socket(self.raw.ctx, socket_type.to_raw()) };
+        let sock = unsafe { zmq_sys2::zmq_socket(self.raw.ctx, socket_type.to_raw()) };
 
         if sock.is_null() {
             return Err(errno_to_error());
@@ -493,7 +493,7 @@ unsafe impl Send for Socket {}
 
 impl Drop for Socket {
     fn drop(&mut self) {
-        if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
+        if self.owned && unsafe { zmq_sys2::zmq_close(self.sock) } == -1 {
             panic!("{}", errno_to_error());
         }
     }
@@ -519,7 +519,7 @@ macro_rules! sockopt_getter {
     ) => {
         $(#[$meta])*
         pub fn $getter(&self) -> Result<$ty> {
-            <$ty as sockopt::Getter>::get(self.sock, zmq_sys::$constant_name as c_int)
+            <$ty as sockopt::Getter>::get(self.sock, zmq_sys2::$constant_name as c_int)
         }
     };
 }
@@ -530,7 +530,7 @@ macro_rules! sockopt_setter {
     ) => {
         $(#[$meta])*
         pub fn $setter(&self, value: $ty) -> Result<()> {
-            <$ty as sockopt::Setter>::set(self.sock, zmq_sys::$constant_name as c_int, value)
+            <$ty as sockopt::Setter>::set(self.sock, zmq_sys2::$constant_name as c_int, value)
         }
     };
 }
@@ -596,7 +596,7 @@ where
 {
     fn send(self, socket: &Socket, flags: i32) -> Result<()> {
         let mut msg = self.into();
-        zmq_try!(unsafe { zmq_sys::zmq_msg_send(msg_ptr(&mut msg), socket.sock, flags as c_int) });
+        zmq_try!(unsafe { zmq_sys2::zmq_msg_send(msg_ptr(&mut msg), socket.sock, flags as c_int) });
         Ok(())
     }
 }
@@ -643,28 +643,28 @@ impl Socket {
     /// Accept connections on a socket.
     pub fn bind(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe { zmq_sys::zmq_bind(self.sock, c_str.as_ptr()) });
+        zmq_try!(unsafe { zmq_sys2::zmq_bind(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
     /// Stop accepting connections on a socket
     pub fn unbind(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe { zmq_sys::zmq_unbind(self.sock, c_str.as_ptr()) });
+        zmq_try!(unsafe { zmq_sys2::zmq_unbind(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
     /// Connect a socket.
     pub fn connect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe { zmq_sys::zmq_connect(self.sock, c_str.as_ptr()) });
+        zmq_try!(unsafe { zmq_sys2::zmq_connect(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
     /// Disconnect a previously connected socket
     pub fn disconnect(&self, endpoint: &str) -> Result<()> {
         let c_str = ffi::CString::new(endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe { zmq_sys::zmq_disconnect(self.sock, c_str.as_ptr()) });
+        zmq_try!(unsafe { zmq_sys2::zmq_disconnect(self.sock, c_str.as_ptr()) });
         Ok(())
     }
 
@@ -672,7 +672,7 @@ impl Socket {
     pub fn monitor(&self, monitor_endpoint: &str, events: i32) -> Result<()> {
         let c_str = ffi::CString::new(monitor_endpoint.as_bytes()).unwrap();
         zmq_try!(unsafe {
-            zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int)
+            zmq_sys2::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int)
         });
         Ok(())
     }
@@ -722,7 +722,7 @@ impl Socket {
     /// Receive a message into a `Message`. The length passed to zmq_msg_recv
     /// is the length of the buffer.
     pub fn recv(&self, msg: &mut Message, flags: i32) -> Result<()> {
-        zmq_try!(unsafe { zmq_sys::zmq_msg_recv(msg_ptr(msg), self.sock, flags as c_int) });
+        zmq_try!(unsafe { zmq_sys2::zmq_msg_recv(msg_ptr(msg), self.sock, flags as c_int) });
         Ok(())
     }
 
@@ -732,7 +732,7 @@ impl Socket {
     pub fn recv_into(&self, bytes: &mut [u8], flags: i32) -> Result<usize> {
         let bytes_ptr = bytes.as_mut_ptr() as *mut c_void;
         let rc = zmq_try!(unsafe {
-            zmq_sys::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
+            zmq_sys2::zmq_recv(self.sock, bytes_ptr, bytes.len(), flags as c_int)
         });
         Ok(rc as usize)
     }
@@ -797,12 +797,12 @@ impl Socket {
 
     /// Return the type of this socket.
     pub fn get_socket_type(&self) -> Result<SocketType> {
-        sockopt::get(self.sock, zmq_sys::ZMQ_TYPE as c_int).map(SocketType::from_raw)
+        sockopt::get(self.sock, zmq_sys2::ZMQ_TYPE as c_int).map(SocketType::from_raw)
     }
 
     /// Return true if there are more frames of a multipart message to receive.
     pub fn get_rcvmore(&self) -> Result<bool> {
-        sockopt::get(self.sock, zmq_sys::ZMQ_RCVMORE as c_int).map(|o: i64| o == 1i64)
+        sockopt::get(self.sock, zmq_sys2::ZMQ_RCVMORE as c_int).map(|o: i64| o == 1i64)
     }
 
     sockopts! {
@@ -882,38 +882,38 @@ impl Socket {
     // TODO: deprecate to align with ZMQ's preferred naming
     pub fn get_identity(&self) -> Result<Vec<u8>> {
         // 255 = identity max length
-        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_ROUTING_ID as c_int, 255)
+        sockopt::get_bytes(self.sock, zmq_sys2::ZMQ_ROUTING_ID as c_int, 255)
     }
 
     pub fn get_socks_proxy(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = longest allowable domain name is 253 so this should
         // be a reasonable size.
-        sockopt::get_string(self.sock, zmq_sys::ZMQ_SOCKS_PROXY as c_int, 255, true)
+        sockopt::get_string(self.sock, zmq_sys2::ZMQ_SOCKS_PROXY as c_int, 255, true)
     }
 
     pub fn get_mechanism(&self) -> Result<Mechanism> {
-        sockopt::get(self.sock, zmq_sys::ZMQ_MECHANISM as c_int).map(|mech| match mech {
-            zmq_sys::ZMQ_NULL => Mechanism::ZMQ_NULL,
-            zmq_sys::ZMQ_PLAIN => Mechanism::ZMQ_PLAIN,
-            zmq_sys::ZMQ_CURVE => Mechanism::ZMQ_CURVE,
-            zmq_sys::ZMQ_GSSAPI => Mechanism::ZMQ_GSSAPI,
+        sockopt::get(self.sock, zmq_sys2::ZMQ_MECHANISM as c_int).map(|mech| match mech {
+            zmq_sys2::ZMQ_NULL => Mechanism::ZMQ_NULL,
+            zmq_sys2::ZMQ_PLAIN => Mechanism::ZMQ_PLAIN,
+            zmq_sys2::ZMQ_CURVE => Mechanism::ZMQ_CURVE,
+            zmq_sys2::ZMQ_GSSAPI => Mechanism::ZMQ_GSSAPI,
             _ => panic!("Mechanism is out of range!"),
         })
     }
 
     pub fn get_plain_username(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = arbitrary size
-        sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_USERNAME as c_int, 255, true)
+        sockopt::get_string(self.sock, zmq_sys2::ZMQ_PLAIN_USERNAME as c_int, 255, true)
     }
 
     pub fn get_plain_password(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 256 = arbitrary size based on std crypto key size
-        sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_PASSWORD as c_int, 256, true)
+        sockopt::get_string(self.sock, zmq_sys2::ZMQ_PLAIN_PASSWORD as c_int, 256, true)
     }
 
     pub fn get_zap_domain(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 255 = arbitrary size
-        sockopt::get_string(self.sock, zmq_sys::ZMQ_ZAP_DOMAIN as c_int, 255, true)
+        sockopt::get_string(self.sock, zmq_sys2::ZMQ_ZAP_DOMAIN as c_int, 255, true)
     }
 
     /// Return the address of the last endpoint this socket was bound to.
@@ -928,7 +928,7 @@ impl Socket {
         // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
         sockopt::get_string(
             self.sock,
-            zmq_sys::ZMQ_LAST_ENDPOINT as c_int,
+            zmq_sys2::ZMQ_LAST_ENDPOINT as c_int,
             256 + 9 + 1,
             true,
         )
@@ -940,7 +940,7 @@ impl Socket {
     /// resulting data to get the Z85-encoded string representation of
     /// the key.
     pub fn get_curve_publickey(&self) -> Result<Vec<u8>> {
-        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_PUBLICKEY as c_int, 32)
+        sockopt::get_bytes(self.sock, zmq_sys2::ZMQ_CURVE_PUBLICKEY as c_int, 32)
     }
 
     /// Get the `ZMQ_CURVE_SECRETKEY` option value.
@@ -949,7 +949,7 @@ impl Socket {
     /// resulting data to get the Z85-encoded string representation of
     /// the key.
     pub fn get_curve_secretkey(&self) -> Result<Vec<u8>> {
-        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_SECRETKEY as c_int, 32)
+        sockopt::get_bytes(self.sock, zmq_sys2::ZMQ_CURVE_SECRETKEY as c_int, 32)
     }
 
     /// Get `ZMQ_CURVE_SERVERKEY` option value.
@@ -959,19 +959,19 @@ impl Socket {
     /// Z85-encoded string variant.
     pub fn get_curve_serverkey(&self) -> Result<Vec<u8>> {
         // 41 = Z85 encoded keysize + 1 for null byte
-        sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_SERVERKEY as c_int, 32)
+        sockopt::get_bytes(self.sock, zmq_sys2::ZMQ_CURVE_SERVERKEY as c_int, 32)
     }
 
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(self.sock, zmq_sys::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
+        sockopt::get_string(self.sock, zmq_sys2::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
     }
 
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
             self.sock,
-            zmq_sys::ZMQ_GSSAPI_SERVICE_PRINCIPAL as c_int,
+            zmq_sys2::ZMQ_GSSAPI_SERVICE_PRINCIPAL as c_int,
             260,
             true,
         )
@@ -1019,14 +1019,14 @@ bitflags! {
     pub struct PollEvents: i16 {
         /// For `poll()`, specifies to signal when a message/some data
         /// can be read from a socket.
-        const POLLIN = zmq_sys::ZMQ_POLLIN as i16;
+        const POLLIN = zmq_sys2::ZMQ_POLLIN as i16;
         /// For `poll()`, specifies to signal when a message/some data
         /// can be written to a socket.
-        const POLLOUT = zmq_sys::ZMQ_POLLOUT as i16;
+        const POLLOUT = zmq_sys2::ZMQ_POLLOUT as i16;
         /// For `poll()`, specifies to signal when an error condition
         /// is present on a socket.  This only applies to non-0MQ
         /// sockets.
-        const POLLERR = zmq_sys::ZMQ_POLLERR as i16;
+        const POLLERR = zmq_sys2::ZMQ_POLLERR as i16;
     }
 }
 
@@ -1119,8 +1119,8 @@ impl<'a> PollItem<'a> {
 /// events signaled.
 pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
     let rc = zmq_try!(unsafe {
-        zmq_sys::zmq_poll(
-            items.as_mut_ptr() as *mut zmq_sys::zmq_pollitem_t,
+        zmq_sys2::zmq_poll(
+            items.as_mut_ptr() as *mut zmq_sys2::zmq_pollitem_t,
             items.len() as c_int,
             timeout as c_long,
         )
@@ -1136,7 +1136,7 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
 /// This function only returns (always with an `Err`) when the sockets' context
 /// has been closed.
 pub fn proxy(frontend: &Socket, backend: &Socket) -> Result<()> {
-    zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
+    zmq_try!(unsafe { zmq_sys2::zmq_proxy(frontend.sock, backend.sock, ptr::null_mut()) });
     Ok(())
 }
 
@@ -1149,7 +1149,7 @@ pub fn proxy_with_capture(
     backend: &mut Socket,
     capture: &mut Socket,
 ) -> Result<()> {
-    zmq_try!(unsafe { zmq_sys::zmq_proxy(frontend.sock, backend.sock, capture.sock) });
+    zmq_try!(unsafe { zmq_sys2::zmq_proxy(frontend.sock, backend.sock, capture.sock) });
     Ok(())
 }
 
@@ -1164,7 +1164,7 @@ pub fn proxy_steerable(
     control: &mut Socket,
 ) -> Result<()> {
     zmq_try!(unsafe {
-        zmq_sys::zmq_proxy_steerable(frontend.sock, backend.sock, ptr::null_mut(), control.sock)
+        zmq_sys2::zmq_proxy_steerable(frontend.sock, backend.sock, ptr::null_mut(), control.sock)
     });
     Ok(())
 }
@@ -1179,7 +1179,7 @@ pub fn proxy_steerable_with_capture(
     control: &mut Socket,
 ) -> Result<()> {
     zmq_try!(unsafe {
-        zmq_sys::zmq_proxy_steerable(frontend.sock, backend.sock, capture.sock, control.sock)
+        zmq_sys2::zmq_proxy_steerable(frontend.sock, backend.sock, capture.sock, control.sock)
     });
     Ok(())
 }
@@ -1201,7 +1201,7 @@ pub fn proxy_steerable_with_capture(
 ///
 pub fn has(capability: &str) -> Option<bool> {
     let c_str = ffi::CString::new(capability).unwrap();
-    unsafe { Some(zmq_sys::zmq_has(c_str.as_ptr()) == 1) }
+    unsafe { Some(zmq_sys2::zmq_has(c_str.as_ptr()) == 1) }
 }
 
 /// A CURVE key pair generated by 0MQ.
@@ -1223,7 +1223,7 @@ impl CurveKeyPair {
         let mut ffi_secret_key = [0u8; 41];
 
         zmq_try!(unsafe {
-            zmq_sys::zmq_curve_keypair(
+            zmq_sys2::zmq_curve_keypair(
                 ffi_public_key.as_mut_ptr() as *mut libc::c_char,
                 ffi_secret_key.as_mut_ptr() as *mut libc::c_char,
             )
@@ -1236,11 +1236,11 @@ impl CurveKeyPair {
         unsafe {
             // No need to check return code here, as zmq_curve_keypair
             // is supposed to generate valid z85-encoded keys
-            zmq_sys::zmq_z85_decode(
+            zmq_sys2::zmq_z85_decode(
                 pair.public_key.as_mut_ptr(),
                 ffi_public_key.as_ptr() as *mut libc::c_char,
             );
-            zmq_sys::zmq_z85_decode(
+            zmq_sys2::zmq_z85_decode(
                 pair.secret_key.as_mut_ptr(),
                 ffi_secret_key.as_ptr() as *mut libc::c_char,
             );
@@ -1289,7 +1289,7 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
     let mut dest = vec![0u8; len];
 
     unsafe {
-        zmq_sys::zmq_z85_encode(
+        zmq_sys2::zmq_z85_encode(
             dest.as_mut_ptr() as *mut libc::c_char,
             data.as_ptr(),
             data.len(),
@@ -1343,7 +1343,7 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     let c_str = ffi::CString::new(data)?;
 
     unsafe {
-        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());
+        zmq_sys2::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());
     }
 
     Ok(dest)
