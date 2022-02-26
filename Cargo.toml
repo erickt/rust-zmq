@@ -24,7 +24,6 @@ default = ["zmq_has"]
 # this feature is a no-op and only present for backward-compatibility;
 # it will be removed in the next API-breaking release.
 zmq_has = []
-vendored = ['zmq-sys/vendored']
 
 [dependencies]
 bitflags = "1.0"
