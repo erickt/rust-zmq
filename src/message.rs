@@ -49,7 +49,7 @@ impl Message {
         let mut msg = zmq_sys::zmq_msg_t::default();
         let rc = f(&mut msg);
         if rc == -1 {
-            panic!(errno_to_error())
+            panic!("{}", errno_to_error())
         }
         Message { msg }
     }

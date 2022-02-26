@@ -494,7 +494,7 @@ unsafe impl Send for Socket {}
 impl Drop for Socket {
     fn drop(&mut self) {
         if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
-            panic!(errno_to_error());
+            panic!("{}", errno_to_error());
         }
     }
 }
