@@ -17,7 +17,7 @@ fn main() {
         "tcp://*:5556"
     };
     publisher
-        .bind(&address)
+        .bind(address)
         .expect("could not bind publisher socket");
 
     // Ensure subscriber connection has time to complete

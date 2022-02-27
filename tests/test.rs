@@ -548,7 +548,7 @@ test!(test_getset_conflate, {
     let ctx = Context::new();
     let sock = ctx.socket(REQ).unwrap();
     sock.set_conflate(true).unwrap();
-    assert_eq!(sock.is_conflate().unwrap(), true);
+    assert!(sock.is_conflate().unwrap());
 });
 
 test!(test_disconnect, {

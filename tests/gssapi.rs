@@ -7,7 +7,7 @@ test_capability!(test_getset_gssapi_server, "gssapi", {
     let ctx = Context::new();
     let sock = ctx.socket(zmq2::REQ).unwrap();
     sock.set_gssapi_server(true).unwrap();
-    assert_eq!(sock.is_gssapi_server().unwrap(), true);
+    assert!(sock.is_gssapi_server().unwrap());
 });
 
 test_capability!(test_getset_gssapi_principal, "gssapi", {
@@ -31,5 +31,5 @@ test_capability!(test_getset_gssapi_plaintext, "gssapi", {
     let ctx = Context::new();
     let sock = ctx.socket(zmq2::REQ).unwrap();
     sock.set_gssapi_plaintext(true).unwrap();
-    assert_eq!(sock.is_gssapi_plaintext().unwrap(), true);
+    assert!(sock.is_gssapi_plaintext().unwrap());
 });
