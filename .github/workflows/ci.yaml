@@ -3,8 +3,8 @@ on: [push, pull_request]
 name: Continuous integration
 
 jobs:
-  check:
-    name: Build and Lint
+  build:
+    name: Build
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
@@ -16,13 +16,38 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
-          components: clippy
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --workspace --all-targets
-      # Update mtime on all our files so that `clippy` rechecks them
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Cargo test
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --workspace --all-targets
+  lint:
+    name: Lint
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        rust: [stable]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
       - name: Touch source files for clippy recheck
         run: find -path ./target -prune -o -name "*.rs" -exec touch {} +
         shell: bash
