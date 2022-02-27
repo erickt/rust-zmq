@@ -16,17 +16,12 @@ jobs:
         with:
           toolchain: ${{ matrix.rust }}
           override: true
-          components: rustfmt, clippy
+          components: clippy
       - name: Cargo build
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --workspace --all-targets
-      - name: Cargo fmt
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
       # Update mtime on all our files so that `clippy` rechecks them
       - name: Touch source files for clippy recheck
         run: find -path ./target -prune -o -name "*.rs" -exec touch {} +
