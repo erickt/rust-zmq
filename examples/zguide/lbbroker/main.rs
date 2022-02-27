@@ -16,7 +16,7 @@ fn client_task(client_nbr: i32) {
     let client = context.socket(zmq2::REQ).unwrap();
 
     //set random indentity string and connect
-    let identity = format!("Client{}", client_nbr.to_string());
+    let identity = format!("Client{}", client_nbr);
     client.set_identity(identity.as_bytes()).unwrap();
     client
         .connect("ipc://frontend.ipc")
@@ -36,7 +36,7 @@ fn client_task(client_nbr: i32) {
 fn worker_task(worker_nbr: i32) {
     let context = zmq2::Context::new();
     let worker = context.socket(zmq2::REQ).unwrap();
-    let identity = format!("Worker{}", worker_nbr.to_string());
+    let identity = format!("Worker{}", worker_nbr);
     worker.set_identity(identity.as_bytes()).unwrap();
     assert!(worker.connect("ipc://backend.ipc").is_ok());
 
