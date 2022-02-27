@@ -93,7 +93,7 @@ impl<'a> PollState<'a> {
 
 fn poll_worker(_ctx: &zmq2::Context, socket: &zmq2::Socket) {
     let mut reply = None;
-    let mut state = PollState::new(&socket);
+    let mut state = PollState::new(socket);
     loop {
         match reply.take() {
             None => {
