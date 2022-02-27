@@ -964,7 +964,12 @@ impl Socket {
 
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(self.sock, zmq_sys2::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
+        sockopt::get_string(
+            self.sock,
+            zmq_sys2::ZMQ_GSSAPI_PRINCIPAL as c_int,
+            260,
+            true,
+        )
     }
 
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {

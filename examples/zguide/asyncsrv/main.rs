@@ -23,7 +23,11 @@ fn client_task() {
     let mut request_nbr = 0;
     loop {
         for _ in 0..100 {
-            if client.poll(zmq2::POLLIN, 10).expect("client failed polling") > 0 {
+            if client
+                .poll(zmq2::POLLIN, 10)
+                .expect("client failed polling")
+                > 0
+            {
                 let msg = client
                     .recv_multipart(0)
                     .expect("client failed receivng response");

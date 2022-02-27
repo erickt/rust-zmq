@@ -4,7 +4,6 @@
 
 use zmq2::{z85_decode, z85_encode, DecodeError, EncodeError};
 
-
 #[test]
 fn test_z85() {
     let test_str = "/AB8cGJ*-$lEbr2=TW$Q?i7:)<?G/4zr-hjppA3d";

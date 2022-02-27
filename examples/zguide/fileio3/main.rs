@@ -19,10 +19,13 @@ static PIPELINE: usize = 10;
 static PIPELINE_HWM: usize = 20;
 
 fn random_string(length: usize) -> String {
-    String::from_utf8(rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(length)
-        .collect()).unwrap()
+    String::from_utf8(
+        rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(length)
+            .collect(),
+    )
+    .unwrap()
 }
 
 fn client_thread(expected_total: usize) {

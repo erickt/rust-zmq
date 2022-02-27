@@ -2,7 +2,10 @@
 fn context_io_threads() {
     let ctx = zmq2::Context::new();
 
-    assert_eq!(ctx.get_io_threads().unwrap(), zmq_sys2::ZMQ_IO_THREADS_DFLT as i32);
+    assert_eq!(
+        ctx.get_io_threads().unwrap(),
+        zmq_sys2::ZMQ_IO_THREADS_DFLT as i32
+    );
 
     ctx.set_io_threads(0).unwrap();
     assert_eq!(ctx.get_io_threads().unwrap(), 0);
