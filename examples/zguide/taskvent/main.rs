@@ -32,7 +32,7 @@ fn main() {
     let mut total_msec: u32 = 0;
     for _ in 0..100 {
         //  Random workload from 1 to 100 msecs
-        let workload: u32 = rng.gen_range(1, 101);
+        let workload: u32 = rng.gen_range(1..101);
 
         total_msec += workload;
 
