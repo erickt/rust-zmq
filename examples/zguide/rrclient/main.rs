@@ -1,8 +1,8 @@
 #![crate_name = "rrclient"]
 
 fn main() {
-    let context = zmq::Context::new();
-    let requester = context.socket(zmq::REQ).unwrap();
+    let context = zmq2::Context::new();
+    let requester = context.socket(zmq2::REQ).unwrap();
     requester
         .connect("tcp://localhost:5559")
         .expect("failed to connect requester");

@@ -5,7 +5,7 @@
 use rand::Rng;
 use std::thread;
 use std::time::{Duration, Instant};
-use zmq::SNDMORE;
+use zmq2::SNDMORE;
 
 // Inefficient but terse base16 encoder
 fn hex(bytes: &[u8]) -> String {
@@ -17,8 +17,8 @@ fn hex(bytes: &[u8]) -> String {
 }
 
 fn worker_task() {
-    let context = zmq::Context::new();
-    let worker = context.socket(zmq::REQ).unwrap();
+    let context = zmq2::Context::new();
+    let worker = context.socket(zmq2::REQ).unwrap();
     let mut rng = rand::thread_rng();
     let identity: Vec<_> = (0..10).map(|_| rand::random::<u8>()).collect();
     worker.set_identity(&identity).unwrap();
@@ -45,8 +45,8 @@ fn worker_task() {
 fn main() {
     let worker_pool_size = 10;
     let allowed_duration = Duration::new(5, 0);
-    let context = zmq::Context::new();
-    let broker = context.socket(zmq::ROUTER).unwrap();
+    let context = zmq2::Context::new();
+    let broker = context.socket(zmq2::ROUTER).unwrap();
     assert!(broker.bind("tcp://*:5671").is_ok());
 
     // While this example runs in a single process, that is just to make

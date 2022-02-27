@@ -8,11 +8,11 @@ use std::time::Instant;
 
 fn main() {
     //  Prepare our context and socket
-    let context = zmq::Context::new();
-    let receiver = context.socket(zmq::PULL).unwrap();
+    let context = zmq2::Context::new();
+    let receiver = context.socket(zmq2::PULL).unwrap();
     assert!(receiver.bind("tcp://*:5558").is_ok());
 
-    let controller = context.socket(zmq::PUB).unwrap();
+    let controller = context.socket(zmq2::PUB).unwrap();
     controller
         .bind("tcp://*:5559")
         .expect("failed to bind controller");

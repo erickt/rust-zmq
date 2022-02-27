@@ -3,7 +3,7 @@ mod common;
 
 use std::io;
 use std::net::TcpStream;
-use zmq::*;
+use zmq2::*;
 
 fn version_ge_4_2() -> bool {
     let (major, minor, _) = version();
@@ -13,8 +13,8 @@ fn version_ge_4_2() -> bool {
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
 
-    let sender = ctx.socket(zmq::REQ).unwrap();
-    let receiver = ctx.socket(zmq::REP).unwrap();
+    let sender = ctx.socket(zmq2::REQ).unwrap();
+    let receiver = ctx.socket(zmq2::REP).unwrap();
 
     // Don't block forever
     sender.set_sndtimeo(1000).unwrap();
@@ -125,8 +125,8 @@ test!(test_conflating_receiver, {
         Arc,
     };
 
-    let ctx = zmq::Context::new();
-    let receiver = ctx.socket(zmq::PULL).unwrap();
+    let ctx = zmq2::Context::new();
+    let receiver = ctx.socket(zmq2::PULL).unwrap();
     receiver.bind("tcp://127.0.0.1:*").unwrap();
     let receiver_endpoint = receiver.get_last_endpoint().unwrap().unwrap();
 
@@ -134,7 +134,7 @@ test!(test_conflating_receiver, {
     let sender_thread = {
         let stop = Arc::clone(&stop);
         std::thread::spawn(move || {
-            let sender = ctx.socket(zmq::PUSH).unwrap();
+            let sender = ctx.socket(zmq2::PUSH).unwrap();
             sender.connect(&receiver_endpoint).unwrap();
             while !stop.load(Ordering::SeqCst) {
                 sender.send("bar", 0).expect("send failed");

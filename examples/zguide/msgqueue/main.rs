@@ -1,9 +1,9 @@
 #![crate_name = "msgqueue"]
 
 fn main() {
-    let context = zmq::Context::new();
-    let frontend = context.socket(zmq::ROUTER).unwrap();
-    let backend = context.socket(zmq::DEALER).unwrap();
+    let context = zmq2::Context::new();
+    let frontend = context.socket(zmq2::ROUTER).unwrap();
+    let backend = context.socket(zmq2::DEALER).unwrap();
 
     frontend
         .bind("tcp://*:5559")
@@ -12,5 +12,5 @@ fn main() {
         .bind("tcp://*:5560")
         .expect("failed binding backend");
 
-    zmq::proxy(&frontend, &backend).expect("failed to proxy");
+    zmq2::proxy(&frontend, &backend).expect("failed to proxy");
 }

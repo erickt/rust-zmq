@@ -1,9 +1,9 @@
 #![crate_name = "wuproxy"]
 
 fn main() {
-    let context = zmq::Context::new();
-    let frontend = context.socket(zmq::XSUB).unwrap();
-    let backend = context.socket(zmq::XPUB).unwrap();
+    let context = zmq2::Context::new();
+    let frontend = context.socket(zmq2::XSUB).unwrap();
+    let backend = context.socket(zmq2::XPUB).unwrap();
 
     frontend
         .connect("tcp://192.168.55.210:5556")
@@ -11,5 +11,5 @@ fn main() {
     backend
         .bind("tcp://10.1.1.0:8100")
         .expect("failed binding backend");
-    zmq::proxy(&frontend, &backend).expect("failed proxying");
+    zmq2::proxy(&frontend, &backend).expect("failed proxying");
 }

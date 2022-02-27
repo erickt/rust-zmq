@@ -3,8 +3,8 @@
 use std::thread;
 use std::time::Duration;
 
-fn worker_routine(context: &zmq::Context) {
-    let receiver = context.socket(zmq::REP).unwrap();
+fn worker_routine(context: &zmq2::Context) {
+    let receiver = context.socket(zmq2::REP).unwrap();
     receiver
         .connect("inproc://workers")
         .expect("failed to connect worker");
@@ -19,9 +19,9 @@ fn worker_routine(context: &zmq::Context) {
 }
 
 fn main() {
-    let context = zmq::Context::new();
-    let clients = context.socket(zmq::ROUTER).unwrap();
-    let workers = context.socket(zmq::DEALER).unwrap();
+    let context = zmq2::Context::new();
+    let clients = context.socket(zmq2::ROUTER).unwrap();
+    let workers = context.socket(zmq2::DEALER).unwrap();
 
     clients
         .bind("tcp://*:5555")
@@ -34,5 +34,5 @@ fn main() {
         let ctx = context.clone();
         thread::spawn(move || worker_routine(&ctx));
     }
-    zmq::proxy(&clients, &workers).expect("failed proxying");
+    zmq2::proxy(&clients, &workers).expect("failed proxying");
 }

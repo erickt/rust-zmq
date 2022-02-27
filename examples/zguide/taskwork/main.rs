@@ -14,14 +14,14 @@ fn atoi(s: &str) -> u64 {
 }
 
 fn main() {
-    let context = zmq::Context::new();
+    let context = zmq2::Context::new();
 
     // socket to receive messages on
-    let receiver = context.socket(zmq::PULL).unwrap();
+    let receiver = context.socket(zmq2::PULL).unwrap();
     assert!(receiver.connect("tcp://localhost:5557").is_ok());
 
     //  Socket to send messages to
-    let sender = context.socket(zmq::PUSH).unwrap();
+    let sender = context.socket(zmq2::PUSH).unwrap();
     assert!(sender.connect("tcp://localhost:5558").is_ok());
 
     loop {

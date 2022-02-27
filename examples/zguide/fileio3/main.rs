@@ -11,7 +11,7 @@ use std::fs::File;
 use std::io::{Error, Read, Seek, SeekFrom, Write};
 use std::thread;
 use tempfile::tempfile;
-use zmq::SNDMORE;
+use zmq2::SNDMORE;
 
 static CHUNK_SIZE: usize = 250_000;
 static CHUNK_SIZE_STR: &str = "250000";
@@ -26,8 +26,8 @@ fn random_string(length: usize) -> String {
 }
 
 fn client_thread(expected_total: usize) {
-    let context = zmq::Context::new();
-    let dealer = context.socket(zmq::DEALER).unwrap();
+    let context = zmq2::Context::new();
+    let dealer = context.socket(zmq2::DEALER).unwrap();
     let identity: Vec<u8> = (0..10).map(|_| rand::random::<u8>()).collect();
     dealer.set_identity(&identity).unwrap();
 
@@ -77,8 +77,8 @@ fn client_thread(expected_total: usize) {
 // reads that chunk and sends it back to the client:
 
 fn server_thread(file: &mut File) -> Result<(), Error> {
-    let context = zmq::Context::new();
-    let router = context.socket(zmq::ROUTER).unwrap();
+    let context = zmq2::Context::new();
+    let router = context.socket(zmq2::ROUTER).unwrap();
     // We have two parts per message so HWM is PIPELINE * 2
     router.set_sndhwm(PIPELINE_HWM as i32).unwrap();
     assert!(router.bind("tcp://*:6000").is_ok());

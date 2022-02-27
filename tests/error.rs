@@ -1,4 +1,4 @@
-use zmq::*;
+use zmq2::*;
 use zmq_sys2::errno;
 
 #[test]

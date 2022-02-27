@@ -1,17 +1,17 @@
 #![crate_name = "syncpub"]
 
 fn main() {
-    let context = zmq::Context::new();
+    let context = zmq2::Context::new();
 
     //socket to talk to clients
-    let publisher = context.socket(zmq::PUB).unwrap();
+    let publisher = context.socket(zmq2::PUB).unwrap();
     publisher.set_sndhwm(1_100_000).expect("failed setting hwm");
     publisher
         .bind("tcp://*:5561")
         .expect("failed binding publisher");
 
     //socket to receive signals
-    let syncservice = context.socket(zmq::REP).unwrap();
+    let syncservice = context.socket(zmq2::REP).unwrap();
     syncservice
         .bind("tcp://*:5562")
         .expect("failed binding syncservice");

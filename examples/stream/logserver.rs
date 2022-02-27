@@ -7,9 +7,9 @@ use std::str;
 fn main() {
     println!("Hello, world!");
 
-    let ctx = zmq::Context::new();
+    let ctx = zmq2::Context::new();
 
-    let socket = ctx.socket(zmq::STREAM).unwrap();
+    let socket = ctx.socket(zmq2::STREAM).unwrap();
     socket.bind("tcp://*:8888").unwrap();
     loop {
         let data = socket.recv_multipart(0).unwrap();

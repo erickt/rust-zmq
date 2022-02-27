@@ -4,10 +4,10 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let context = zmq::Context::new();
+    let context = zmq2::Context::new();
 
     //first connect our subscriber
-    let subscriber = context.socket(zmq::SUB).unwrap();
+    let subscriber = context.socket(zmq2::SUB).unwrap();
     subscriber
         .connect("tcp://localhost:5561")
         .expect("failed connecting subscriber");
@@ -17,7 +17,7 @@ fn main() {
     thread::sleep(Duration::from_millis(1));
 
     //second sync with publisher
-    let syncclient = context.socket(zmq::REQ).unwrap();
+    let syncclient = context.socket(zmq2::REQ).unwrap();
     syncclient
         .connect("tcp://localhost:5562")
         .expect("failed connect syncclient");

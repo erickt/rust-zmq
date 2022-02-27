@@ -1,6 +1,6 @@
 use quickcheck::{quickcheck, Arbitrary, Gen};
 use rand::Rng;
-use zmq::{z85_decode, z85_encode, DecodeError, EncodeError};
+use zmq2::{z85_decode, z85_encode, DecodeError, EncodeError};
 
 use std::iter;
 

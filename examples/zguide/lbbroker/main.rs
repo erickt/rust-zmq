@@ -3,7 +3,7 @@
 //! load balancing broker
 //! clients and workers here are shown in process
 
-use zmq::SNDMORE;
+use zmq2::SNDMORE;
 //use std::time::;
 use std::thread;
 
@@ -12,8 +12,8 @@ use std::thread;
 //  set a printable text identity to allow routing.
 fn client_task(client_nbr: i32) {
     //create context and client socket
-    let context = zmq::Context::new();
-    let client = context.socket(zmq::REQ).unwrap();
+    let context = zmq2::Context::new();
+    let client = context.socket(zmq2::REQ).unwrap();
 
     //set random indentity string and connect
     let identity = format!("Client{}", client_nbr.to_string());
@@ -34,8 +34,8 @@ fn client_task(client_nbr: i32) {
 }
 
 fn worker_task(worker_nbr: i32) {
-    let context = zmq::Context::new();
-    let worker = context.socket(zmq::REQ).unwrap();
+    let context = zmq2::Context::new();
+    let worker = context.socket(zmq2::REQ).unwrap();
     let identity = format!("Worker{}", worker_nbr.to_string());
     worker.set_identity(identity.as_bytes()).unwrap();
     assert!(worker.connect("ipc://backend.ipc").is_ok());
@@ -71,9 +71,9 @@ fn worker_task(worker_nbr: i32) {
 fn main() {
     let worker_pool_size = 3;
     let client_pool_size = 10;
-    let context = zmq::Context::new();
-    let frontend = context.socket(zmq::ROUTER).unwrap();
-    let backend = context.socket(zmq::ROUTER).unwrap();
+    let context = zmq2::Context::new();
+    let frontend = context.socket(zmq2::ROUTER).unwrap();
+    let backend = context.socket(zmq2::ROUTER).unwrap();
     frontend
         .bind("ipc://frontend.ipc")
         .expect("failed binding frontend");
@@ -111,10 +111,10 @@ fn main() {
     let mut worker_queue = Vec::new();
     loop {
         let mut items = [
-            backend.as_poll_item(zmq::POLLIN),
-            frontend.as_poll_item(zmq::POLLIN),
+            backend.as_poll_item(zmq2::POLLIN),
+            frontend.as_poll_item(zmq2::POLLIN),
         ];
-        let rc = zmq::poll(
+        let rc = zmq2::poll(
             &mut items[0..if worker_queue.is_empty() { 1 } else { 2 }],
             -1,
         )

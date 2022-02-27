@@ -8,12 +8,12 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let context = zmq::Context::new();
-    let responder = context.socket(zmq::REP).unwrap();
+    let context = zmq2::Context::new();
+    let responder = context.socket(zmq2::REP).unwrap();
 
     assert!(responder.bind("tcp://*:5555").is_ok());
 
-    let mut msg = zmq::Message::new();
+    let mut msg = zmq2::Message::new();
     loop {
         responder.recv(&mut msg, 0).unwrap();
         println!("Received {}", msg.as_str().unwrap());
