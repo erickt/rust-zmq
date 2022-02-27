@@ -48,9 +48,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v2
-      - name: Touch source files for clippy recheck
-        run: find -path ./target -prune -o -name "*.rs" -exec touch {} +
-        shell: bash
       - name: Cargo clippy
         uses: actions-rs/cargo@v1
         with:
