@@ -174,4 +174,4 @@ path="examples/zguide/asyncsrv/main.rs"
 
 
 [patch.crates-io]
-zeromq-src = { git = "https://github.com/Traverse-Research/zeromq-src-rs.git", rev = "bc6db10" }
+zeromq-src = { git = "https://github.com/Traverse-Research/zeromq-src-rs.git", rev = "d4ddeb9" }
