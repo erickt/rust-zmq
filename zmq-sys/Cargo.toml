@@ -21,7 +21,7 @@ libsodium-sys-stable = { version = "1.0" }
 
 [build-dependencies]
 system-deps = "6"
-zeromq-src = { version = "0.2.0" }
+zeromq-src = { version = "0.2.1" }
 
 [package.metadata.system-deps]
 libzmq = "4.1"

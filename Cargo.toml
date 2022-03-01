@@ -171,7 +171,3 @@ path="examples/zguide/lbbroker/main.rs"
 [[example]]
 name="asyncsrv"
 path="examples/zguide/asyncsrv/main.rs"
-
-
-[patch.crates-io]
-zeromq-src = { git = "https://github.com/Traverse-Research/zeromq-src-rs.git", rev = "d4ddeb9" }
