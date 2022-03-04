@@ -28,7 +28,7 @@ zmq_has = []
 [dependencies]
 bitflags = "1.0"
 libc = "0.2.15"
-zmq-sys2 = { version = "0.2.0", path = "zmq-sys" }
+zmq-sys2 = { version = "0.3.0", path = "zmq-sys" }
 
 [dev-dependencies]
 trybuild = { version = "1" }
