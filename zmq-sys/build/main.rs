@@ -1,14 +1,6 @@
-use std::env;
-
 pub fn configure() {
     println!("cargo:rerun-if-changed=build/main.rs");
     println!("cargo:rerun-if-env-changed=PROFILE");
-
-    let lib_dir = env::var("DEP_SODIUM_LIB").expect("build metadata `DEP_SODIUM_LIB` required");
-    let include_dir =
-        env::var("DEP_SODIUM_INCLUDE").expect("build metadata `DEP_SODIUM_INCLUDE` required");
-
-    let _location = zeromq_src::LibLocation::new(lib_dir.clone(), include_dir);
 
     // Note that by default `libzmq` builds without `libsodium` by instead
     // relying on `tweetnacl`. However since this `tweetnacl` [has never been

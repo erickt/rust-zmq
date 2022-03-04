@@ -17,7 +17,6 @@ links = "zmq"
 
 [dependencies]
 libc = "0.2.15"
-libsodium-sys-stable = { version = "1.0" }
 
 [build-dependencies]
 system-deps = "6"
