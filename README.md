@@ -14,7 +14,7 @@ Rust ZeroMQ bindings.
 
 # About
 
-The `zmq2` crate provides bindings for the `libzmq` library from the
+The `zmq` crate provides bindings for the `libzmq` library from the
 [ZeroMQ](https://zeromq.org/) project. This project is a fork of the 
 [https://github.com/erickt/rust-zmq](rust-zmq) project, with the intent
 of keeping it actively maintained.
@@ -32,20 +32,20 @@ of our own library features.
 
 # Usage
 
-`zmq2` is a pretty straight forward port of the C API into Rust:
+`zmq` is a pretty straight forward port of the C API into Rust:
 
 ```rust
 fn main() {
-    let ctx = zmq2::Context::new();
+    let ctx = zmq::Context::new();
 
-    let socket = ctx.socket(zmq2::REQ).unwrap();
+    let socket = ctx.socket(zmq::REQ).unwrap();
     socket.connect("tcp://127.0.0.1:1234").unwrap();
     socket.send("hello world!", 0).unwrap();
 }
 ```
 
 You can find more usage examples in
-https://github.com/Traverse-Research/zmq2/tree/master/examples.
+https://github.com/Traverse-Research/zmq/tree/master/examples.
 
 # Contributing
 

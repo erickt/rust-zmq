@@ -7,8 +7,8 @@
 use rand::Rng;
 
 fn main() {
-    let context = zmq2::Context::new();
-    let publisher = context.socket(zmq2::PUB).unwrap();
+    let context = zmq::Context::new();
+    let publisher = context.socket(zmq::PUB).unwrap();
 
     assert!(publisher.bind("tcp://*:5556").is_ok());
     assert!(publisher.bind("ipc://weather.ipc").is_ok());

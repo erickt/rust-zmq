@@ -10,8 +10,8 @@ use std::time::Duration;
 use std::{str, thread};
 
 fn client_task() {
-    let context = zmq2::Context::new();
-    let client = context.socket(zmq2::DEALER).unwrap();
+    let context = zmq::Context::new();
+    let client = context.socket(zmq::DEALER).unwrap();
     let mut rng = thread_rng();
     let identity = format!("{:04X}-{:04X}", rng.gen::<u16>(), rng.gen::<u16>());
     client
@@ -24,7 +24,7 @@ fn client_task() {
     loop {
         for _ in 0..100 {
             if client
-                .poll(zmq2::POLLIN, 10)
+                .poll(zmq::POLLIN, 10)
                 .expect("client failed polling")
                 > 0
             {
@@ -43,12 +43,12 @@ fn client_task() {
 }
 
 fn server_task() {
-    let context = zmq2::Context::new();
-    let frontend = context.socket(zmq2::ROUTER).unwrap();
+    let context = zmq::Context::new();
+    let frontend = context.socket(zmq::ROUTER).unwrap();
     frontend
         .bind("tcp://*:5570")
         .expect("server failed binding frontend");
-    let backend = context.socket(zmq2::DEALER).unwrap();
+    let backend = context.socket(zmq::DEALER).unwrap();
     backend
         .bind("inproc://backend")
         .expect("server failed binding backend");
@@ -56,11 +56,11 @@ fn server_task() {
         let ctx = context.clone();
         thread::spawn(move || server_worker(&ctx));
     }
-    zmq2::proxy(&frontend, &backend).expect("server failed proxying");
+    zmq::proxy(&frontend, &backend).expect("server failed proxying");
 }
 
-fn server_worker(context: &zmq2::Context) {
-    let worker = context.socket(zmq2::DEALER).unwrap();
+fn server_worker(context: &zmq::Context) {
+    let worker = context.socket(zmq::DEALER).unwrap();
     worker
         .connect("inproc://backend")
         .expect("worker failed to connect to backend");
@@ -79,7 +79,7 @@ fn server_worker(context: &zmq2::Context) {
         for _ in 0..replies {
             thread::sleep(Duration::from_millis(rng.gen_range(0..1000) + 1));
             worker
-                .send(&identity, zmq2::SNDMORE)
+                .send(&identity, zmq::SNDMORE)
                 .expect("worker failed sending identity");
             worker
                 .send(&message, 0)

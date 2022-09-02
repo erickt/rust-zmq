@@ -1,6 +1,6 @@
 #[test]
 fn context_io_threads() {
-    let ctx = zmq2::Context::new();
+    let ctx = zmq::Context::new();
 
     assert_eq!(
         ctx.get_io_threads().unwrap(),

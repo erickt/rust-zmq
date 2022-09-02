@@ -5,12 +5,12 @@ use std::str;
 use std::u16;
 
 fn version_ge_4_3() -> bool {
-    let (major, minor, _) = zmq2::version();
+    let (major, minor, _) = zmq::version();
     (major > 4) || (major == 4 && minor >= 3)
 }
 
 /// Read one event off the monitor socket; return the SocketEvent value.
-fn get_monitor_event(monitor: &mut zmq2::Socket) -> zmq2::Result<zmq2::SocketEvent> {
+fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent> {
     let msg = monitor.recv_msg(0)?;
     // TODO: could be simplified by using `TryInto` (since 1.34)
     let event = u16::from_ne_bytes([msg[0], msg[1]]);
@@ -23,10 +23,10 @@ fn get_monitor_event(monitor: &mut zmq2::Socket) -> zmq2::Result<zmq2::SocketEve
     // the address, we'll ignore it
     let _ = monitor.recv_msg(0)?;
 
-    Ok(zmq2::SocketEvent::from_raw(event))
+    Ok(zmq::SocketEvent::from_raw(event))
 }
 
-fn expect_event(mon: &mut zmq2::Socket, expected: zmq2::SocketEvent) {
+fn expect_event(mon: &mut zmq::Socket, expected: zmq::SocketEvent) {
     let event = get_monitor_event(mon).unwrap();
     assert_eq!(expected, event);
 }
@@ -34,11 +34,11 @@ fn expect_event(mon: &mut zmq2::Socket, expected: zmq2::SocketEvent) {
 /// Send a series of pings between the client and the server.
 /// The messages should round trip from the client to the server
 /// and back again.
-fn bounce(client: &mut zmq2::Socket, server: &mut zmq2::Socket) {
+fn bounce(client: &mut zmq::Socket, server: &mut zmq::Socket) {
     let data = "12345678ABCDEFGH12345678abcdefgh";
 
     //  Send message from client to server
-    client.send(data.as_bytes(), zmq2::SNDMORE).unwrap();
+    client.send(data.as_bytes(), zmq::SNDMORE).unwrap();
     client.send(data.as_bytes(), 0).unwrap();
 
     //  Receive message at server side
@@ -51,7 +51,7 @@ fn bounce(client: &mut zmq2::Socket, server: &mut zmq2::Socket) {
     assert!(!server.get_rcvmore().unwrap());
 
     //  Send message from client to server
-    server.send(&recv_data, zmq2::SNDMORE).unwrap();
+    server.send(&recv_data, zmq::SNDMORE).unwrap();
     server.send(&recv_data, 0).unwrap();
 
     //  Receive the two parts at the client side
@@ -65,31 +65,31 @@ fn bounce(client: &mut zmq2::Socket, server: &mut zmq2::Socket) {
 }
 
 /// Close the given socket with LINGER set to 0
-fn close_zero_linger(socket: zmq2::Socket) {
+fn close_zero_linger(socket: zmq::Socket) {
     socket.set_linger(0).unwrap();
     drop(socket);
 }
 
 test!(test_monitor_events, {
-    let ctx = zmq2::Context::new();
+    let ctx = zmq::Context::new();
 
-    let mut client = ctx.socket(zmq2::DEALER).unwrap();
-    let mut server = ctx.socket(zmq2::DEALER).unwrap();
+    let mut client = ctx.socket(zmq::DEALER).unwrap();
+    let mut server = ctx.socket(zmq::DEALER).unwrap();
 
     let err = client
         .monitor("tcp://127.0.0.1:9999", 0)
         .expect_err("Socket monitoring only works over inproc://");
-    assert_eq!(zmq2::Error::EPROTONOSUPPORT, err);
+    assert_eq!(zmq::Error::EPROTONOSUPPORT, err);
 
     assert!(client
-        .monitor("inproc://monitor-client", zmq2::SocketEvent::ALL as i32)
+        .monitor("inproc://monitor-client", zmq::SocketEvent::ALL as i32)
         .is_ok());
     assert!(server
-        .monitor("inproc://monitor-server", zmq2::SocketEvent::ALL as i32)
+        .monitor("inproc://monitor-server", zmq::SocketEvent::ALL as i32)
         .is_ok());
 
-    let mut client_mon = ctx.socket(zmq2::PAIR).unwrap();
-    let mut server_mon = ctx.socket(zmq2::PAIR).unwrap();
+    let mut client_mon = ctx.socket(zmq::PAIR).unwrap();
+    let mut server_mon = ctx.socket(zmq::PAIR).unwrap();
 
     // Connect these to the inproc endpoints so they'll get events
     client_mon.connect("inproc://monitor-client").unwrap();
@@ -104,29 +104,29 @@ test!(test_monitor_events, {
 
     // Now collect and check events from both sockets
     let mut event = get_monitor_event(&mut client_mon).unwrap();
-    if event == zmq2::SocketEvent::CONNECT_DELAYED {
+    if event == zmq::SocketEvent::CONNECT_DELAYED {
         event = get_monitor_event(&mut client_mon).unwrap();
     }
-    assert_eq!(zmq2::SocketEvent::CONNECTED, event);
+    assert_eq!(zmq::SocketEvent::CONNECTED, event);
 
     if version_ge_4_3() {
-        expect_event(&mut client_mon, zmq2::SocketEvent::HANDSHAKE_SUCCEEDED);
+        expect_event(&mut client_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
     }
-    expect_event(&mut client_mon, zmq2::SocketEvent::MONITOR_STOPPED);
+    expect_event(&mut client_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
     // This is the flow of server events
-    expect_event(&mut server_mon, zmq2::SocketEvent::LISTENING);
-    expect_event(&mut server_mon, zmq2::SocketEvent::ACCEPTED);
+    expect_event(&mut server_mon, zmq::SocketEvent::LISTENING);
+    expect_event(&mut server_mon, zmq::SocketEvent::ACCEPTED);
 
     if version_ge_4_3() {
-        expect_event(&mut server_mon, zmq2::SocketEvent::HANDSHAKE_SUCCEEDED);
+        expect_event(&mut server_mon, zmq::SocketEvent::HANDSHAKE_SUCCEEDED);
     }
-    expect_event(&mut server_mon, zmq2::SocketEvent::DISCONNECTED);
+    expect_event(&mut server_mon, zmq::SocketEvent::DISCONNECTED);
 
     close_zero_linger(server);
 
-    expect_event(&mut server_mon, zmq2::SocketEvent::CLOSED);
-    expect_event(&mut server_mon, zmq2::SocketEvent::MONITOR_STOPPED);
+    expect_event(&mut server_mon, zmq::SocketEvent::CLOSED);
+    expect_event(&mut server_mon, zmq::SocketEvent::MONITOR_STOPPED);
 
     // Close down the sockets
     close_zero_linger(client_mon);

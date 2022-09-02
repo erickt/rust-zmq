@@ -8,14 +8,14 @@ use rand::Rng;
 use std::io::{self, BufRead};
 
 fn main() {
-    let context = zmq2::Context::new();
+    let context = zmq::Context::new();
 
     // Socket to send messages on
-    let sender = context.socket(zmq2::PUSH).unwrap();
+    let sender = context.socket(zmq::PUSH).unwrap();
     assert!(sender.bind("tcp://*:5557").is_ok());
 
     //  Socket to send start of batch message on
-    let sink = context.socket(zmq2::PUSH).unwrap();
+    let sink = context.socket(zmq::PUSH).unwrap();
     assert!(sink.connect("tcp://localhost:5558").is_ok());
 
     println!("Press Enter when the workers are ready: ");

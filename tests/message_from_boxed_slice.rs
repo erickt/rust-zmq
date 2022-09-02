@@ -27,5 +27,5 @@ static A: Allocator = Allocator;
 fn message_from_boxed_slice() {
     let mut b: Box<[u8]> = Box::new([0u8; 42]);
     CHECK_PTR.store(b.as_mut_ptr() as *mut u8, Ordering::SeqCst);
-    let _ = zmq2::Message::from(b);
+    let _ = zmq::Message::from(b);
 }

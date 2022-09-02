@@ -14,17 +14,17 @@ fn atoi(s: &str) -> u64 {
 }
 
 fn main() {
-    let context = zmq2::Context::new();
+    let context = zmq::Context::new();
 
     // socket to receive messages on
-    let receiver = context.socket(zmq2::PULL).unwrap();
+    let receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.connect("tcp://localhost:5557").is_ok());
 
     //  Socket to send messages to
-    let sender = context.socket(zmq2::PUSH).unwrap();
+    let sender = context.socket(zmq::PUSH).unwrap();
     assert!(sender.connect("tcp://localhost:5558").is_ok());
 
-    let controller = context.socket(zmq2::SUB).unwrap();
+    let controller = context.socket(zmq::SUB).unwrap();
     controller
         .connect("tcp://localhost:5559")
         .expect("failed connecting controller");
@@ -32,10 +32,10 @@ fn main() {
 
     loop {
         let mut items = [
-            receiver.as_poll_item(zmq2::POLLIN),
-            controller.as_poll_item(zmq2::POLLIN),
+            receiver.as_poll_item(zmq::POLLIN),
+            controller.as_poll_item(zmq::POLLIN),
         ];
-        zmq2::poll(&mut items, -1).expect("failed polling");
+        zmq::poll(&mut items, -1).expect("failed polling");
         if items[0].is_readable() {
             let string = receiver.recv_string(0).unwrap().unwrap();
 

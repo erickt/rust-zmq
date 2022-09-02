@@ -1,12 +1,12 @@
 #[macro_use]
 mod common;
 
-use zmq2::{z85_decode, Context, CurveKeyPair, Socket};
+use zmq::{z85_decode, Context, CurveKeyPair, Socket};
 
 fn create_socketpair() -> (Socket, Socket) {
     let ctx = Context::default();
-    let sender = ctx.socket(zmq2::REQ).unwrap();
-    let receiver = ctx.socket(zmq2::REP).unwrap();
+    let sender = ctx.socket(zmq::REQ).unwrap();
+    let receiver = ctx.socket(zmq::REP).unwrap();
     let server_pair = CurveKeyPair::new().unwrap();
     let client_pair = CurveKeyPair::new().unwrap();
 
@@ -48,14 +48,14 @@ test_capability!(test_curve_keypair, "curve", {
 
 test_capability!(test_getset_curve_server, "curve", {
     let ctx = Context::new();
-    let sock = ctx.socket(zmq2::REQ).unwrap();
+    let sock = ctx.socket(zmq::REQ).unwrap();
     sock.set_curve_server(true).unwrap();
     assert!(sock.is_curve_server().unwrap());
 });
 
 test_capability!(test_getset_curve_publickey, "curve", {
     let ctx = Context::new();
-    let sock = ctx.socket(zmq2::REQ).unwrap();
+    let sock = ctx.socket(zmq::REQ).unwrap();
     let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
     sock.set_curve_publickey(&key).unwrap();
     assert_eq!(sock.get_curve_publickey().unwrap(), key);
@@ -63,7 +63,7 @@ test_capability!(test_getset_curve_publickey, "curve", {
 
 test_capability!(test_getset_curve_secretkey, "curve", {
     let ctx = Context::new();
-    let sock = ctx.socket(zmq2::REQ).unwrap();
+    let sock = ctx.socket(zmq::REQ).unwrap();
     let key = z85_decode("s9N%S3*NKSU$6pUnpBI&K5HBd[]G$Y3yrK?mhdbS").unwrap();
     sock.set_curve_secretkey(&key).unwrap();
     assert_eq!(sock.get_curve_secretkey().unwrap(), key);
@@ -71,7 +71,7 @@ test_capability!(test_getset_curve_secretkey, "curve", {
 
 test_capability!(test_getset_curve_serverkey, "curve", {
     let ctx = Context::new();
-    let sock = ctx.socket(zmq2::REQ).unwrap();
+    let sock = ctx.socket(zmq::REQ).unwrap();
     let key = z85_decode("FX5b8g5ZnOk7$Q}^)Y&?.v3&MIe+]OU7DTKynkUL").unwrap();
     sock.set_curve_serverkey(&key).unwrap();
     assert_eq!(sock.get_curve_serverkey().unwrap(), key);

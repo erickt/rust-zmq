@@ -4,8 +4,8 @@ use std::thread;
 use std::time::Duration;
 
 fn main() {
-    let context = zmq2::Context::new();
-    let responder = context.socket(zmq2::REP).unwrap();
+    let context = zmq::Context::new();
+    let responder = context.socket(zmq::REP).unwrap();
     responder
         .connect("tcp://localhost:5560")
         .expect("failed connecting responder");

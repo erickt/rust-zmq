@@ -2,7 +2,7 @@
 mod common;
 
 use quickcheck::{quickcheck, Arbitrary, Gen};
-use zmq2::Message;
+use zmq::Message;
 
 // A pair which contains two non-equal values
 #[derive(Clone, Debug)]

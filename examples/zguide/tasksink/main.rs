@@ -8,8 +8,8 @@ use std::time::Instant;
 
 fn main() {
     //  Prepare our context and socket
-    let context = zmq2::Context::new();
-    let receiver = context.socket(zmq2::PULL).unwrap();
+    let context = zmq::Context::new();
+    let receiver = context.socket(zmq::PULL).unwrap();
     assert!(receiver.bind("tcp://*:5558").is_ok());
 
     // Wait for start of batch

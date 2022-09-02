@@ -7,8 +7,8 @@ macro_rules! t {
 }
 
 fn main() {
-    let mut context = zmq2::Context::new();
-    let socket = t!(context.socket(zmq2::REP));
+    let mut context = zmq::Context::new();
+    let socket = t!(context.socket(zmq::REP));
     let s = &socket;
     let t = thread::spawn(move || {
         t!(s.bind("tcp://127.0.0.1:12345"))

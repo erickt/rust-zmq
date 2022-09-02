@@ -6,8 +6,8 @@ use std::env;
 use rand::distributions::{Distribution, Uniform};
 
 fn main() {
-    let context = zmq2::Context::new();
-    let subscriber = context.socket(zmq2::SUB).unwrap();
+    let context = zmq::Context::new();
+    let subscriber = context.socket(zmq::SUB).unwrap();
 
     let args: Vec<_> = env::args().collect();
     let address = if args.len() == 2 {

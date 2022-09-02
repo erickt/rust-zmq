@@ -1,8 +1,8 @@
 #![crate_name = "psenvsub"]
 
 fn main() {
-    let context = zmq2::Context::new();
-    let subscriber = context.socket(zmq2::SUB).unwrap();
+    let context = zmq::Context::new();
+    let subscriber = context.socket(zmq::SUB).unwrap();
     subscriber
         .connect("tcp://localhost:5563")
         .expect("failed connecting subscriber");

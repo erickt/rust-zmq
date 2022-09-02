@@ -1,5 +1,5 @@
 [package]
-name = "zmq2"
+name = "zmq"
 version = "0.5.0"
 authors = [
     "a.rottmann@gmx.at",

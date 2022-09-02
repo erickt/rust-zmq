@@ -1,9 +1,9 @@
 #![crate_name = "rrbroker"]
 
 fn main() {
-    let context = zmq2::Context::new();
-    let frontend = context.socket(zmq2::ROUTER).unwrap();
-    let backend = context.socket(zmq2::DEALER).unwrap();
+    let context = zmq::Context::new();
+    let frontend = context.socket(zmq::ROUTER).unwrap();
+    let backend = context.socket(zmq::DEALER).unwrap();
 
     frontend
         .bind("tcp://*:5559")
@@ -14,17 +14,17 @@ fn main() {
 
     loop {
         let mut items = [
-            frontend.as_poll_item(zmq2::POLLIN),
-            backend.as_poll_item(zmq2::POLLIN),
+            frontend.as_poll_item(zmq::POLLIN),
+            backend.as_poll_item(zmq::POLLIN),
         ];
-        zmq2::poll(&mut items, -1).unwrap();
+        zmq::poll(&mut items, -1).unwrap();
 
         if items[0].is_readable() {
             loop {
                 let message = frontend.recv_msg(0).unwrap();
                 let more = message.get_more();
                 backend
-                    .send(message, if more { zmq2::SNDMORE } else { 0 })
+                    .send(message, if more { zmq::SNDMORE } else { 0 })
                     .unwrap();
                 if !more {
                     break;
@@ -36,7 +36,7 @@ fn main() {
                 let message = backend.recv_msg(0).unwrap();
                 let more = message.get_more();
                 frontend
-                    .send(message, if more { zmq2::SNDMORE } else { 0 })
+                    .send(message, if more { zmq::SNDMORE } else { 0 })
                     .unwrap();
                 if !more {
                     break;

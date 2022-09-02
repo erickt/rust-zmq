@@ -2,9 +2,9 @@
 
 use std::thread;
 
-fn step1(context: &zmq2::Context) {
+fn step1(context: &zmq::Context) {
     //connect to step 2 and tell it we're ready
-    let xmitter = context.socket(zmq2::PAIR).unwrap();
+    let xmitter = context.socket(zmq::PAIR).unwrap();
     xmitter
         .connect("inproc://step2")
         .expect("step 1 failed connecting");
@@ -12,9 +12,9 @@ fn step1(context: &zmq2::Context) {
     xmitter.send("READY", 0).expect("step 1 failed sending");
 }
 
-fn step2(context: &zmq2::Context) {
+fn step2(context: &zmq::Context) {
     //bind inproc socket before starting step 1
-    let receiver = context.socket(zmq2::PAIR).unwrap();
+    let receiver = context.socket(zmq::PAIR).unwrap();
     receiver
         .bind("inproc://step2")
         .expect("failed binding step 2");
@@ -25,7 +25,7 @@ fn step2(context: &zmq2::Context) {
     receiver.recv_msg(0).unwrap();
 
     //connect to step 3 and tell it we're ready
-    let xmitter = context.socket(zmq2::PAIR).unwrap();
+    let xmitter = context.socket(zmq::PAIR).unwrap();
     xmitter
         .connect("inproc://step3")
         .expect("step 2 failed connecting");
@@ -34,10 +34,10 @@ fn step2(context: &zmq2::Context) {
 }
 
 fn main() {
-    let context = zmq2::Context::new();
+    let context = zmq::Context::new();
 
     //bind inproc socket before starting step 2
-    let receiver = context.socket(zmq2::PAIR).unwrap();
+    let receiver = context.socket(zmq::PAIR).unwrap();
     receiver
         .bind("inproc://step3")
         .expect("failed binding step 3");

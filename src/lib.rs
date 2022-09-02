@@ -841,11 +841,11 @@ impl Socket {
         /// # Examples
         ///
         /// ```
-        /// use zmq2;
-        /// let ctx = zmq2::Context::new();
-        /// let socket = ctx.socket(zmq2::REQ).unwrap();
+        /// use zmq;
+        /// let ctx = zmq::Context::new();
+        /// let socket = ctx.socket(zmq::REQ).unwrap();
         /// let events = socket.get_events().unwrap();
-        /// if events.contains(zmq2::POLLIN) {
+        /// if events.contains(zmq::POLLIN) {
         ///   println!("socket readable")
         /// }
         /// drop(socket);

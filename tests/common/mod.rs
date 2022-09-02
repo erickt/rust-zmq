@@ -22,7 +22,7 @@ macro_rules! test_capability {
     ($name:ident, $capability:literal, $block:block) => {
         #[test]
         fn $name() {
-            if zmq2::has($capability).unwrap() {
+            if zmq::has($capability).unwrap() {
                 $crate::common::ensure_env_logger_initialized();
                 $crate::common::timebomb::timeout_ms(|| $block, 10000);
             }
