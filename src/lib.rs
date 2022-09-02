@@ -42,7 +42,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SocketType {
     PAIR,
     PUB,
@@ -97,7 +97,7 @@ impl SocketType {
 
 /// Socket Events
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SocketEvent {
     // TODO: This should become a proper enum, including the data.
     CONNECTED = zmq_sys::ZMQ_EVENT_CONNECTED as isize,
@@ -156,7 +156,7 @@ pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mechanism {
     // TODO: Fix the naming
     ZMQ_NULL,
@@ -964,12 +964,7 @@ impl Socket {
 
     pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
         // 260 = best guess of max length based on docs.
-        sockopt::get_string(
-            self.sock,
-            zmq_sys::ZMQ_GSSAPI_PRINCIPAL as c_int,
-            260,
-            true,
-        )
+        sockopt::get_string(self.sock, zmq_sys::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
     }
 
     pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
