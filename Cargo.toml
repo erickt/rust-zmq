@@ -1,6 +1,6 @@
 [package]
 name = "zmq"
-version = "0.5.0"
+version = "0.10.0"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -28,7 +28,7 @@ zmq_has = []
 [dependencies]
 bitflags = "1.0"
 libc = "0.2.15"
-zmq-sys2 = { version = "0.3.0", path = "zmq-sys" }
+zmq-sys = { version = "0.12.0", path = "zmq-sys" }
 
 [dev-dependencies]
 trybuild = { version = "1" }
