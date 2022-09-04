@@ -490,6 +490,8 @@ pub struct Socket {
 }
 
 unsafe impl Send for Socket {}
+unsafe impl Sync for Socket {}
+
 
 impl Drop for Socket {
     fn drop(&mut self) {
