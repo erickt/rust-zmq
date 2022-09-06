@@ -15,20 +15,16 @@ Rust ZeroMQ bindings.
 # About
 
 The `zmq` crate provides bindings for the `libzmq` library from the
-[ZeroMQ](https://zeromq.org/) project. This project is a fork of the 
-[https://github.com/erickt/rust-zmq](rust-zmq) project, with the intent
-of keeping it actively maintained.
-
-This project removes the `cmake` dependency of this project, as well as
-update the dependencies. It has also removed the `pkgconfig` build in
-favor of always building a vendored version of this library.
+[ZeroMQ](https://zeromq.org/) project. The API exposed by `zmq` should
+be safe (in the usual Rust sense), but it follows the C API closely,
+so it is not very idiomatic.
 
 # Compatibility
 
-The aim of this fork is to track latest zmq releases as close as possible, 
-while in the beginning aming to be a drop in replacement of the original
-`zmq` library. Though over time we'll most likely abandon that, in favor
-of our own library features.
+The aim of this project is to track latest zmq releases as close as possible.
+
+Regarding the minimum Rust version required, `zmq` is CI-tested on current 
+stable channels of Rust. 
 
 # Usage
 
