@@ -7,7 +7,7 @@ authors = [
     "opensource@traversersearch.nl",
 ]
 license = "MIT/Apache-2.0"
-description = "Maintained high-level bindings to the zeromq library"
+description = "High-level bindings to the zeromq library"
 keywords = ["bindings", "protocol"]
 categories = ["api-bindings", "network-programming"]
 repository = "https://github.com/erickt/rust-zmq"

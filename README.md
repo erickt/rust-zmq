@@ -45,7 +45,7 @@ fn main() {
 ```
 
 You can find more usage examples in
-https://github.com/Traverse-Research/zmq/tree/master/examples.
+https://github.com/erickt/rust-zmq/tree/master/examples.
 
 # Contributing
 
