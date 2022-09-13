@@ -50,7 +50,7 @@ test_capability!(test_getset_curve_server, "curve", {
     let ctx = Context::new();
     let sock = ctx.socket(zmq::REQ).unwrap();
     sock.set_curve_server(true).unwrap();
-    assert_eq!(sock.is_curve_server().unwrap(), true);
+    assert!(sock.is_curve_server().unwrap());
 });
 
 test_capability!(test_getset_curve_publickey, "curve", {

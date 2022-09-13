@@ -38,7 +38,7 @@ fn worker_task() {
         total += 1;
 
         // Do some random work
-        thread::sleep(Duration::from_millis(rng.gen_range(1, 500)));
+        thread::sleep(Duration::from_millis(rng.gen_range(1..500)));
     }
 }
 

@@ -42,7 +42,7 @@ pub type Result<T> = result::Result<T, Error>;
 
 /// Socket types
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SocketType {
     PAIR,
     PUB,
@@ -97,7 +97,7 @@ impl SocketType {
 
 /// Socket Events
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SocketEvent {
     // TODO: This should become a proper enum, including the data.
     CONNECTED = zmq_sys::ZMQ_EVENT_CONNECTED as isize,
@@ -156,7 +156,7 @@ pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mechanism {
     // TODO: Fix the naming
     ZMQ_NULL,
@@ -494,7 +494,7 @@ unsafe impl Send for Socket {}
 impl Drop for Socket {
     fn drop(&mut self) {
         if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
-            panic!(errno_to_error());
+            panic!("{}", errno_to_error());
         }
     }
 }

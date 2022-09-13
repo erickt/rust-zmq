@@ -1,6 +1,6 @@
 [package]
 name = "zmq-sys"
-version = "0.11.0"
+version = "0.12.0"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -14,15 +14,13 @@ build = "build/main.rs"
 links = "zmq"
 
 [features]
-# Build libzmq from source.
-vendored = ['zeromq-src']
 
 [dependencies]
 libc = "0.2.15"
 
 [build-dependencies]
-metadeps = "1"
-zeromq-src = { version = "0.1.7", optional = true }
+system-deps = "6"
+zeromq-src = { version = "0.2.1" }
 
-[package.metadata.pkg-config]
+[package.metadata.system-deps]
 libzmq = "4.1"

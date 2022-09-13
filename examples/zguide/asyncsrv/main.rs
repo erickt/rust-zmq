@@ -71,9 +71,9 @@ fn server_worker(context: &zmq::Context) {
             .recv_string(0)
             .expect("worker failed receiving message")
             .unwrap();
-        let replies = rng.gen_range(0, 4);
+        let replies = rng.gen_range(0..4);
         for _ in 0..replies {
-            thread::sleep(Duration::from_millis(rng.gen_range(0, 1000) + 1));
+            thread::sleep(Duration::from_millis(rng.gen_range(0..1000) + 1));
             worker
                 .send(&identity, zmq::SNDMORE)
                 .expect("worker failed sending identity");

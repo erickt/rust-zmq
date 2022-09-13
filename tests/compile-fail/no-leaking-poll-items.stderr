@@ -1,10 +1,10 @@
 error[E0597]: `socket` does not live long enough
- --> $DIR/no-leaking-poll-items.rs:5:9
+ --> tests/compile-fail/no-leaking-poll-items.rs:5:9
   |
 3 |     let _poll_item = {
   |         ---------- borrow later stored here
 4 |         let socket = context.socket(zmq::PAIR).unwrap();
 5 |         socket.as_poll_item(zmq::POLLIN)
-  |         ^^^^^^ borrowed value does not live long enough
+  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
 6 |     }; //~^ ERROR `socket` does not live long enough [E0597]
   |     - `socket` dropped here while still borrowed

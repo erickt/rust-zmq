@@ -16,7 +16,7 @@ fn main() {
         "tcp://localhost:5556"
     };
     subscriber
-        .connect(&address)
+        .connect(address)
         .expect("could not connect to publisher");
 
     let mut rng = rand::thread_rng();
