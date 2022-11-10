@@ -223,6 +223,12 @@ impl From<Box<[u8]>> for Message {
     }
 }
 
+impl<const N: usize> From<[u8; N]> for Message {
+    fn from(data: [u8; N]) -> Self {
+        Self::from(&data)
+    }
+}
+
 impl<'a> From<&'a str> for Message {
     /// Construct a message from a string slice by copying the UTF-8 data.
     fn from(msg: &str) -> Self {
