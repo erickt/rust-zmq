@@ -5,19 +5,15 @@
 use bitflags::bitflags;
 use libc::{c_int, c_long, c_short};
 
-use std::convert::TryFrom;
-use std::ffi;
-use std::fmt;
-use std::marker::PhantomData;
-use std::os::raw::c_void;
+use std::{
+    convert::TryFrom, ffi, fmt, marker::PhantomData, mem, os::raw::c_void, ptr, result, str,
+    string::FromUtf8Error, sync::Arc,
+};
+
 #[cfg(unix)]
 use std::os::unix::io::{AsRawFd, RawFd as UnixRawFd};
 #[cfg(windows)]
 use std::os::windows::io::{AsRawSocket, RawSocket};
-use std::result;
-use std::string::FromUtf8Error;
-use std::sync::Arc;
-use std::{mem, ptr, str};
 
 use zmq_sys::{errno, RawFd};
 
@@ -307,7 +303,7 @@ impl std::error::Error for Error {
     }
 }
 
-impl std::fmt::Display for Error {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.message())
     }
