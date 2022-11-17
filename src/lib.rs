@@ -5,6 +5,7 @@
 use bitflags::bitflags;
 use libc::{c_int, c_long, c_short};
 
+use std::convert::TryFrom;
 use std::ffi;
 use std::fmt;
 use std::marker::PhantomData;
@@ -43,55 +44,50 @@ pub type Result<T> = result::Result<T, Error>;
 /// Socket types
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u32)]
 pub enum SocketType {
-    PAIR,
-    PUB,
-    SUB,
-    REQ,
-    REP,
-    DEALER,
-    ROUTER,
-    PULL,
-    PUSH,
-    XPUB,
-    XSUB,
-    STREAM,
+    PAIR = zmq_sys::ZMQ_PAIR,
+    PUB = zmq_sys::ZMQ_PUB,
+    SUB = zmq_sys::ZMQ_SUB,
+    REQ = zmq_sys::ZMQ_REQ,
+    REP = zmq_sys::ZMQ_REP,
+    DEALER = zmq_sys::ZMQ_DEALER,
+    ROUTER = zmq_sys::ZMQ_ROUTER,
+    PULL = zmq_sys::ZMQ_PULL,
+    PUSH = zmq_sys::ZMQ_PUSH,
+    XPUB = zmq_sys::ZMQ_XPUB,
+    XSUB = zmq_sys::ZMQ_XSUB,
+    STREAM = zmq_sys::ZMQ_STREAM,
 }
 
 impl SocketType {
     fn to_raw(self) -> c_int {
-        let raw = match self {
-            PAIR => zmq_sys::ZMQ_PAIR,
-            PUB => zmq_sys::ZMQ_PUB,
-            SUB => zmq_sys::ZMQ_SUB,
-            REQ => zmq_sys::ZMQ_REQ,
-            REP => zmq_sys::ZMQ_REP,
-            DEALER => zmq_sys::ZMQ_DEALER,
-            ROUTER => zmq_sys::ZMQ_ROUTER,
-            PULL => zmq_sys::ZMQ_PULL,
-            PUSH => zmq_sys::ZMQ_PUSH,
-            XPUB => zmq_sys::ZMQ_XPUB,
-            XSUB => zmq_sys::ZMQ_XSUB,
-            STREAM => zmq_sys::ZMQ_STREAM,
-        };
-        raw as c_int
+        self as c_int
     }
     fn from_raw(raw: c_int) -> Self {
-        match raw as u32 {
-            zmq_sys::ZMQ_PAIR => PAIR,
-            zmq_sys::ZMQ_PUB => PUB,
-            zmq_sys::ZMQ_SUB => SUB,
-            zmq_sys::ZMQ_REQ => REQ,
-            zmq_sys::ZMQ_REP => REP,
-            zmq_sys::ZMQ_DEALER => DEALER,
-            zmq_sys::ZMQ_ROUTER => ROUTER,
-            zmq_sys::ZMQ_PULL => PULL,
-            zmq_sys::ZMQ_PUSH => PUSH,
-            zmq_sys::ZMQ_XPUB => XPUB,
-            zmq_sys::ZMQ_XSUB => XSUB,
-            zmq_sys::ZMQ_STREAM => STREAM,
-            _ => panic!("socket type is out of range!"),
-        }
+        Self::try_from(raw as u32).unwrap_or_else(|v| panic!("socket type {} is out of range!", v))
+    }
+}
+
+impl TryFrom<u32> for SocketType {
+    type Error = u32;
+
+    fn try_from(value: u32) -> result::Result<Self, Self::Error> {
+        Ok(match value {
+            zmq_sys::ZMQ_PAIR => Self::PAIR,
+            zmq_sys::ZMQ_PUB => Self::PUB,
+            zmq_sys::ZMQ_SUB => Self::SUB,
+            zmq_sys::ZMQ_REQ => Self::REQ,
+            zmq_sys::ZMQ_REP => Self::REP,
+            zmq_sys::ZMQ_DEALER => Self::DEALER,
+            zmq_sys::ZMQ_ROUTER => Self::ROUTER,
+            zmq_sys::ZMQ_PULL => Self::PULL,
+            zmq_sys::ZMQ_PUSH => Self::PUSH,
+            zmq_sys::ZMQ_XPUB => Self::XPUB,
+            zmq_sys::ZMQ_XSUB => Self::XSUB,
+            zmq_sys::ZMQ_STREAM => Self::STREAM,
+            unknown => return Err(unknown),
+        })
     }
 }
 
@@ -157,86 +153,94 @@ pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 /// Security Mechanism
 #[allow(non_camel_case_types)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u32)]
 pub enum Mechanism {
-    // TODO: Fix the naming
-    ZMQ_NULL,
-    ZMQ_PLAIN,
-    ZMQ_CURVE,
-    ZMQ_GSSAPI,
+    NULL = zmq_sys::ZMQ_NULL,
+    PLAIN = zmq_sys::ZMQ_PLAIN,
+    CURVE = zmq_sys::ZMQ_CURVE,
+    GSSAPI = zmq_sys::ZMQ_GSSAPI,
+}
+
+impl TryFrom<u32> for Mechanism {
+    type Error = u32;
+
+    fn try_from(value: u32) -> result::Result<Self, Self::Error> {
+        Ok(match value {
+            zmq_sys::ZMQ_NULL => Self::NULL,
+            zmq_sys::ZMQ_PLAIN => Self::PLAIN,
+            zmq_sys::ZMQ_CURVE => Self::CURVE,
+            zmq_sys::ZMQ_GSSAPI => Self::GSSAPI,
+            unknown => return Err(unknown),
+        })
+    }
 }
 
 /// An error returned by a 0MQ API function.
 #[derive(Clone, Copy, Eq, PartialEq)]
+#[repr(i32)]
 pub enum Error {
-    EACCES,
-    EADDRINUSE,
-    EAGAIN,
-    EBUSY,
-    ECONNREFUSED,
-    EFAULT,
-    EINTR,
-    EHOSTUNREACH,
-    EINPROGRESS,
-    EINVAL,
-    EMFILE,
-    EMSGSIZE,
-    ENAMETOOLONG,
-    ENODEV,
-    ENOENT,
-    ENOMEM,
-    ENOTCONN,
-    ENOTSOCK,
-    EPROTO,
-    EPROTONOSUPPORT,
-    ENOTSUP,
-    ENOBUFS,
-    ENETDOWN,
-    EADDRNOTAVAIL,
+    EACCES = errno::EACCES,
+    EADDRINUSE = errno::EADDRINUSE,
+    EAGAIN = errno::EAGAIN,
+    EBUSY = errno::EBUSY,
+    ECONNREFUSED = errno::ECONNREFUSED,
+    EFAULT = errno::EFAULT,
+    EINTR = errno::EINTR,
+    EHOSTUNREACH = errno::EHOSTUNREACH,
+    EINPROGRESS = errno::EINPROGRESS,
+    EINVAL = errno::EINVAL,
+    EMFILE = errno::EMFILE,
+    EMSGSIZE = errno::EMSGSIZE,
+    ENAMETOOLONG = errno::ENAMETOOLONG,
+    ENODEV = errno::ENODEV,
+    ENOENT = errno::ENOENT,
+    ENOMEM = errno::ENOMEM,
+    ENOTCONN = errno::ENOTCONN,
+    ENOTSOCK = errno::ENOTSOCK,
+    EPROTO = errno::EPROTO,
+    EPROTONOSUPPORT = errno::EPROTONOSUPPORT,
+    ENOTSUP = errno::ENOTSUP,
+    ENOBUFS = errno::ENOBUFS,
+    ENETDOWN = errno::ENETDOWN,
+    EADDRNOTAVAIL = errno::EADDRNOTAVAIL,
 
     // native zmq error codes
-    EFSM,
-    ENOCOMPATPROTO,
-    ETERM,
-    EMTHREAD,
+    EFSM = errno::EFSM,
+    ENOCOMPATPROTO = errno::ENOCOMPATPROTO,
+    ETERM = errno::ETERM,
+    EMTHREAD = errno::EMTHREAD,
 }
 
 impl Error {
     pub fn to_raw(self) -> i32 {
-        match self {
-            Self::EACCES => errno::EACCES,
-            Self::EADDRINUSE => errno::EADDRINUSE,
-            Self::EAGAIN => errno::EAGAIN,
-            Self::EBUSY => errno::EBUSY,
-            Self::ECONNREFUSED => errno::ECONNREFUSED,
-            Self::EFAULT => errno::EFAULT,
-            Self::EINTR => errno::EINTR,
-            Self::EHOSTUNREACH => errno::EHOSTUNREACH,
-            Self::EINPROGRESS => errno::EINPROGRESS,
-            Self::EINVAL => errno::EINVAL,
-            Self::EMFILE => errno::EMFILE,
-            Self::EMSGSIZE => errno::EMSGSIZE,
-            Self::ENAMETOOLONG => errno::ENAMETOOLONG,
-            Self::ENODEV => errno::ENODEV,
-            Self::ENOENT => errno::ENOENT,
-            Self::ENOMEM => errno::ENOMEM,
-            Self::ENOTCONN => errno::ENOTCONN,
-            Self::ENOTSOCK => errno::ENOTSOCK,
-            Self::EPROTO => errno::EPROTO,
-            Self::EPROTONOSUPPORT => errno::EPROTONOSUPPORT,
-            Self::ENOTSUP => errno::ENOTSUP,
-            Self::ENOBUFS => errno::ENOBUFS,
-            Self::ENETDOWN => errno::ENETDOWN,
-            Self::EADDRNOTAVAIL => errno::EADDRNOTAVAIL,
-
-            Self::EFSM => errno::EFSM,
-            Self::ENOCOMPATPROTO => errno::ENOCOMPATPROTO,
-            Self::ETERM => errno::ETERM,
-            Self::EMTHREAD => errno::EMTHREAD,
-        }
+        self as i32
     }
 
     pub fn from_raw(raw: i32) -> Self {
-        match raw {
+        Self::try_from(raw).unwrap_or_else(|x| {
+            let s = unsafe {
+                let s = zmq_sys::zmq_strerror(x);
+                ffi::CStr::from_ptr(s).to_bytes()
+            };
+            panic!("unknown error [{}]: {}", x, str::from_utf8(s).unwrap())
+        })
+    }
+
+    /// Returns the error message provided by 0MQ.
+    pub fn message(self) -> &'static str {
+        let v = unsafe {
+            let s = zmq_sys::zmq_strerror(self.to_raw());
+            mem::transmute(ffi::CStr::from_ptr(s).to_bytes())
+        };
+        str::from_utf8(v).unwrap()
+    }
+}
+
+impl TryFrom<i32> for Error {
+    type Error = i32;
+
+    fn try_from(value: i32) -> result::Result<Self, Self::Error> {
+        Ok(match value {
             errno::EACCES => Self::EACCES,
             errno::EADDRINUSE => Self::EADDRINUSE,
             errno::EAGAIN => Self::EAGAIN,
@@ -292,25 +296,8 @@ impl Error {
             errno::ENOCOMPATPROTO => Self::ENOCOMPATPROTO,
             errno::ETERM => Self::ETERM,
             errno::EMTHREAD => Self::EMTHREAD,
-
-            x => unsafe {
-                let s = zmq_sys::zmq_strerror(x);
-                panic!(
-                    "unknown error [{}]: {}",
-                    x,
-                    str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
-                )
-            },
-        }
-    }
-
-    /// Returns the error message provided by 0MQ.
-    pub fn message(self) -> &'static str {
-        unsafe {
-            let s = zmq_sys::zmq_strerror(self.to_raw());
-            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
-            str::from_utf8(v).unwrap()
-        }
+            unknown => return Err(unknown),
+        })
     }
 }
 
@@ -892,12 +879,8 @@ impl Socket {
     }
 
     pub fn get_mechanism(&self) -> Result<Mechanism> {
-        sockopt::get(self.sock, zmq_sys::ZMQ_MECHANISM as c_int).map(|mech| match mech {
-            zmq_sys::ZMQ_NULL => Mechanism::ZMQ_NULL,
-            zmq_sys::ZMQ_PLAIN => Mechanism::ZMQ_PLAIN,
-            zmq_sys::ZMQ_CURVE => Mechanism::ZMQ_CURVE,
-            zmq_sys::ZMQ_GSSAPI => Mechanism::ZMQ_GSSAPI,
-            _ => panic!("Mechanism is out of range!"),
+        sockopt::get::<u32>(self.sock, zmq_sys::ZMQ_MECHANISM as c_int).map(|mech| {
+            Mechanism::try_from(mech).unwrap_or_else(|v| panic!("Mechanism {} is out of range!", v))
         })
     }
 
