@@ -76,7 +76,7 @@ impl SocketType {
         };
         raw as c_int
     }
-    fn from_raw(raw: c_int) -> SocketType {
+    fn from_raw(raw: c_int) -> Self {
         match raw as u32 {
             zmq_sys::ZMQ_PAIR => PAIR,
             zmq_sys::ZMQ_PUB => PUB,
@@ -203,95 +203,95 @@ pub enum Error {
 impl Error {
     pub fn to_raw(self) -> i32 {
         match self {
-            Error::EACCES => errno::EACCES,
-            Error::EADDRINUSE => errno::EADDRINUSE,
-            Error::EAGAIN => errno::EAGAIN,
-            Error::EBUSY => errno::EBUSY,
-            Error::ECONNREFUSED => errno::ECONNREFUSED,
-            Error::EFAULT => errno::EFAULT,
-            Error::EINTR => errno::EINTR,
-            Error::EHOSTUNREACH => errno::EHOSTUNREACH,
-            Error::EINPROGRESS => errno::EINPROGRESS,
-            Error::EINVAL => errno::EINVAL,
-            Error::EMFILE => errno::EMFILE,
-            Error::EMSGSIZE => errno::EMSGSIZE,
-            Error::ENAMETOOLONG => errno::ENAMETOOLONG,
-            Error::ENODEV => errno::ENODEV,
-            Error::ENOENT => errno::ENOENT,
-            Error::ENOMEM => errno::ENOMEM,
-            Error::ENOTCONN => errno::ENOTCONN,
-            Error::ENOTSOCK => errno::ENOTSOCK,
-            Error::EPROTO => errno::EPROTO,
-            Error::EPROTONOSUPPORT => errno::EPROTONOSUPPORT,
-            Error::ENOTSUP => errno::ENOTSUP,
-            Error::ENOBUFS => errno::ENOBUFS,
-            Error::ENETDOWN => errno::ENETDOWN,
-            Error::EADDRNOTAVAIL => errno::EADDRNOTAVAIL,
+            Self::EACCES => errno::EACCES,
+            Self::EADDRINUSE => errno::EADDRINUSE,
+            Self::EAGAIN => errno::EAGAIN,
+            Self::EBUSY => errno::EBUSY,
+            Self::ECONNREFUSED => errno::ECONNREFUSED,
+            Self::EFAULT => errno::EFAULT,
+            Self::EINTR => errno::EINTR,
+            Self::EHOSTUNREACH => errno::EHOSTUNREACH,
+            Self::EINPROGRESS => errno::EINPROGRESS,
+            Self::EINVAL => errno::EINVAL,
+            Self::EMFILE => errno::EMFILE,
+            Self::EMSGSIZE => errno::EMSGSIZE,
+            Self::ENAMETOOLONG => errno::ENAMETOOLONG,
+            Self::ENODEV => errno::ENODEV,
+            Self::ENOENT => errno::ENOENT,
+            Self::ENOMEM => errno::ENOMEM,
+            Self::ENOTCONN => errno::ENOTCONN,
+            Self::ENOTSOCK => errno::ENOTSOCK,
+            Self::EPROTO => errno::EPROTO,
+            Self::EPROTONOSUPPORT => errno::EPROTONOSUPPORT,
+            Self::ENOTSUP => errno::ENOTSUP,
+            Self::ENOBUFS => errno::ENOBUFS,
+            Self::ENETDOWN => errno::ENETDOWN,
+            Self::EADDRNOTAVAIL => errno::EADDRNOTAVAIL,
 
-            Error::EFSM => errno::EFSM,
-            Error::ENOCOMPATPROTO => errno::ENOCOMPATPROTO,
-            Error::ETERM => errno::ETERM,
-            Error::EMTHREAD => errno::EMTHREAD,
+            Self::EFSM => errno::EFSM,
+            Self::ENOCOMPATPROTO => errno::ENOCOMPATPROTO,
+            Self::ETERM => errno::ETERM,
+            Self::EMTHREAD => errno::EMTHREAD,
         }
     }
 
-    pub fn from_raw(raw: i32) -> Error {
+    pub fn from_raw(raw: i32) -> Self {
         match raw {
-            errno::EACCES => Error::EACCES,
-            errno::EADDRINUSE => Error::EADDRINUSE,
-            errno::EAGAIN => Error::EAGAIN,
-            errno::EBUSY => Error::EBUSY,
-            errno::ECONNREFUSED => Error::ECONNREFUSED,
-            errno::EFAULT => Error::EFAULT,
-            errno::EHOSTUNREACH => Error::EHOSTUNREACH,
-            errno::EINPROGRESS => Error::EINPROGRESS,
-            errno::EINVAL => Error::EINVAL,
-            errno::EMFILE => Error::EMFILE,
-            errno::EMSGSIZE => Error::EMSGSIZE,
-            errno::ENAMETOOLONG => Error::ENAMETOOLONG,
-            errno::ENODEV => Error::ENODEV,
-            errno::ENOENT => Error::ENOENT,
-            errno::ENOMEM => Error::ENOMEM,
-            errno::ENOTCONN => Error::ENOTCONN,
-            errno::ENOTSOCK => Error::ENOTSOCK,
-            errno::EPROTO => Error::EPROTO,
-            errno::EPROTONOSUPPORT => Error::EPROTONOSUPPORT,
-            errno::ENOTSUP => Error::ENOTSUP,
-            errno::ENOBUFS => Error::ENOBUFS,
-            errno::ENETDOWN => Error::ENETDOWN,
-            errno::EADDRNOTAVAIL => Error::EADDRNOTAVAIL,
-            errno::EINTR => Error::EINTR,
+            errno::EACCES => Self::EACCES,
+            errno::EADDRINUSE => Self::EADDRINUSE,
+            errno::EAGAIN => Self::EAGAIN,
+            errno::EBUSY => Self::EBUSY,
+            errno::ECONNREFUSED => Self::ECONNREFUSED,
+            errno::EFAULT => Self::EFAULT,
+            errno::EHOSTUNREACH => Self::EHOSTUNREACH,
+            errno::EINPROGRESS => Self::EINPROGRESS,
+            errno::EINVAL => Self::EINVAL,
+            errno::EMFILE => Self::EMFILE,
+            errno::EMSGSIZE => Self::EMSGSIZE,
+            errno::ENAMETOOLONG => Self::ENAMETOOLONG,
+            errno::ENODEV => Self::ENODEV,
+            errno::ENOENT => Self::ENOENT,
+            errno::ENOMEM => Self::ENOMEM,
+            errno::ENOTCONN => Self::ENOTCONN,
+            errno::ENOTSOCK => Self::ENOTSOCK,
+            errno::EPROTO => Self::EPROTO,
+            errno::EPROTONOSUPPORT => Self::EPROTONOSUPPORT,
+            errno::ENOTSUP => Self::ENOTSUP,
+            errno::ENOBUFS => Self::ENOBUFS,
+            errno::ENETDOWN => Self::ENETDOWN,
+            errno::EADDRNOTAVAIL => Self::EADDRNOTAVAIL,
+            errno::EINTR => Self::EINTR,
 
             // These may turn up on platforms that don't support these
             // errno codes natively (Windows)
-            errno::ENOTSUP_ALT => Error::ENOTSUP,
-            errno::EPROTONOSUPPORT_ALT => Error::EPROTONOSUPPORT,
-            errno::ENOBUFS_ALT => Error::ENOBUFS,
-            errno::ENETDOWN_ALT => Error::ENETDOWN,
-            errno::EADDRINUSE_ALT => Error::EADDRINUSE,
-            errno::EADDRNOTAVAIL_ALT => Error::EADDRNOTAVAIL,
-            errno::ECONNREFUSED_ALT => Error::ECONNREFUSED,
-            errno::EINPROGRESS_ALT => Error::EINPROGRESS,
-            errno::ENOTSOCK_ALT => Error::ENOTSOCK,
-            errno::EMSGSIZE_ALT => Error::EMSGSIZE,
+            errno::ENOTSUP_ALT => Self::ENOTSUP,
+            errno::EPROTONOSUPPORT_ALT => Self::EPROTONOSUPPORT,
+            errno::ENOBUFS_ALT => Self::ENOBUFS,
+            errno::ENETDOWN_ALT => Self::ENETDOWN,
+            errno::EADDRINUSE_ALT => Self::EADDRINUSE,
+            errno::EADDRNOTAVAIL_ALT => Self::EADDRNOTAVAIL,
+            errno::ECONNREFUSED_ALT => Self::ECONNREFUSED,
+            errno::EINPROGRESS_ALT => Self::EINPROGRESS,
+            errno::ENOTSOCK_ALT => Self::ENOTSOCK,
+            errno::EMSGSIZE_ALT => Self::EMSGSIZE,
 
             // TODO: these are present in `zmq-sys`, but not handled, as that
             // would break backwards-compatibility for the `Error` enum.
 
-            // errno::EAFNOSUPPORT_ALT => Error::EAFNOSUPPORT,
-            // errno::ENETUNREACH_ALT => Error::ENETUNREACH,
-            // errno::ECONNABORTED_ALT => Error::ECONNABORTED,
-            // errno::ECONNRESET_ALT => Error::ECONNRESET,
-            // errno::ENOTCONN_ALT => Error::ENOTCONN,
-            // errno::ETIMEDOUT_ALT => Error::ETIMEDOUT,
-            // errno::EHOSTUNREACH_ALT => Error::EHOSTUNREACH,
-            // errno::ENETRESET_ALT => Error::ENETRESET,
+            // errno::EAFNOSUPPORT_ALT => Self::EAFNOSUPPORT,
+            // errno::ENETUNREACH_ALT => Self::ENETUNREACH,
+            // errno::ECONNABORTED_ALT => Self::ECONNABORTED,
+            // errno::ECONNRESET_ALT => Self::ECONNRESET,
+            // errno::ENOTCONN_ALT => Self::ENOTCONN,
+            // errno::ETIMEDOUT_ALT => Self::ETIMEDOUT,
+            // errno::EHOSTUNREACH_ALT => Self::EHOSTUNREACH,
+            // errno::ENETRESET_ALT => Self::ENETRESET,
 
             // 0MQ native error codes
-            errno::EFSM => Error::EFSM,
-            errno::ENOCOMPATPROTO => Error::ENOCOMPATPROTO,
-            errno::ETERM => Error::ETERM,
-            errno::EMTHREAD => Error::EMTHREAD,
+            errno::EFSM => Self::EFSM,
+            errno::ENOCOMPATPROTO => Self::ENOCOMPATPROTO,
+            errno::ETERM => Self::ETERM,
+            errno::EMTHREAD => Self::EMTHREAD,
 
             x => unsafe {
                 let s = zmq_sys::zmq_strerror(x);
@@ -424,8 +424,8 @@ pub struct Context {
 
 impl Context {
     /// Create a new reference-counted context handle.
-    pub fn new() -> Context {
-        Context {
+    pub fn new() -> Self {
+        Self {
             raw: Arc::new(RawContext {
                 ctx: unsafe { zmq_sys::zmq_ctx_new() },
             }),
@@ -475,7 +475,7 @@ impl Context {
 
 impl Default for Context {
     fn default() -> Self {
-        Context::new()
+        Self::new()
     }
 }
 
@@ -1217,7 +1217,7 @@ pub struct CurveKeyPair {
 
 impl CurveKeyPair {
     /// Create a new key pair.
-    pub fn new() -> Result<CurveKeyPair> {
+    pub fn new() -> Result<Self> {
         // Curve keypairs are currently 40 bytes long, plus terminating NULL.
         let mut ffi_public_key = [0u8; 41];
         let mut ffi_secret_key = [0u8; 41];
@@ -1229,7 +1229,7 @@ impl CurveKeyPair {
             )
         });
 
-        let mut pair = CurveKeyPair {
+        let mut pair = Self {
             public_key: [0; 32],
             secret_key: [0; 32],
         };
@@ -1259,15 +1259,15 @@ pub enum EncodeError {
 
 impl From<FromUtf8Error> for EncodeError {
     fn from(err: FromUtf8Error) -> Self {
-        EncodeError::FromUtf8Error(err)
+        Self::FromUtf8Error(err)
     }
 }
 
 impl fmt::Display for EncodeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            EncodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 4."),
-            EncodeError::FromUtf8Error(ref e) => write!(f, "UTF8 conversion error: {}", e),
+            Self::BadLength => write!(f, "Invalid data length. Should be multiple of 4."),
+            Self::FromUtf8Error(ref e) => write!(f, "UTF8 conversion error: {}", e),
         }
     }
 }
@@ -1311,15 +1311,15 @@ pub enum DecodeError {
 
 impl From<ffi::NulError> for DecodeError {
     fn from(err: ffi::NulError) -> Self {
-        DecodeError::NulError(err)
+        Self::NulError(err)
     }
 }
 
 impl fmt::Display for DecodeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
-            DecodeError::BadLength => write!(f, "Invalid data length. Should be multiple of 5."),
-            DecodeError::NulError(ref e) => write!(f, "Nul byte error: {}", e),
+            Self::BadLength => write!(f, "Invalid data length. Should be multiple of 5."),
+            Self::NulError(ref e) => write!(f, "Nul byte error: {}", e),
         }
     }
 }
