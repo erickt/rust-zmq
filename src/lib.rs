@@ -121,8 +121,6 @@ bitflags! {
         const DISCONNECTED = zmq_sys::ZMQ_EVENT_DISCONNECTED;
         /// Monitoring on this socket ended.
         const MONITOR_STOPPED = zmq_sys::ZMQ_EVENT_MONITOR_STOPPED;
-        /// To monitor all events.
-        const ALL = zmq_sys::ZMQ_EVENT_ALL;
         /// Unspecified system errors during handshake.
         const HANDSHAKE_FAILED_NO_DETAIL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL;
         /// Handshake complete successfully with successful authentication (if enabled).
