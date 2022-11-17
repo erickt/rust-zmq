@@ -123,9 +123,13 @@ bitflags! {
         const MONITOR_STOPPED = zmq_sys::ZMQ_EVENT_MONITOR_STOPPED;
         /// To monitor all events.
         const ALL = zmq_sys::ZMQ_EVENT_ALL;
+        /// Unspecified system errors during handshake.
         const HANDSHAKE_FAILED_NO_DETAIL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_NO_DETAIL;
+        /// Handshake complete successfully with successful authentication (if enabled).
         const HANDSHAKE_SUCCEEDED = zmq_sys::ZMQ_EVENT_HANDSHAKE_SUCCEEDED;
+        /// Protocol errors between ZMTP peers or between server and ZAP handler.
         const HANDSHAKE_FAILED_PROTOCOL = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_PROTOCOL;
+        /// Failed authentication requests. Event value is the numeric ZAP status code, i.e. 300, 400 or 500.
         const HANDSHAKE_FAILED_AUTH = zmq_sys::ZMQ_EVENT_HANDSHAKE_FAILED_AUTH;
     }
 }
