@@ -651,11 +651,10 @@ impl Socket {
     }
 
     /// Configure the socket for monitoring
-    pub fn monitor(&self, monitor_endpoint: &str, events: i32) -> Result<()> {
+    pub fn monitor(&self, monitor_endpoint: &str, events: SocketEvent) -> Result<()> {
         let c_str = ffi::CString::new(monitor_endpoint.as_bytes()).unwrap();
-        zmq_try!(unsafe {
-            zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), events as c_int)
-        });
+        let c_int = ffi::c_int::from(events.bits as i32);
+        zmq_try!(unsafe { zmq_sys::zmq_socket_monitor(self.sock, c_str.as_ptr(), c_int) });
         Ok(())
     }
 
