@@ -96,7 +96,6 @@ impl SocketType {
 }
 
 bitflags! {
-    /// Socket Events
     /// A bitmask of the socket events you wish to monitor
     pub struct SocketEvent: u32 {
         /// The socket has successfully connected to a remote peer. The event value is the file descriptor (FD) of the underlying network socket. Warning: there is no guarantee that the FD is still valid by the time your code receives this event.
