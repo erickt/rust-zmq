@@ -462,7 +462,6 @@ impl Context {
         Ok(Socket {
             sock,
             context: Some(self.clone()),
-            owned: true,
         })
     }
 
@@ -486,14 +485,13 @@ pub struct Socket {
     // reference counting via the `Drop` trait.
     #[allow(dead_code)]
     context: Option<Context>,
-    owned: bool,
 }
 
 unsafe impl Send for Socket {}
 
 impl Drop for Socket {
     fn drop(&mut self) {
-        if self.owned && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
+        if !self.sock.is_null() && unsafe { zmq_sys::zmq_close(self.sock) } == -1 {
             panic!("{}", errno_to_error());
         }
     }
@@ -608,8 +606,7 @@ impl Socket {
     /// will lead to a memory leak. Also note that is function
     /// relinquishes the reference on the context is was created from.
     pub fn into_raw(mut self) -> *mut c_void {
-        self.owned = false;
-        self.sock
+        mem::replace(&mut self.sock, ptr::null_mut())
     }
 
     /// Create a Socket from a raw socket pointer.
@@ -627,7 +624,6 @@ impl Socket {
         Socket {
             sock,
             context: None,
-            owned: true,
         }
     }
 
