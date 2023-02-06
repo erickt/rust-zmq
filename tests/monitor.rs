@@ -14,6 +14,7 @@ fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent>
     let msg = monitor.recv_msg(0)?;
     // TODO: could be simplified by using `TryInto` (since 1.34)
     let event = u16::from_ne_bytes([msg[0], msg[1]]);
+    let event = zmq::SocketEvent::from_bits(event as u32).unwrap();
 
     assert!(
         monitor.get_rcvmore()?,
@@ -23,7 +24,7 @@ fn get_monitor_event(monitor: &mut zmq::Socket) -> zmq::Result<zmq::SocketEvent>
     // the address, we'll ignore it
     let _ = monitor.recv_msg(0)?;
 
-    Ok(zmq::SocketEvent::from_raw(event))
+    Ok(event)
 }
 
 fn expect_event(mon: &mut zmq::Socket, expected: zmq::SocketEvent) {
@@ -77,15 +78,15 @@ test!(test_monitor_events, {
     let mut server = ctx.socket(zmq::DEALER).unwrap();
 
     let err = client
-        .monitor("tcp://127.0.0.1:9999", 0)
+        .monitor("tcp://127.0.0.1:9999", zmq::SocketEvent::empty())
         .expect_err("Socket monitoring only works over inproc://");
     assert_eq!(zmq::Error::EPROTONOSUPPORT, err);
 
     assert!(client
-        .monitor("inproc://monitor-client", zmq::SocketEvent::ALL as i32)
+        .monitor("inproc://monitor-client", zmq::SocketEvent::all())
         .is_ok());
     assert!(server
-        .monitor("inproc://monitor-server", zmq::SocketEvent::ALL as i32)
+        .monitor("inproc://monitor-server", zmq::SocketEvent::all())
         .is_ok());
 
     let mut client_mon = ctx.socket(zmq::PAIR).unwrap();
