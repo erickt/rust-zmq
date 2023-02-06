@@ -455,10 +455,10 @@ test!(test_getset_plain_username, {
 
     sock.set_plain_username(Some("billybob")).unwrap();
     assert_eq!(sock.get_plain_username().unwrap().unwrap(), "billybob");
-    assert_eq!(sock.get_mechanism().unwrap(), Mechanism::ZMQ_PLAIN);
+    assert_eq!(sock.get_mechanism().unwrap(), Mechanism::PLAIN);
 
     sock.set_plain_username(None).unwrap();
-    assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
+    assert!(sock.get_mechanism().unwrap() == Mechanism::NULL);
 });
 
 test!(test_getset_plain_password, {
@@ -467,10 +467,10 @@ test!(test_getset_plain_password, {
 
     sock.set_plain_password(Some("m00c0w")).unwrap();
     assert_eq!(sock.get_plain_password().unwrap().unwrap(), "m00c0w");
-    assert_eq!(sock.get_mechanism().unwrap(), Mechanism::ZMQ_PLAIN);
+    assert_eq!(sock.get_mechanism().unwrap(), Mechanism::PLAIN);
 
     sock.set_plain_password(None).unwrap();
-    assert!(sock.get_mechanism().unwrap() == Mechanism::ZMQ_NULL);
+    assert!(sock.get_mechanism().unwrap() == Mechanism::NULL);
 });
 
 test!(test_zmq_set_xpub_verbose, {
