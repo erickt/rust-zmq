@@ -586,6 +586,16 @@ test!(test_getset_connect_timeout, {
     }
 });
 
+test!(test_getset_inverted_matching, {
+    let ctx = Context::new();
+    let sock = ctx.socket(PUB).unwrap();
+    assert!(!sock.is_invert_matching().unwrap());
+    sock.set_invert_matching(true).unwrap();
+    assert!(sock.is_invert_matching().unwrap());
+    sock.set_invert_matching(false).unwrap();
+    assert!(!sock.is_invert_matching().unwrap());
+});
+
 #[cfg(feature = "compiletest_rs")]
 mod compile {
     extern crate compiletest_rs as compiletest;
