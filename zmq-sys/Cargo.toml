@@ -1,6 +1,6 @@
 [package]
 name = "zmq-sys"
-version = "0.12.0"
+version = "0.12.1"
 authors = [
     "a.rottmann@gmx.at",
     "erick.tryzelaar@gmail.com",
@@ -14,9 +14,11 @@ build = "build/main.rs"
 links = "zmq"
 
 [features]
+libsodium = ['libsodium-sys-stable']
 
 [dependencies]
 libc = "0.2.15"
+libsodium-sys-stable = { version = "1.0", optional = true }
 
 [build-dependencies]
 system-deps = "6"
