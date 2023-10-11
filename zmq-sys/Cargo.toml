@@ -14,7 +14,7 @@ build = "build/main.rs"
 links = "zmq"
 
 [features]
-libsodium = ['libsodium-sys-stable']
+libsodium = ["dep:libsodium-sys-stable"]
 
 [dependencies]
 libc = "0.2.15"
