@@ -371,7 +371,7 @@ pub fn version() -> (i32, i32, i32) {
         zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
-    (major as i32, minor as i32, patch as i32)
+    (major, minor, patch)
 }
 
 struct RawContext {
@@ -1016,6 +1016,7 @@ impl Socket {
 // is unfortunate.
 bitflags! {
     /// Type representing pending socket events.
+    #[derive(Debug, PartialEq, Clone, Copy)]
     pub struct PollEvents: i16 {
         /// For `poll()`, specifies to signal when a message/some data
         /// can be read from a socket.
