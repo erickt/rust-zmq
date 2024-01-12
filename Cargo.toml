@@ -2,9 +2,9 @@
 name = "zmq"
 version = "0.10.0"
 authors = [
-    "a.rottmann@gmx.at",
-    "erick.tryzelaar@gmail.com",
-    "opensource@traversersearch.nl",
+  "a.rottmann@gmx.at",
+  "erick.tryzelaar@gmail.com",
+  "opensource@traversersearch.nl",
 ]
 license = "MIT/Apache-2.0"
 description = "High-level bindings to the zeromq library"
@@ -26,14 +26,14 @@ default = ["zmq_has"]
 zmq_has = []
 
 [dependencies]
-bitflags = "1.0"
+bitflags = "2.4"
 libc = "0.2.15"
 zmq-sys = { version = "0.12.0", path = "zmq-sys" }
 
 [dev-dependencies]
 trybuild = { version = "1" }
-env_logger = { version = "0.9", default-features = false }
-log = "0.4.3"
+env_logger = { version = "0.10", default-features = false }
+log = "0.4"
 nix = "0.23"
 quickcheck = "1"
 rand = "0.8"
@@ -157,17 +157,17 @@ name = "psenvpub"
 path = "examples/zguide/psenvpub/main.rs"
 
 [[example]]
-name="psenvsub"
-path="examples/zguide/psenvsub/main.rs"
+name = "psenvsub"
+path = "examples/zguide/psenvsub/main.rs"
 
 [[example]]
-name="rtreq"
-path="examples/zguide/rtreq/main.rs"
+name = "rtreq"
+path = "examples/zguide/rtreq/main.rs"
 
 [[example]]
-name="lbbroker"
-path="examples/zguide/lbbroker/main.rs"
+name = "lbbroker"
+path = "examples/zguide/lbbroker/main.rs"
 
 [[example]]
-name="asyncsrv"
-path="examples/zguide/asyncsrv/main.rs"
+name = "asyncsrv"
+path = "examples/zguide/asyncsrv/main.rs"

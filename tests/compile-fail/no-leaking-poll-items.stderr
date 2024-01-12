@@ -4,7 +4,8 @@ error[E0597]: `socket` does not live long enough
 3 |     let _poll_item = {
   |         ---------- borrow later stored here
 4 |         let socket = context.socket(zmq::PAIR).unwrap();
+  |             ------ binding `socket` declared here
 5 |         socket.as_poll_item(zmq::POLLIN)
-  |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ borrowed value does not live long enough
+  |         ^^^^^^ borrowed value does not live long enough
 6 |     }; //~^ ERROR `socket` does not live long enough [E0597]
   |     - `socket` dropped here while still borrowed

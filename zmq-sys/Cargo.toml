@@ -1,10 +1,7 @@
 [package]
 name = "zmq-sys"
 version = "0.12.0"
-authors = [
-    "a.rottmann@gmx.at",
-    "erick.tryzelaar@gmail.com",
-]
+authors = ["a.rottmann@gmx.at", "erick.tryzelaar@gmail.com"]
 license = "MIT/Apache-2.0"
 description = "Low-level bindings to the zeromq library"
 keywords = ["ffi", "bindings"]
@@ -20,7 +17,7 @@ libc = "0.2.15"
 
 [build-dependencies]
 system-deps = "6"
-zeromq-src = { version = "0.2.1" }
+zeromq-src = { version = "0.3.1" }
 
 [package.metadata.system-deps]
 libzmq = "4.1"
