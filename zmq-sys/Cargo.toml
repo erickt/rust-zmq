@@ -17,7 +17,7 @@ libc = "0.2.15"
 
 [build-dependencies]
 system-deps = "6"
-zeromq-src = { version = "0.3.0" }
+zeromq-src = { version = "0.3.1" }
 
 [package.metadata.system-deps]
 libzmq = "4.1"
