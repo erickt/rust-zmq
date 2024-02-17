@@ -802,7 +802,7 @@ impl Socket {
 
     /// Return true if there are more frames of a multipart message to receive.
     pub fn get_rcvmore(&self) -> Result<bool> {
-        sockopt::get(self.sock, zmq_sys::ZMQ_RCVMORE as c_int).map(|o: i64| o == 1i64)
+        sockopt::get(self.sock, zmq_sys::ZMQ_RCVMORE as c_int).map(|o: i32| o == 1i32)
     }
 
     sockopts! {
