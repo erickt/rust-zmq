@@ -14,13 +14,15 @@ build = "build/main.rs"
 links = "zmq"
 
 [features]
+default = ["static"]
+static = ["dep:zeromq-src"]
 
 [dependencies]
 libc = "0.2.15"
 
 [build-dependencies]
 system-deps = "6"
-zeromq-src = { version = "0.2.1" }
+zeromq-src = { version = "0.2.1", optional = true }
 
 [package.metadata.system-deps]
 libzmq = "4.1"

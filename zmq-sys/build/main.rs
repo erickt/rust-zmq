@@ -1,3 +1,4 @@
+#[cfg(feature = "static")]
 pub fn configure() {
     println!("cargo:rerun-if-changed=build/main.rs");
     println!("cargo:rerun-if-env-changed=PROFILE");
@@ -12,5 +13,6 @@ pub fn configure() {
 }
 
 fn main() {
+    #[cfg(feature = "static")]
     configure()
 }
