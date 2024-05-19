@@ -13,7 +13,7 @@ categories = ["api-bindings", "network-programming"]
 repository = "https://github.com/erickt/rust-zmq"
 readme = "README.md"
 build = "build.rs"
-edition = "2018"
+edition = "2021"
 
 [badges]
 maintenance = { status = "actively-maintained" }
