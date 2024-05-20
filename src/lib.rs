@@ -376,6 +376,7 @@ pub fn version() -> (i32, i32, i32) {
 
 struct RawContext {
     ctx: *mut c_void,
+    owned: bool,
 }
 
 impl RawContext {
@@ -390,9 +391,11 @@ unsafe impl Sync for RawContext {}
 
 impl Drop for RawContext {
     fn drop(&mut self) {
-        let mut e = self.term();
-        while e == Err(Error::EINTR) {
-            e = self.term();
+        if self.owned {
+            let mut e = self.term();
+            while e == Err(Error::EINTR) {
+                e = self.term();
+            }
         }
     }
 }
@@ -428,7 +431,15 @@ impl Context {
         Context {
             raw: Arc::new(RawContext {
                 ctx: unsafe { zmq_sys::zmq_ctx_new() },
+                owned: true,
             }),
+        }
+    }
+
+    /// Create a Context from a raw context pointer.
+    pub unsafe fn from_raw(ctx: *mut c_void) -> Context {        
+        Context {
+            raw: Arc::new(RawContext { ctx, owned: false }),
         }
     }
 
