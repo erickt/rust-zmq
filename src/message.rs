@@ -40,7 +40,10 @@ impl fmt::Debug for Message {
 }
 
 unsafe extern "C" fn drop_msg_data_box(data: *mut c_void, hint: *mut c_void) {
-    let _ = Box::from_raw(slice::from_raw_parts_mut(data as *mut u8, hint as usize));
+    drop(Box::from_raw(ptr::slice_from_raw_parts_mut(
+        data as *mut u8,
+        hint as usize,
+    )));
 }
 
 impl Message {
@@ -120,6 +123,38 @@ impl Message {
     #[deprecated(since = "0.9.1", note = "Use the `From` trait instead.")]
     pub fn from_slice(data: &[u8]) -> Message {
         Self::from(data)
+    }
+
+    /// Returns a raw pointer to the message to be used with ffi calls.
+    pub fn as_message_ptr(&self) -> *const zmq_sys::zmq_msg_t {
+        &self.msg
+    }
+
+    /// Returns a raw mutable pointer to the message to be used with ffi calls.
+    pub fn as_mut_message_ptr(&mut self) -> *mut zmq_sys::zmq_msg_t {
+        &mut self.msg
+    }
+
+    /// Returns the amount of bytes that are stored in this `Message`.
+    pub fn len(&self) -> usize {
+        unsafe { zmq_sys::zmq_msg_size(self.as_message_ptr()) }
+    }
+
+    /// Return `true` is there is at least one byte stored in this `Message`.
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+
+    /// Returns a raw pointer to the buffer of this message.
+    pub fn as_ptr(&self) -> *const u8 {
+        let ptr = unsafe { zmq_sys::zmq_msg_data(self.as_message_ptr().cast_mut()) };
+        ptr as *const u8
+    }
+
+    /// Returns a raw mutable pointer to the buffer of this message.
+    pub fn as_mut_ptr(&mut self) -> *mut u8 {
+        let ptr = unsafe { zmq_sys::zmq_msg_data(self.as_mut_message_ptr()) };
+        ptr as *mut u8
     }
 
     /// Return the message content as a string slice if it is valid UTF-8.
@@ -203,12 +238,7 @@ impl Deref for Message {
     fn deref(&self) -> &[u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
-        unsafe {
-            let ptr = &self.msg as *const _ as *mut _;
-            let data = zmq_sys::zmq_msg_data(ptr);
-            let len = zmq_sys::zmq_msg_size(ptr) as usize;
-            slice::from_raw_parts(data as *mut u8, len)
-        }
+        unsafe { slice::from_raw_parts(self.as_ptr(), self.len()) }
     }
 }
 
@@ -216,11 +246,7 @@ impl DerefMut for Message {
     fn deref_mut(&mut self) -> &mut [u8] {
         // This is safe because we're constraining the slice to the lifetime of
         // this message.
-        unsafe {
-            let data = zmq_sys::zmq_msg_data(&mut self.msg);
-            let len = zmq_sys::zmq_msg_size(&self.msg) as usize;
-            slice::from_raw_parts_mut(data as *mut u8, len)
-        }
+        unsafe { slice::from_raw_parts_mut(self.as_mut_ptr(), self.len()) }
     }
 }
 
