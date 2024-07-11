@@ -1,7 +1,9 @@
 use libc::size_t;
 
+use std::cmp::Ordering;
 use std::ffi;
 use std::fmt;
+use std::hash::{Hash, Hasher};
 use std::ops::{Deref, DerefMut};
 use std::os::raw::c_void;
 use std::{ptr, slice, str};
@@ -157,6 +159,44 @@ impl Message {
     }
 }
 
+impl PartialEq for Message {
+    fn eq(&self, other: &Message) -> bool {
+        self[..] == other[..]
+    }
+}
+
+impl Eq for Message {}
+
+impl PartialOrd for Message {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Message {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self[..].cmp(&other[..])
+    }
+}
+
+impl Clone for Message {
+    fn clone(&self) -> Self {
+        self[..].into()
+    }
+}
+
+impl Default for Message {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Hash for Message {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self[..].hash(state);
+    }
+}
+
 impl Deref for Message {
     type Target = [u8];
 
@@ -171,14 +211,6 @@ impl Deref for Message {
         }
     }
 }
-
-impl PartialEq for Message {
-    fn eq(&self, other: &Message) -> bool {
-        self[..] == other[..]
-    }
-}
-
-impl Eq for Message {}
 
 impl DerefMut for Message {
     fn deref_mut(&mut self) -> &mut [u8] {
