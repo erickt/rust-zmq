@@ -103,7 +103,7 @@ fn poll_worker(_ctx: &zmq::Context, socket: &zmq::Socket) {
             }
             Some(msg) => {
                 state.wait(zmq::POLLOUT);
-                let done = msg.len() == 0;
+                let done = msg.is_empty();
                 socket.send(msg, zmq::DONTWAIT).unwrap();
                 if done {
                     break;

@@ -13,10 +13,10 @@ use std::os::raw::c_void;
 use std::os::unix::io::{AsRawFd, RawFd as UnixRawFd};
 #[cfg(windows)]
 use std::os::windows::io::{AsRawSocket, RawSocket};
+use std::ptr;
 use std::result;
 use std::string::FromUtf8Error;
 use std::sync::Arc;
-use std::{mem, ptr, str};
 
 use zmq_sys::{errno, RawFd};
 
@@ -298,7 +298,7 @@ impl Error {
                 panic!(
                     "unknown error [{}]: {}",
                     x,
-                    str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
+                    ffi::CStr::from_ptr(s).to_str().unwrap()
                 )
             },
         }
@@ -308,8 +308,7 @@ impl Error {
     pub fn message(self) -> &'static str {
         unsafe {
             let s = zmq_sys::zmq_strerror(self.to_raw());
-            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
-            str::from_utf8(v).unwrap()
+            ffi::CStr::from_ptr(s).to_str().unwrap()
         }
     }
 }
@@ -371,7 +370,7 @@ pub fn version() -> (i32, i32, i32) {
         zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
-    (major as i32, minor as i32, patch as i32)
+    (major, minor, patch)
 }
 
 struct RawContext {
@@ -442,7 +441,7 @@ impl Context {
     /// Set the size of the ØMQ thread pool to handle I/O operations.
     pub fn set_io_threads(&self, value: i32) -> Result<()> {
         zmq_try!(unsafe {
-            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value as i32)
+            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value)
         });
         Ok(())
     }

@@ -152,7 +152,7 @@ impl Message {
         if value.is_null() {
             None
         } else {
-            str::from_utf8(unsafe { ffi::CStr::from_ptr(value) }.to_bytes()).ok()
+            unsafe { ffi::CStr::from_ptr(value) }.to_str().ok()
         }
     }
 }

@@ -2,7 +2,7 @@ use libc::{c_int, c_uint, size_t};
 use std::os::raw::c_void;
 use std::result;
 use std::string::FromUtf8Error;
-use std::{mem, ptr, str};
+use std::{mem, ptr};
 
 use super::{PollEvents, Result};
 
@@ -47,8 +47,7 @@ getsockopt_num!(c_uint, u32);
 getsockopt_num!(i64, i64);
 getsockopt_num!(u64, u64);
 
-pub fn get_bytes(sock: *mut c_void, opt: c_int, size: size_t) -> Result<Vec<u8>> {
-    let mut size = size;
+pub fn get_bytes(sock: *mut c_void, opt: c_int, mut size: size_t) -> Result<Vec<u8>> {
     let mut value = vec![0u8; size];
 
     zmq_try!(unsafe {
