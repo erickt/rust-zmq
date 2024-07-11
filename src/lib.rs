@@ -1271,7 +1271,14 @@ impl fmt::Display for EncodeError {
     }
 }
 
-impl std::error::Error for EncodeError {}
+impl std::error::Error for EncodeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::BadLength => None,
+            Self::FromUtf8Error(err) => Some(err),
+        }
+    }
+}
 
 /// Encode a binary key as Z85 printable text.
 ///
@@ -1323,7 +1330,14 @@ impl fmt::Display for DecodeError {
     }
 }
 
-impl std::error::Error for DecodeError {}
+impl std::error::Error for DecodeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::BadLength => None,
+            Self::NulError(err) => Some(err),
+        }
+    }
+}
 
 /// Decode a binary key from Z85-encoded text.
 ///
