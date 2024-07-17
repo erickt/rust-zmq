@@ -149,10 +149,10 @@ impl SocketEvent {
 }
 
 /// Flag for socket `send` methods that specifies non-blocking mode.
-pub static DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
+pub const DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
 /// Flag for socket `send` methods that specifies that more frames of a
 /// multipart message will follow.
-pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
+pub const SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
