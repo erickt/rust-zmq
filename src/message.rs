@@ -140,7 +140,7 @@ impl Message {
         unsafe { zmq_sys::zmq_msg_size(self.as_message_ptr()) }
     }
 
-    /// Return `true` is there is at least one byte stored in this `Message`.
+    /// Return `true` if the `Message` stores no bytes.
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
