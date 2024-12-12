@@ -1,18 +1,31 @@
 error[E0277]: `*mut c_void` cannot be shared between threads safely
-  --> tests/compile-fail/socket-thread-unsafe.rs:13:13
-   |
-13 |     let t = thread::spawn(move || {
-   |             ^^^^^^^^^^^^^ `*mut c_void` cannot be shared between threads safely
-   |
-   = help: within `Socket`, the trait `Sync` is not implemented for `*mut c_void`
-   = note: required because it appears within the type `Socket`
-   = note: required because of the requirements on the impl of `Send` for `&Socket`
-note: required because it's used within this closure
   --> tests/compile-fail/socket-thread-unsafe.rs:13:27
    |
 13 |       let t = thread::spawn(move || {
-   |  ___________________________^
+   |  _____________-------------_^
+   | |             |
+   | |             required by a bound introduced by this call
 14 | |         t!(s.bind("tcp://127.0.0.1:12345"))
 15 | |     });
-   | |_____^
+   | |_____^ `*mut c_void` cannot be shared between threads safely
+   |
+   = help: within `Socket`, the trait `Sync` is not implemented for `*mut c_void`, which is required by `{closure@$DIR/tests/compile-fail/socket-thread-unsafe.rs:13:27: 13:34}: Send`
+note: required because it appears within the type `Socket`
+  --> src/lib.rs
+   |
+   | pub struct Socket {
+   |            ^^^^^^
+   = note: required for `&Socket` to implement `Send`
+note: required because it's used within this closure
+  --> tests/compile-fail/socket-thread-unsafe.rs:13:27
+   |
+13 |     let t = thread::spawn(move || {
+   |                           ^^^^^^^
 note: required by a bound in `spawn`
+  --> $RUST/std/src/thread/mod.rs
+   |
+   | pub fn spawn<F, T>(f: F) -> JoinHandle<T>
+   |        ----- required by a bound in this function
+...
+   |     F: Send + 'static,
+   |        ^^^^ required by this bound in `spawn`
