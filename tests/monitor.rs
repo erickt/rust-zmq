@@ -2,7 +2,6 @@
 mod common;
 
 use std::str;
-use std::u16;
 
 fn version_ge_4_3() -> bool {
     let (major, minor, _) = zmq::version();

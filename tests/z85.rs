@@ -33,12 +33,12 @@ fn test_decode_errors() {
     }
 }
 
+/*
 // Valid input for z85 encoding (i.e. a slice of bytes with its length
 // being a multiple of 4)
 #[derive(Clone, Debug)]
 struct Input(Vec<u8>);
 
-/*
 // Disabled because quickcheck doesn't expose gen_range and gen anymore
 
 impl Arbitrary for Input {
