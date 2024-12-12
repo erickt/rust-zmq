@@ -1343,7 +1343,7 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     let c_str = ffi::CString::new(data)?;
 
     unsafe {
-        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.into_raw());
+        zmq_sys::zmq_z85_decode(dest.as_mut_ptr(), c_str.as_ptr());
     }
 
     Ok(dest)
