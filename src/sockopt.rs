@@ -101,13 +101,13 @@ fn setsockopt_null(sock: *mut c_void, opt: c_int) -> Result<()> {
     Ok(())
 }
 
-impl<'a> Setter for &'a str {
+impl Setter for &str {
     fn set(sock: *mut c_void, opt: c_int, value: Self) -> Result<()> {
         set(sock, opt, value.as_bytes())
     }
 }
 
-impl<'a> Setter for Option<&'a str> {
+impl Setter for Option<&str> {
     fn set(sock: *mut c_void, opt: c_int, value: Self) -> Result<()> {
         if let Some(s) = value {
             set(sock, opt, s.as_bytes())

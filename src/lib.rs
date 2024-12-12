@@ -371,7 +371,7 @@ pub fn version() -> (i32, i32, i32) {
         zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
-    (major as i32, minor as i32, patch as i32)
+    (major, minor, patch)
 }
 
 struct RawContext {
@@ -442,7 +442,7 @@ impl Context {
     /// Set the size of the ØMQ thread pool to handle I/O operations.
     pub fn set_io_threads(&self, value: i32) -> Result<()> {
         zmq_try!(unsafe {
-            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value as i32)
+            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value)
         });
         Ok(())
     }

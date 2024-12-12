@@ -232,14 +232,14 @@ impl From<Box<[u8]>> for Message {
     }
 }
 
-impl<'a> From<&'a str> for Message {
+impl From<&str> for Message {
     /// Construct a message from a string slice by copying the UTF-8 data.
     fn from(msg: &str) -> Self {
         Message::from(msg.as_bytes())
     }
 }
 
-impl<'a> From<&'a String> for Message {
+impl From<&String> for Message {
     /// Construct a message from a string slice by copying the UTF-8 data.
     fn from(msg: &String) -> Self {
         Message::from(msg.as_bytes())
