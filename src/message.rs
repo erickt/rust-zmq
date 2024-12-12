@@ -192,6 +192,18 @@ impl DerefMut for Message {
     }
 }
 
+impl AsRef<[u8]> for Message {
+    fn as_ref(&self) -> &[u8] {
+        self
+    }
+}
+
+impl AsMut<[u8]> for Message {
+    fn as_mut(&mut self) -> &mut [u8] {
+        self
+    }
+}
+
 impl<'a> From<&'a [u8]> for Message {
     /// Construct a message from a byte slice by copying the data.
     fn from(data: &'a [u8]) -> Self {
