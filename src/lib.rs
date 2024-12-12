@@ -793,6 +793,7 @@ impl Socket {
         (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
         (_, set_req_relaxed) => ZMQ_REQ_RELAXED as bool,
         (_, set_req_correlate) => ZMQ_REQ_CORRELATE as bool,
+        (is_invert_matching, set_invert_matching) => ZMQ_INVERT_MATCHING as bool,
     }
 
     /// Return the type of this socket.
