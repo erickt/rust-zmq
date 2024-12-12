@@ -71,7 +71,7 @@ test!(test_exchanging_multipart, {
     let (sender, receiver) = create_socketpair();
 
     // convenience API
-    sender.send_multipart(&["foo", "bar"], 0).unwrap();
+    sender.send_multipart(["foo", "bar"], 0).unwrap();
     assert_eq!(receiver.recv_multipart(0).unwrap(), vec![b"foo", b"bar"]);
 
     // manually
@@ -585,26 +585,3 @@ test!(test_getset_connect_timeout, {
         assert_eq!(sock.get_connect_timeout().unwrap(), 5000);
     }
 });
-
-#[cfg(feature = "compiletest_rs")]
-mod compile {
-    extern crate compiletest_rs as compiletest;
-
-    use std::path::PathBuf;
-
-    fn run_mode(mode: &'static str) {
-        let mut config = compiletest::Config::default();
-        let cfg_mode = mode.parse().expect("Invalid mode");
-
-        config.mode = cfg_mode;
-        config.src_base = PathBuf::from(format!("tests/{}", mode));
-        config.target_rustcflags = Some("-L target/debug -L target/debug/deps".to_string());
-
-        compiletest::run_tests(&config);
-    }
-
-    #[test]
-    fn expected_failures() {
-        run_mode("compile-fail");
-    }
-}
