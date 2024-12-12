@@ -13,10 +13,10 @@ use std::os::raw::c_void;
 use std::os::unix::io::{AsRawFd, RawFd as UnixRawFd};
 #[cfg(windows)]
 use std::os::windows::io::{AsRawSocket, RawSocket};
+use std::ptr;
 use std::result;
 use std::string::FromUtf8Error;
 use std::sync::Arc;
-use std::{mem, ptr, str};
 
 use zmq_sys::{errno, RawFd};
 
@@ -149,10 +149,10 @@ impl SocketEvent {
 }
 
 /// Flag for socket `send` methods that specifies non-blocking mode.
-pub static DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
+pub const DONTWAIT: i32 = zmq_sys::ZMQ_DONTWAIT as i32;
 /// Flag for socket `send` methods that specifies that more frames of a
 /// multipart message will follow.
-pub static SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
+pub const SNDMORE: i32 = zmq_sys::ZMQ_SNDMORE as i32;
 
 /// Security Mechanism
 #[allow(non_camel_case_types)]
@@ -298,7 +298,7 @@ impl Error {
                 panic!(
                     "unknown error [{}]: {}",
                     x,
-                    str::from_utf8(ffi::CStr::from_ptr(s).to_bytes()).unwrap()
+                    ffi::CStr::from_ptr(s).to_str().unwrap()
                 )
             },
         }
@@ -308,8 +308,7 @@ impl Error {
     pub fn message(self) -> &'static str {
         unsafe {
             let s = zmq_sys::zmq_strerror(self.to_raw());
-            let v: &'static [u8] = mem::transmute(ffi::CStr::from_ptr(s).to_bytes());
-            str::from_utf8(v).unwrap()
+            ffi::CStr::from_ptr(s).to_str().unwrap()
         }
     }
 }
@@ -371,7 +370,7 @@ pub fn version() -> (i32, i32, i32) {
         zmq_sys::zmq_version(&mut major, &mut minor, &mut patch);
     }
 
-    (major as i32, minor as i32, patch as i32)
+    (major, minor, patch)
 }
 
 struct RawContext {
@@ -442,7 +441,7 @@ impl Context {
     /// Set the size of the ØMQ thread pool to handle I/O operations.
     pub fn set_io_threads(&self, value: i32) -> Result<()> {
         zmq_try!(unsafe {
-            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value as i32)
+            zmq_sys::zmq_ctx_set(self.raw.ctx, zmq_sys::ZMQ_IO_THREADS as _, value)
         });
         Ok(())
     }
@@ -1272,7 +1271,14 @@ impl fmt::Display for EncodeError {
     }
 }
 
-impl std::error::Error for EncodeError {}
+impl std::error::Error for EncodeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::BadLength => None,
+            Self::FromUtf8Error(err) => Some(err),
+        }
+    }
+}
 
 /// Encode a binary key as Z85 printable text.
 ///
@@ -1285,7 +1291,7 @@ pub fn z85_encode(data: &[u8]) -> result::Result<String, EncodeError> {
         return Err(EncodeError::BadLength);
     }
 
-    let len = data.len() * 5 / 4 + 1;
+    let len = data.len() / 4 * 5 + 1;
     let mut dest = vec![0u8; len];
 
     unsafe {
@@ -1324,7 +1330,14 @@ impl fmt::Display for DecodeError {
     }
 }
 
-impl std::error::Error for DecodeError {}
+impl std::error::Error for DecodeError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::BadLength => None,
+            Self::NulError(err) => Some(err),
+        }
+    }
+}
 
 /// Decode a binary key from Z85-encoded text.
 ///
@@ -1337,7 +1350,7 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
         return Err(DecodeError::BadLength);
     }
 
-    let len = data.len() * 4 / 5;
+    let len = data.len() / 5 * 4;
     let mut dest = vec![0u8; len];
 
     let c_str = ffi::CString::new(data)?;

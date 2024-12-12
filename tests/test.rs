@@ -71,7 +71,7 @@ test!(test_exchanging_multipart, {
     let (sender, receiver) = create_socketpair();
 
     // convenience API
-    sender.send_multipart(&["foo", "bar"], 0).unwrap();
+    sender.send_multipart(["foo", "bar"], 0).unwrap();
     assert_eq!(receiver.recv_multipart(0).unwrap(), vec![b"foo", b"bar"]);
 
     // manually
