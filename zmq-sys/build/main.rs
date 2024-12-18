@@ -1,6 +1,19 @@
+use std::env;
+
 pub fn configure() {
     println!("cargo:rerun-if-changed=build/main.rs");
     println!("cargo:rerun-if-env-changed=PROFILE");
+
+    let maybe_libpgm = if cfg!(feature = "libpgm") {
+        let lib_dir = env::var("DEP_PGM_LIB")
+            .expect("build metadata `DEP_PGM_LIB` required");
+        let include_dir = env::var("DEP_PGM_INCLUDE")
+            .expect("build metadata `DEP_PGM_INCLUDE` required");
+
+        Some(zeromq_src::LibLocation::new(lib_dir, include_dir))
+    } else {
+        None
+    };
 
     // Note that by default `libzmq` builds without `libsodium` by instead
     // relying on `tweetnacl`. However since this `tweetnacl` [has never been
@@ -8,6 +21,7 @@ pub fn configure() {
     // we link against `libsodium` to enable `ZMQ_CURVE`.
     zeromq_src::Build::new()
         .with_libsodium(None)
+        .with_libpgm(maybe_libpgm)
         .build();
 }
 
