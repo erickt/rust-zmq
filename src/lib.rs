@@ -10,9 +10,9 @@ use std::fmt;
 use std::marker::PhantomData;
 use std::os::raw::c_void;
 #[cfg(unix)]
-use std::os::unix::io::{AsRawFd, RawFd as UnixRawFd};
+use std::os::unix::io::{AsFd, AsRawFd, BorrowedFd, RawFd as UnixRawFd};
 #[cfg(windows)]
-use std::os::windows::io::{AsRawSocket, RawSocket};
+use std::os::windows::io::{AsRawSocket, AsSocket, BorrowedSocket, RawSocket};
 use std::result;
 use std::string::FromUtf8Error;
 use std::sync::Arc;
@@ -506,10 +506,24 @@ impl AsRawFd for Socket {
     }
 }
 
+#[cfg(unix)]
+impl AsFd for Socket {
+    fn as_fd(&self) -> BorrowedFd {
+        unsafe { BorrowedFd::borrow_raw(self.as_raw_fd()) }
+    }
+}
+
 #[cfg(windows)]
 impl AsRawSocket for Socket {
     fn as_raw_socket(&self) -> RawSocket {
         self.get_fd().unwrap() as RawSocket
+    }
+}
+
+#[cfg(windows)]
+impl AsSocket for Socket {
+    fn as_socket(&self) -> BorrowedSocket {
+        unsafe { BorrowedSocket::borrow_raw(self.as_raw_socket()) }
     }
 }
 
