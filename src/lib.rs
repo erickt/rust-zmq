@@ -984,6 +984,7 @@ impl Socket {
         (_, set_zap_domain) => ZMQ_ZAP_DOMAIN as &str,
         (_, set_xpub_welcome_msg) => ZMQ_XPUB_WELCOME_MSG as Option<&str>,
         (_, set_xpub_verbose) => ZMQ_XPUB_VERBOSE as bool,
+        (_, set_xpub_verboser) => ZMQ_XPUB_VERBOSER as bool,
 
         (_, set_curve_publickey) => ZMQ_CURVE_PUBLICKEY as &[u8],
         (_, set_curve_secretkey) => ZMQ_CURVE_SECRETKEY as &[u8],
