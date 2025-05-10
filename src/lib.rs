@@ -877,6 +877,8 @@ impl Socket {
         (get_heartbeat_ttl, set_heartbeat_ttl) => ZMQ_HEARTBEAT_TTL as i32,
         (get_heartbeat_timeout, set_heartbeat_timeout) => ZMQ_HEARTBEAT_TIMEOUT as i32,
         (get_connect_timeout, set_connect_timeout) => ZMQ_CONNECT_TIMEOUT as i32,
+
+        (get_tcp_maxrt, set_tcp_maxrt) => ZMQ_TCP_MAXRT as i32,
     }
 
     // TODO: deprecate to align with ZMQ's preferred naming
