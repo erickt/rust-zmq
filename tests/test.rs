@@ -3,6 +3,7 @@ mod common;
 
 use std::io;
 use std::net::TcpStream;
+use std::string::FromUtf8Error;
 use zmq::*;
 
 fn version_ge_4_2() -> bool {
@@ -64,7 +65,10 @@ test!(test_exchanging_strings, {
     // non-UTF8 strings -> get an Err with bytes when receiving
     receiver.send(b"\xff\xb7".as_ref(), 0).unwrap();
     let result = sender.recv_string(0).unwrap();
-    assert_eq!(result, Err(vec![0xff, 0xb7]));
+    assert_eq!(
+        result.map_err(FromUtf8Error::into_bytes),
+        Err(vec![0xff, 0xb7])
+    );
 });
 
 test!(test_exchanging_multipart, {
