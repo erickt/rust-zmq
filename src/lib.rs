@@ -793,6 +793,7 @@ impl Socket {
         (is_gssapi_plaintext, set_gssapi_plaintext) => ZMQ_GSSAPI_PLAINTEXT as bool,
         (_, set_req_relaxed) => ZMQ_REQ_RELAXED as bool,
         (_, set_req_correlate) => ZMQ_REQ_CORRELATE as bool,
+        (is_invert_matching, set_invert_matching) => ZMQ_INVERT_MATCHING as bool,
     }
 
     /// Return the type of this socket.
@@ -992,6 +993,7 @@ impl Socket {
         (_, set_curve_serverkey) => ZMQ_CURVE_SERVERKEY as &[u8],
         (_, set_gssapi_principal) => ZMQ_GSSAPI_PRINCIPAL as &str,
         (_, set_gssapi_service_principal) => ZMQ_GSSAPI_SERVICE_PRINCIPAL as &str,
+
     }
 
     /// Create a `PollItem` from the socket.
