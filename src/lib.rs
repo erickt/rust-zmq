@@ -374,6 +374,7 @@ pub fn version() -> (i32, i32, i32) {
     (major, minor, patch)
 }
 
+#[derive(Debug)]
 struct RawContext {
     ctx: *mut c_void,
 }
@@ -417,7 +418,7 @@ impl Drop for RawContext {
 /// other threads, see `zmq_ctx_destroy`(3)) by explicitly calling
 /// `Context::destroy`.
 ///
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Context {
     raw: Arc<RawContext>,
 }
@@ -480,6 +481,7 @@ impl Default for Context {
 }
 
 /// A socket, the central object in 0MQ.
+#[derive(Debug)]
 pub struct Socket {
     sock: *mut c_void,
     // The `context` field is never accessed, but implicitly does
@@ -1349,4 +1351,17 @@ pub fn z85_decode(data: &str) -> result::Result<Vec<u8>, DecodeError> {
     }
 
     Ok(dest)
+}
+
+
+#[cfg(test)]
+mod tests {
+    use crate::Context;
+    use crate::SocketType;
+
+    #[test]
+    fn debug_works() {
+        println!("{:?}", Context::new());
+        println!("{:?}", Context::new().socket(SocketType::REQ));
+    }
 }
