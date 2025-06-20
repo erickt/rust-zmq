@@ -35,6 +35,7 @@ mod sockopt;
 
 use crate::message::msg_ptr;
 pub use crate::message::Message;
+pub use crate::DeviceType::*;
 pub use crate::SocketType::*;
 
 /// `zmq`-specific Result type.
@@ -91,6 +92,36 @@ impl SocketType {
             zmq_sys::ZMQ_XSUB => XSUB,
             zmq_sys::ZMQ_STREAM => STREAM,
             _ => panic!("socket type is out of range!"),
+        }
+    }
+}
+
+/// Device types
+#[allow(non_camel_case_types)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum DeviceType {
+    STREAMER,
+    FORWARDER,
+    QUEUE,
+}
+
+impl DeviceType {
+    fn to_raw(self) -> c_int {
+        let raw = match self {
+            STREAMER => zmq_sys::ZMQ_STREAMER,
+            FORWARDER => zmq_sys::ZMQ_FORWARDER,
+            QUEUE => zmq_sys::ZMQ_QUEUE,
+        };
+        raw as c_int
+    }
+
+    fn from_raw(raw: c_int) -> DeviceType {
+        match raw as u32 {
+            zmq_sys::ZMQ_STREAMER => STREAMER,
+            zmq_sys::ZMQ_FORWARDER => FORWARDER,
+            zmq_sys::ZMQ_QUEUE => QUEUE,
+            // return STREAMER instead of panic
+            _ => STREAMER,
         }
     }
 }
@@ -1128,6 +1159,18 @@ pub fn poll(items: &mut [PollItem], timeout: i64) -> Result<i32> {
         )
     });
     Ok(rc as i32)
+}
+
+/// Start a 0MQ device in the current thread.
+///
+/// A device connects a frontend socket with a backend socket, where both the
+/// server and client are dynamic
+///
+/// This function only returns (always with an `Err`) when the sockets' context
+/// has been closed.
+pub fn device(device_type: DeviceType, frontend: &Socket, backend: &Socket) -> Result<()> {
+    zmq_try!(unsafe { zmq_sys::zmq_device(device_type.to_raw(), frontend.sock, backend.sock,) });
+    Ok(())
 }
 
 /// Start a 0MQ proxy in the current thread.
