@@ -415,6 +415,7 @@ pub struct zmq_pollitem_t {
     pub revents: ::std::os::raw::c_short,
 }
 #[test]
+#[cfg(target_pointer_width = "64")]
 fn bindgen_test_layout_zmq_pollitem_t() {
     assert_eq!(
         ::std::mem::size_of::<zmq_pollitem_t>(),
@@ -459,6 +460,59 @@ fn bindgen_test_layout_zmq_pollitem_t() {
     assert_eq!(
         unsafe { &(*(::std::ptr::null::<zmq_pollitem_t>())).revents as *const _ as usize },
         14usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(zmq_pollitem_t),
+            "::",
+            stringify!(revents)
+        )
+    );
+}
+#[cfg(not(target_pointer_width = "64"))]
+fn bindgen_test_layout_zmq_pollitem_t() {
+    assert_eq!(
+        ::std::mem::size_of::<zmq_pollitem_t>(),
+        12usize,
+        concat!("Size of: ", stringify!(zmq_pollitem_t))
+    );
+    assert_eq!(
+        ::std::mem::align_of::<zmq_pollitem_t>(),
+        4usize,
+        concat!("Alignment of ", stringify!(zmq_pollitem_t))
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<zmq_pollitem_t>())).socket as *const _ as usize },
+        0usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(zmq_pollitem_t),
+            "::",
+            stringify!(socket)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<zmq_pollitem_t>())).fd as *const _ as usize },
+        4usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(zmq_pollitem_t),
+            "::",
+            stringify!(fd)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<zmq_pollitem_t>())).events as *const _ as usize },
+        8usize,
+        concat!(
+            "Offset of field: ",
+            stringify!(zmq_pollitem_t),
+            "::",
+            stringify!(events)
+        )
+    );
+    assert_eq!(
+        unsafe { &(*(::std::ptr::null::<zmq_pollitem_t>())).revents as *const _ as usize },
+        10usize,
         concat!(
             "Offset of field: ",
             stringify!(zmq_pollitem_t),
