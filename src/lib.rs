@@ -750,11 +750,10 @@ impl Socket {
 
     /// Receive a `String` from the socket.
     ///
-    /// If the received message is not valid UTF-8, it is returned as the original
-    /// Vec in the `Err` part of the inner result.
-    pub fn recv_string(&self, flags: i32) -> Result<result::Result<String, Vec<u8>>> {
-        self.recv_bytes(flags)
-            .map(|bytes| String::from_utf8(bytes).map_err(FromUtf8Error::into_bytes))
+    /// If the received message is not valid UTF-8, a [`FromUtf8Error`] is returned and the original
+    /// bytes can be retrieved via [`FromUtf8Error::into_bytes()`].
+    pub fn recv_string(&self, flags: i32) -> Result<result::Result<String, FromUtf8Error>> {
+        self.recv_bytes(flags).map(String::from_utf8)
     }
 
     /// Receive a multipart message from the socket.
@@ -887,7 +886,7 @@ impl Socket {
         sockopt::get_bytes(self.sock, zmq_sys::ZMQ_ROUTING_ID as c_int, 255)
     }
 
-    pub fn get_socks_proxy(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_socks_proxy(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 255 = longest allowable domain name is 253 so this should
         // be a reasonable size.
         sockopt::get_string(self.sock, zmq_sys::ZMQ_SOCKS_PROXY as c_int, 255, true)
@@ -903,17 +902,17 @@ impl Socket {
         })
     }
 
-    pub fn get_plain_username(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_plain_username(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 255 = arbitrary size
         sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_USERNAME as c_int, 255, true)
     }
 
-    pub fn get_plain_password(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_plain_password(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 256 = arbitrary size based on std crypto key size
         sockopt::get_string(self.sock, zmq_sys::ZMQ_PLAIN_PASSWORD as c_int, 256, true)
     }
 
-    pub fn get_zap_domain(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_zap_domain(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 255 = arbitrary size
         sockopt::get_string(self.sock, zmq_sys::ZMQ_ZAP_DOMAIN as c_int, 255, true)
     }
@@ -926,7 +925,7 @@ impl Socket {
     /// used with the wildcard address (`"*"`), in the address
     /// returned, the wildcard will be expanded into the any address
     /// (i.e. `0.0.0.0` with IPv4).
-    pub fn get_last_endpoint(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_last_endpoint(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 256 + 9 + 1 = maximum inproc name size (= 256) + "inproc://".len() (= 9), plus null byte
         sockopt::get_string(
             self.sock,
@@ -964,12 +963,12 @@ impl Socket {
         sockopt::get_bytes(self.sock, zmq_sys::ZMQ_CURVE_SERVERKEY as c_int, 32)
     }
 
-    pub fn get_gssapi_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_gssapi_principal(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(self.sock, zmq_sys::ZMQ_GSSAPI_PRINCIPAL as c_int, 260, true)
     }
 
-    pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, Vec<u8>>> {
+    pub fn get_gssapi_service_principal(&self) -> Result<result::Result<String, FromUtf8Error>> {
         // 260 = best guess of max length based on docs.
         sockopt::get_string(
             self.sock,

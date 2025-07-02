@@ -63,13 +63,13 @@ pub fn get_string(
     opt: c_int,
     size: size_t,
     remove_nulbyte: bool,
-) -> Result<result::Result<String, Vec<u8>>> {
+) -> Result<result::Result<String, FromUtf8Error>> {
     let mut value = get_bytes(sock, opt, size)?;
 
     if remove_nulbyte {
         value.pop();
     }
-    Ok(String::from_utf8(value).map_err(FromUtf8Error::into_bytes))
+    Ok(String::from_utf8(value))
 }
 
 macro_rules! setsockopt_num(
